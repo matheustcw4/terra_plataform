@@ -1,0 +1,19 @@
+# Contexto da imagem do painel (docker/web/Dockerfile, construída da raiz): só o front e a configuração do Caddy.
+# Os dados reais de clientes, os segredos e o git nunca entram no contexto.
+.git/
+.env
+.env.*
+dados_exemplo/
+planilhas/
+backups/
+rclone/
+backend/
+docs/
+.idea/
+.run/
+.claude/
+frontend/node_modules/
+frontend/dist/
+**/*.xlsm
+**/*.xlsx
+**/*.pbix

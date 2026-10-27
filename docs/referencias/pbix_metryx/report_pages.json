@@ -1,0 +1,3883 @@
+[
+ {
+  "page": "MENU 01",
+  "visuals": [
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "slicer",
+    "title": "'Safra'",
+    "fields": {
+     "Values": [
+      "dCalendar.safra"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'PROPRIETÁRIO'",
+    "fields": {
+     "Values": [
+      "fUnidades.customer"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'FAZENDA'",
+    "fields": {
+     "Values": [
+      "fUnidades.farmname"
+     ]
+    }
+   },
+   {
+    "type": "actionButton",
+    "title": "''",
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "slicer",
+    "title": "'Mês'",
+    "fields": {
+     "Values": [
+      "dCalendar.mesano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Parâmetro - Data.Parâmetro - Data"
+     ]
+    }
+   },
+   {
+    "type": "actionButton",
+    "title": "'Safra Desabilitado'",
+    "fields": {}
+   },
+   {
+    "type": "actionButton",
+    "title": "'Cívil Desabilitado'",
+    "fields": {}
+   },
+   {
+    "type": "slicer",
+    "title": "'Ano'",
+    "fields": {
+     "Values": [
+      "dCalendar.Ano"
+     ]
+    }
+   },
+   {
+    "type": "actionButton",
+    "title": "'Safra Habilitado'",
+    "fields": {}
+   },
+   {
+    "type": "actionButton",
+    "title": "'Cívil Habilitado'",
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "textbox",
+    "title": null,
+    "fields": {}
+   }
+  ]
+ },
+ {
+  "page": "Financeiro",
+  "visuals": [
+   {
+    "type": "clusteredColumnChart",
+    "title": "'RELAÇÃO DESEMBOLSO TOTAL'",
+    "fields": {
+     "Category": [
+      "financeiroDre.costcenter"
+     ],
+     "Y": [
+      "Analytics Measures.Expenses Graph"
+     ]
+    }
+   },
+   {
+    "type": "gauge",
+    "title": "'DESEMBOLSO CABEÇA MÊS'",
+    "fields": {
+     "Y": [
+      "Analytics Measures.head outlay accumulated"
+     ],
+     "TargetValue": [
+      "Analytics Measures.head outlat accumulated - forecast"
+     ]
+    }
+   },
+   {
+    "type": "gauge",
+    "title": "'CUSTEIO CABEÇA MÊS'",
+    "fields": {
+     "Y": [
+      "Analytics Measures.Costing head Accumulated"
+     ],
+     "TargetValue": [
+      "Analytics Measures.Costing Head accumulated - forecast"
+     ]
+    }
+   },
+   {
+    "type": "gauge",
+    "title": "'Valor de Venda @'",
+    "fields": {
+     "MaxValue": [
+      "Analytics Measures.MAX AVG Price @ Forecast"
+     ],
+     "Y": [
+      "Analytics Measures.AVG Price @ (Em Pe + Abate)"
+     ],
+     "TargetValue": [
+      "Analytics Measures.AVG Price @ (Em Pe + Abate) - Forecast"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": "'DESEMBOLSO'",
+    "fields": {
+     "Data": [
+      "Analytics Measures.Outlay",
+      "Analytics Measures.Revenues"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "clusteredColumnChart",
+    "title": "'REALIZADO X PLANEJADO - RECEITAS'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Revenues",
+      "Analytics Measures.Revenues Forecast"
+     ]
+    }
+   },
+   {
+    "type": "clusteredColumnChart",
+    "title": "'Realizado x Planejado - Desembolso/cab/mês'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.head outlay mOm",
+      "Analytics Measures.head outlay mOm (forecast)"
+     ]
+    }
+   },
+   {
+    "type": "clusteredColumnChart",
+    "title": "'REALIZADO X PLANEJADO - DESEMBOLSO'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Expenses Graph",
+      "Analytics Measures.Expenses Forecast"
+     ]
+    }
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'FLUXO DE CAIXA MENSAL'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Revenues",
+      "Analytics Measures.Expenses Graph"
+     ],
+     "Y2": [
+      "Analytics Measures.Balance"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "slicer",
+    "title": "'PROPRIETÁRIO'",
+    "fields": {
+     "Values": [
+      "fUnidades.customer"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'FAZENDA'",
+    "fields": {
+     "Values": [
+      "fUnidades.farmname"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Ano'",
+    "fields": {
+     "Values": [
+      "dCalendar.Ano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Mês'",
+    "fields": {
+     "Values": [
+      "dCalendar.mesano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Parâmetro - Data.Parâmetro - Data"
+     ]
+    }
+   },
+   {
+    "type": "tableEx",
+    "title": "'RELAÇÃO DESEMBOLSO TOTAL'",
+    "fields": {
+     "Values": [
+      "financeiroDre.costcenter",
+      "Sum(financeiroDre.amountpaid)",
+      "Sum(financeiroDre.amountpaid)1",
+      "financeiroDre.status",
+      "financeiroDre.subcenter",
+      "financeiroDre.parcel",
+      "financeiroDre.doctype",
+      "financeiroDre.duedate",
+      "financeiroDre.code"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "page": "Movimentação do Gado",
+  "visuals": [
+   {
+    "type": "slicer",
+    "title": "'PROPRIETÁRIO'",
+    "fields": {
+     "Values": [
+      "fUnidades.customer"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'FAZENDA'",
+    "fields": {
+     "Values": [
+      "fUnidades.farmname"
+     ]
+    }
+   },
+   {
+    "type": "clusteredColumnChart",
+    "title": "'ESTOQUE FINAL MENSAL'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Sum(fSaldoGado.amountacc)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Indice de Mortalidade"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% mORTALITY ( MEAN MONTH)"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - % Meta"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Nascimentos (Label)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Birth Quantity"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Birth x Forecast"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Nascimentos (Label - 2)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Lotação UA"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Mean Month"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Rebanho Médio Cab"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.UA Median Ha"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Rebanho Médio UA"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.UA Median Month"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Lotação Cab"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Mean Month Ha"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Rebanho Médio"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Mortes"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - % Meta"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Mortes (2)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Dead Quantity"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Death x Death Forecast"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - % Meta"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioCompras.qtd)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Compras (Label 2 )"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Amount Saled"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - % Meta"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Purchased Quantity"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Vendas (Label)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Amount Saled"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - COMPRA X VENDA"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Ano'",
+    "fields": {
+     "Values": [
+      "dCalendar.Ano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Mês'",
+    "fields": {
+     "Values": [
+      "dCalendar.Nome do Mês"
+     ]
+    }
+   },
+   {
+    "type": "clusteredColumnChart",
+    "title": "'ESTOQUE POR CATEGORIA'",
+    "fields": {
+     "Category": [
+      "fSaldoGado.category"
+     ],
+     "Y": [
+      "fSaldoGado.Saldo Acumulado"
+     ]
+    }
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "fSaldoGado.Saldo Acumulado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioRebanhoMedioMensal.amount)"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "page": "Venda Abate",
+  "visuals": [
+   {
+    "type": "slicer",
+    "title": "'Ano'",
+    "fields": {
+     "Values": [
+      "dCalendar.Ano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Mês'",
+    "fields": {
+     "Values": [
+      "Parâmetro - Data.Parâmetro - Data Campos"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'PROPRIETÁRIO'",
+    "fields": {
+     "Values": [
+      "fUnidades.customer"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'FAZENDA'",
+    "fields": {
+     "Values": [
+      "fUnidades.farmname"
+     ]
+    }
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'RELAÇÃO MENSAL - VENDA EM CABEÇAS'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Amount Saled (Abate)",
+      "Analytics Measures.Amount Saled - Forecast (Abate)"
+     ],
+     "Y2": [
+      "Analytics Measures.Invoicing Accumulated (Abate)"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Incoicing - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Fêmea"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Invoicing Abate"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Faturamento"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Incoicing - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Macho"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Invoicing Abate"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Faturamento"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Faturamento"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Incoicing - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Geral"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Invoicing Abate"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioVendaAbate.qtd)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Dead Sale"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Valor da @"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Rendimento Carcaça"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Rendimento de Carcaça"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças Vendidas"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasAbate.amount)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Peso Médio"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Fêmea"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Dead Sale - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Rendimento Carcaça (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioVendaAbate.qtd)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Dead Sale"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Valor da @"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças Vendidas"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Rendimento Carcaça"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Rendimento de Carcaça"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Peso Médio"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasAbate.amount)"
+     ]
+    }
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Macho"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Dead Sale - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Rendimento Carcaça (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças Vendidas"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Dead Sale"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Valor da @"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Rendimento Carcaça"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Rendimento de Carcaça"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Peso Médio"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioVendaAbate.qtd)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasAbate.amount)"
+     ]
+    }
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Geral"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Dead Sale - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Rendimento Carcaça (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'RELAÇÃO MENSAL - FATURAMENTO'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Incoicing - Forecast",
+      "Analytics Measures.Invoicing Abate"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "page": "Venda em Pé",
+  "visuals": [
+   {
+    "type": "slicer",
+    "title": "'Ano'",
+    "fields": {
+     "Values": [
+      "dCalendar.Ano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Mês'",
+    "fields": {
+     "Values": [
+      "Parâmetro - Data.Parâmetro - Data Campos"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'PROPRIETÁRIO'",
+    "fields": {
+     "Values": [
+      "fUnidades.customer"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'FAZENDA'",
+    "fields": {
+     "Values": [
+      "fUnidades.farmname"
+     ]
+    }
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'RELAÇÃO MENSAL - FATURAMENTO'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Invoicing (Em Pe )",
+      "Analytics Measures.Incoicing - Forecast (Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'RELAÇÃO MENSAL - VENDA EM CABEÇAS'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Amount Saled (Em pe)",
+      "Analytics Measures.Amount Saled - Forecast (Em Pe)"
+     ],
+     "Y2": [
+      "Analytics Measures.Invoicing Accumulated (Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Incoicing - Forecast (Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Fêmea"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Invoicing (Em Pe )"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Faturamento"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Incoicing - Forecast (Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Macho"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Invoicing (Em Pe )"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Faturamento"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Faturamento"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Incoicing - Forecast (Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Geral"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Invoicing (Em Pe )"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioVendaEmPe.qtd)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Sale Venda em Pe"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Valor da @"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price KG Sale Venda em Pe"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Preço do KG"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças Vendidas"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasEmPe.amount)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Peso Médio"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Fêmea"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight (Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Sale Venda em Pe - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price KG Sale Venda em Pe - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight (Forecast - Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioVendaEmPe.qtd)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Sale Venda em Pe"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Valor da @"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças Vendidas"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price KG Sale Venda em Pe"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Preço do KG"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Peso Médio"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasEmPe.amount)"
+     ]
+    }
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Macho"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight (Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Sale Venda em Pe - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price KG Sale Venda em Pe - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight (Forecast - Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças Vendidas"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Sale Venda em Pe"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Valor da @"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price KG Sale Venda em Pe"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Preço do KG"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Peso Médio"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasEmPe.amount)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasEmPe.amount)"
+     ]
+    }
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Geral"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight (Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price @ Sale Venda em Pe - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Price KG Sale Venda em Pe - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - AVG Live Weight (Forecast - Em Pe)"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   }
+  ]
+ },
+ {
+  "page": "Compras",
+  "visuals": [
+   {
+    "type": "slicer",
+    "title": "'Ano'",
+    "fields": {
+     "Values": [
+      "dCalendar.Ano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Mês'",
+    "fields": {
+     "Values": [
+      "Parâmetro - Data.Parâmetro - Data Campos"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'PROPRIETÁRIO'",
+    "fields": {
+     "Values": [
+      "fUnidades.customer"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'FAZENDA'",
+    "fields": {
+     "Values": [
+      "fUnidades.farmname"
+     ]
+    }
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'RELAÇÃO DESEMBOLSO DE COMPRAS'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Total Paid",
+      "Analytics Measures.Total Paid - Forecast"
+     ],
+     "Y2": [
+      "Analytics Measures.@ AVG Price Purchase"
+     ]
+    }
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'RELAÇÃO CABEÇAS COMPRADAS'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Purchased Quantity",
+      "Analytics Measures.Purchased Quantity - Forecast"
+     ],
+     "Y2": [
+      "Analytics Measures.Purchase Quantity Accumulated"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasCompras.amount)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioCompras.qtd)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças Compradas"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Preço do KG"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Peso Médio"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Fêmea"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Purchase Price KG (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Purchase Price KG"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN AVG - Peso Médio de Compra (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN AVG - Peso Médio de Compra"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasCompras.amount)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioCompras.qtd)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças Compradas"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Preço do KG"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Peso Médio"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Macho"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Purchase Price KG (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Purchase Price KG"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN AVG - Peso Médio de Compra (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN AVG - Peso Médio de Compra"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasCompras.amount)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioCompras.qtd)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças Compradas"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Preço do KG"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Peso Médio"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Geral"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Purchase Price KG (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.AVG Purchase Price KG"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN AVG - Peso Médio de Compra (Forecast)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN AVG - Peso Médio de Compra"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.@ AVG Price Purchase"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Ágio"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Valor da @ Compra"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Ágio"
+     ]
+    }
+   },
+   {
+    "type": "actionButton",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Inv Planejado"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Total Paid"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Total Paid - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Fêmea"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Inv Realizado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Total Paid - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Macho"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Total Paid"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Inv Realizado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Inv Planejado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Inv Planejado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Total Paid - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Geral"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Total Paid"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Inv Realizado"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "page": "Nascimento",
+  "visuals": [
+   {
+    "type": "slicer",
+    "title": "'Ano'",
+    "fields": {
+     "Values": [
+      "dCalendar.Ano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Mês'",
+    "fields": {
+     "Values": [
+      "Parâmetro - Data.Parâmetro - Data Campos"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'PROPRIETÁRIO'",
+    "fields": {
+     "Values": [
+      "fUnidades.customer"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'FAZENDA'",
+    "fields": {
+     "Values": [
+      "fUnidades.farmname"
+     ]
+    }
+   },
+   {
+    "type": "actionButton",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'NASCIMENTOS - REALIZADO X PLANEJADO - MENSAL'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Birth Quantity",
+      "Analytics Measures.Birth Quantity - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'NASCIMENTOS - REALIZADO X PLANEJADO - ACUMULADO'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y2": [
+      "Analytics Measures.Birth Quantity Accumulated",
+      "Analytics Measures.Birth Quantity Accumulated - Forecast"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasNascimentos.amount)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Fêmea"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Nascimentos"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Nascimentos (Label - 2)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioNascimento.amount)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - % Female Birth"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - % Male Birth"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioNascimento.amount)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Nascimentos (Label - 2)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Nascimentos"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasNascimentos.amount)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Macho"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Birth x Forecast"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(pecuarioNascimento.amount)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Nascimentos (Label - 2)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Nascimentos"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Sum(fMetasNascimentos.amount)"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Geral"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Planejado"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Realizado"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   }
+  ]
+ },
+ {
+  "page": "Mortes",
+  "visuals": [
+   {
+    "type": "slicer",
+    "title": "'Ano'",
+    "fields": {
+     "Values": [
+      "dCalendar.Ano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Mês'",
+    "fields": {
+     "Values": [
+      "Parâmetro - Data.Parâmetro - Data Campos"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'PROPRIETÁRIO'",
+    "fields": {
+     "Values": [
+      "fUnidades.customer"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'FAZENDA'",
+    "fields": {
+     "Values": [
+      "fUnidades.farmname"
+     ]
+    }
+   },
+   {
+    "type": "actionButton",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'REALIZADO X PLANEJADO - ACUMULADO GERAL'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Dead Quantity Accumulated",
+      "Analytics Measures.Dead Quantity Accumulated - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "lineClusteredColumnComboChart",
+    "title": "'MORTES - REALIZADO X PLANEJADO - MENSAL'",
+    "fields": {
+     "Category": [
+      "dCalendar.mesano"
+     ],
+     "Y": [
+      "Analytics Measures.Dead Quantity",
+      "Analytics Measures.Dead Quantity forecast"
+     ],
+     "Y2": [
+      "Analytics Measures.Dead Quantity Accumulated"
+     ]
+    }
+   },
+   {
+    "type": "clusteredBarChart",
+    "title": "'Causa Morte'",
+    "fields": {
+     "Y": [
+      "Analytics Measures.Dead Quantity"
+     ],
+     "Category": [
+      "pecuarioMortes.causa"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Mortality ( AVG Month)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Dead Quantity"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Mortalidade sobre Rebanho Médio"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Mortalidade sobre Nascimento"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Mortality"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Dead Quantity - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Bezerro"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Mortality ( AVG Month)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Dead Quantity"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Mortalidade sobre Rebanho Médio"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Dead Quantity - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Jovens"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Mortality ( AVG Month)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Dead Quantity"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Mortalidade sobre Rebanho Médio"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Dead Quantity - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Adultos"
+     ]
+    }
+   },
+   {
+    "type": null,
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Cabeças"
+     ]
+    }
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.% Mortality ( AVG Month)"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Dead Quantity"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Mortalidade sobre Rebanho Médio"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.IN - Meta"
+     ]
+    }
+   },
+   {
+    "type": "card",
+    "title": null,
+    "fields": {
+     "Values": [
+      "Analytics Measures.Dead Quantity - Forecast"
+     ]
+    }
+   },
+   {
+    "type": "image",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "shape",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "cardVisual",
+    "title": null,
+    "fields": {
+     "Data": [
+      "Analytics Measures.IN - Geral"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "page": "Planejado x Realizado",
+  "visuals": [
+   {
+    "type": "slicer",
+    "title": "'Ano'",
+    "fields": {
+     "Values": [
+      "dCalendar.Ano"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'Mês'",
+    "fields": {
+     "Values": [
+      "Parâmetro - Data.Parâmetro - Data Campos"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'PROPRIETÁRIO'",
+    "fields": {
+     "Values": [
+      "fUnidades.customer"
+     ]
+    }
+   },
+   {
+    "type": "slicer",
+    "title": "'FAZENDA'",
+    "fields": {
+     "Values": [
+      "fUnidades.farmname"
+     ]
+    }
+   },
+   {
+    "type": "actionButton",
+    "title": null,
+    "fields": {}
+   },
+   {
+    "type": "tableEx",
+    "title": null,
+    "fields": {
+     "Values": [
+      "fPlanejadoxRealizado.classificacao"
+     ]
+    }
+   },
+   {
+    "type": "pivotTable",
+    "title": null,
+    "fields": {
+     "Rows": [
+      "fPlanejadoxRealizado.classificacao",
+      "fPlanejadoxRealizado.costcenter"
+     ],
+     "Values": [
+      "Analytics Measures.Valor Último Mês Selecionado",
+      "Analytics Measures.Meta Último Mês Selecionado",
+      "Analytics Measures.% Variação Graph",
+      "Analytics Measures.Value Accumulated",
+      "Analytics Measures.Meta Accumulated",
+      "Analytics Measures.% Variação Acc Graph"
+     ]
+    }
+   }
+  ]
+ }
+]

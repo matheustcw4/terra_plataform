@@ -1,0 +1,44 @@
+# segredos
+.env
+.env.*
+!.env.example
+!.env.producao.example
+
+# dados reais de clientes (nunca versionar)
+dados_exemplo/
+# pastas da VPS no compose de produção: planilhas (dados de clientes), backups e config do rclone
+/planilhas/
+/backups/
+/rclone/
+*.xlsm
+*.xlsx
+*.pbix
+!backend/tests/fixtures/**/*.xlsm
+!backend/tests/fixtures/**/*.xlsx
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# node / front
+node_modules/
+dist/
+coverage/
+*.local
+
+# ide / so
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# build python
+*.egg-info/
+build/

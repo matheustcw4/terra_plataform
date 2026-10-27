@@ -1,0 +1,294 @@
+TableName,ColumnName,Expression
+DateTableTemplate_921fb57a-bf20-482b-a577-c51ccede3e28,Ano,YEAR([Date])
+DateTableTemplate_921fb57a-bf20-482b-a577-c51ccede3e28,MonthNo,MONTH([Date])
+DateTableTemplate_921fb57a-bf20-482b-a577-c51ccede3e28,Mês,"FORMAT([Date], ""MMMM"")"
+DateTableTemplate_921fb57a-bf20-482b-a577-c51ccede3e28,QuarterNo,INT(([MonthNo] + 2) / 3)
+DateTableTemplate_921fb57a-bf20-482b-a577-c51ccede3e28,Trimestre,"""Qtr "" & [QuarterNo]"
+DateTableTemplate_921fb57a-bf20-482b-a577-c51ccede3e28,Dia,DAY([Date])
+pecuarioCompras,Paid,pecuarioCompras[kgValue] * pecuarioCompras[totalWeight]
+dCalendar,Classificador Mês-Ano,"
+100 * dCalendar[Ano] + dCalendar[Mês]"
+pecuarioVendaAbate,Total Value,pecuarioVendaAbate[valueWeight] * pecuarioVendaAbate[weightAvg]
+pecuarioRebanhoMedioMensal,farm,"""FAZENDA EXEMPLO"""
+pecuarioRebanhoMedioMensal,Forecast,(pecuarioRebanhoMedioMensal[qtd_cab] * 0.1) + pecuarioRebanhoMedioMensal[qtd_cab]
+pecuarioMortes,forecast,int((pecuarioMortes[qtd] * 0.8) +  pecuarioMortes[qtd])
+pecuarioVendaAbate,teste,pecuarioVendaAbate[valueWeight] / 15
+fMovGado,Nascimento,"IF(pecuarioDMG[origin] = ""Nascimento"",fMovGado[amount],0)"
+fMovGado,Morte,"IF(pecuarioDMG[origin] = ""Morte"",fMovGado[amount],0)"
+fMovGado,Inicial,"IF(fMovGado[OPERAÇÃO] = ""Saldo Anterior"",fMovGado[QTD C],0)"
+fMovGado,Vendas,"IF(fMovGado[OPERAÇÃO] = ""Venda"",fMovGado[QTD C],0)"
+fMovGado,Type Operation,"
+IF(fMovGado[QTD] < 0 ,""Saída"",
+    IF(
+        fMovGado[OPERAÇÃO] IN {  ""ABATE"",
+                                    ""Consumo/Doação"",
+                                    ""MORTE"",
+                                    ""EMPÉ"",
+                                    ""Transf. Saida""},""Saída"",""Entrada""
+    )
+)"
+fMovGado,Mudança de Categoria (Saída),"IF(pecuarioDMG[originEnum] = ""CATEGORY_CHANGE_OUT"",fMovGado[amount],0)"
+fMovGado,Mudança de Categoria (Entrada),"IF(pecuarioDMG[originEnum] = ""CATEGORY_CHANGE_IN"",fMovGado[amount],0)"
+fMovGado,Origin Ordenated,"
+SWITCH(fMovGado[origin],""Saldo Anterior"", ""1 - Saldo Anterior"", ""Compra"", ""2 - Compra"")"
+financeiroDre,Type Operation,financeiroDre[Credito/Debito]
+pecuarioVendaAbate,Peso Morto Total,pecuarioVendaAbate[pesomorto_total]
+pecuarioVendaAbate,Total de @,pecuarioVendaAbate[peso_arroba] * pecuarioVendaAbate[qtd]
+pecuarioVendaEmPe,Total de @,pecuarioVendaEmPe[pesovivo_total] / 30
+pecuarioVendaAbate,tipovenda,"""Abate"""
+pecuarioVendaEmPe,tipovenda,"""Em Pe"""
+financeiroDre,Desembolso,"IF(financeiroDre[desembolso-CAT]=""DCM"",'financeiroDre'[valor] *-1,0)"
+financeiroDre,Custeio,"IF(financeiroDre[custeio-CAT] = ""CCM"" ,'financeiroDre'[valor] ,0)"
+financeiroDre,Class subcenter,"
+IF('financeiroDre'[subCenter] IN {
+                                                    ""Compra equipamentos informática, telefonia e comunicação"",
+                                                    ""Novas instalações pecuárias"",
+                                                    ""Novas instalações residenciais"",
+                                                    ""Novas construções, barracões e outros"",
+                                                    ""Novos móveis e eletrodomésticos"",
+                                                    ""Nova rede elétrica"",
+                                                    ""Projetos, medições e outros"",
+                                                    ""Reflorestamento"",
+                                                    ""Solo, contenções, destoca e recuperação"",
+                                                    ""Compra veículos, tratores e implementos"",
+                                                    ""Formação de pasto"",
+                                                    ""Imóveis rurais e urbanos"",
+                                                    ""Investimento em segurança"",
+                                                    ""Nova rede hidráulica"",
+                                                    ""Novas cercas"",
+                                                    ""Novas estradas e pontes"",
+                                                    ""Novas ferramentas e equipamentos"",
+                                                    "" Cursos e treinamentos"",
+                                                    "" Eventos e presentes"",
+                                                    "" Benefícios à funcionarios"",
+                                                    "" Uniformes e EPI"",
+                                                    "" Compra de aves"",
+                                                    "" Compra suínos"",
+                                                    "" Compra tropa de serviço"",
+                                                    "" Compra tropa reprodução"",
+                                                    "" Compra de ovinos""
+                                                },""INVESTIMENTOS"",
+                                                IF('financeiroDre'[subCenter] IN {
+                                                        "" Aluguéis e Condomínios"",
+                                                        "" Comunicação e energia da fazenda"",
+                                                        "" Contabilidade, jurídico, consultorias e sistemas"",
+                                                        "" Deslocamento, alimentação e hospedagem"",
+                                                        "" Despesa financeira"",
+                                                        "" Despesas casa sede"",
+                                                        "" Outras despesas administrativas"",
+                                                        "" Horta, pomar e jardins"",
+                                                        "" Manutenção rede elétrica"",
+                                                        "" Manutenção rede hidráulica"",
+                                                        "" Manutenção de cercas"",
+                                                        "" Manutenção, construções, barracões e outros"",
+                                                        "" Manutenção em segurança"",
+                                                        "" Manutenção estradas e pontes"",
+                                                        "" Manutenção ferramentas e equipamentos"",
+                                                        "" Manutenção informática"",
+                                                        "" Manutenção instalações pecuárias"",
+                                                        "" Manutenção instalações residenciais"",
+                                                        "" Manutenção móveis e eletrodomésticos"",
+                                                        "" Combustíveis"",
+                                                        "" Manutenção e conserto de máquinas e implementos"",
+                                                        "" Seguros, impostos, multas e outros"",
+                                                        "" Custeio de aves"",
+                                                        "" Custeio tropa reprodução"",
+                                                        "" Ovinos"",
+                                                        "" Suínos"",
+                                                        "" Taxas e impostos"",
+                                                        "" Taxas e impostos. S/Venda"",
+                                                        "" Taxas e impostos S/Lucro"",
+                                                        "" Taxas, Impostos Sobre Propriedade, ITR, IPTU""
+                                                    },""MAO DE OBRA PERMANENTE"",
+                                                    IF('financeiroDre'[subCenter] IN {
+                                                            "" Colheita e transporte"",
+                                                            "" Corretivos, fertilizantes e adubos"",
+                                                            "" Defensivos"",
+                                                            "" Despesas comerciais e outras"",
+                                                            "" Parceria agrícola"",
+                                                            "" Sementes/Mudas, tratamentos e serviços"",
+                                                            "" Energia para irrigação agrícola"",
+                                                            "" Aluguel de Máquinas Terceirizadas"",
+                                                            "" Preparo de Solo ""
+                                                            },""DESPESAS COM ATIVIDADES PRODUTIVAS"",
+                                                            IF('financeiroDre'[subCenter] IN {
+                                                                    ""Colheita e transporte"",
+                                                                    ""Corretivos, fertilizantes e adubos"",
+                                                                    ""Defensivos"",
+                                                                    ""Despesas comerciais e outras"",
+                                                                    ""Parceria agrícola"",
+                                                                    ""Sementes/Mudas, tratamentos e serviços"",
+                                                                    ""Energia para irrigação agrícola"",
+                                                                    ""Aluguel de Máquinas Terceirizadas"",
+                                                                    ""Preparo de Solo "",
+                                                                    ""Arrendamento de pastagem""	,
+                                                                    ""Manutenção de pastagem"",                                                                           
+                                                                    ""Despesas comercias, fretes e comissões""	,
+                                                                    ""Identificação animal e rastreamento""	,
+                                                                    ""Nutrição""	,
+                                                                    ""Reprodução""	,
+                                                                    ""Sanidade""	,
+                                                                    ""Melhoramento genético""	,
+                                                                    ""Energia para irrigação pecuária""
+                                                                    },""DESPESAS COM ATIVIDADES PRODUTIVAS"",""DEMAIS DESPESAS""
+                                                            )
+                                                        )
+                                                )
+)"
+LocalDateTable_f7150c8f-ae21-48e2-b4e4-ff5e4d2e7b04,Ano,YEAR([Date])
+LocalDateTable_f7150c8f-ae21-48e2-b4e4-ff5e4d2e7b04,MonthNo,MONTH([Date])
+LocalDateTable_f7150c8f-ae21-48e2-b4e4-ff5e4d2e7b04,Mês,"FORMAT([Date], ""MMMM"")"
+LocalDateTable_f7150c8f-ae21-48e2-b4e4-ff5e4d2e7b04,QuarterNo,INT(([MonthNo] + 2) / 3)
+LocalDateTable_f7150c8f-ae21-48e2-b4e4-ff5e4d2e7b04,Trimestre,"""Qtr "" & [QuarterNo]"
+LocalDateTable_f7150c8f-ae21-48e2-b4e4-ff5e4d2e7b04,Dia,DAY([Date])
+pecuarioVendaEmPe,Peso Total,pecuarioVendaEmPe[pesovivo_total]
+fMovGado,QTD C,"IF(fMovGado[QTD] < 0, fMovGado[QTD], IF(fMovGado[Type Operation] = ""Entrada"",fMovGado[QTD],fMovGado[QTD] * -1))"
+financeiroDre,F/V,"IF(financeiroDre[tipo_custeio-CAT] IN {""Receita Pec"",""Receita outras"",""Receita Agr""}, ""A - RECEITAS"",
+        IF(financeiroDre[tipo_custeio-CAT] = ""CF"",""B - CUSTO FIXO"",
+            IF(financeiroDre[tipo_custeio-CAT] = ""CV"",""C - CUSTO VARIAVEL"",
+                IF(financeiroDre[tipo_custeio-CAT] = ""Financiamentos"",""D - FINANCIAMENTOS"",""VERIFICAR""
+
+                )
+            )
+        )
+    )"
+pecuarioVendaEmPe,Peso Morto,pecuarioVendaEmPe[pesovivo_total] / 30
+fMetasDre,Desembolso,"IF(fmetasDre[desembolso-CAT]=""DCM"",'fmetasDre'[valor] *-1,0)"
+fMetasDre,F/V,"IF(fMetasDre[tipo_custeio-CAT] IN {""Receita Pec"",""Receita outras"",""Receita Agr""}, ""A - RECEITAS"",
+        IF(fMetasDre[tipo_custeio-CAT] = ""CF"",""B - CUSTO FIXO"",
+            IF(fMetasDre[tipo_custeio-CAT] = ""CV"",""C - CUSTO VARIAVEL"",
+                IF(fMetasDre[tipo_custeio-CAT] = ""Financiamentos"",""D - FINANCIAMENTOS"",""VERIFICAR""
+
+                )
+            )
+        )
+    )"
+fMetasDre,Custeio,"IF(fmetasDre[custeio-CAT] = ""CCM"" ,'fmetasDre'[valor] ,0)"
+fMetasEmPe,Peso Morto,fMetasEmPe[pesovivo_total] / 30
+fMetasAbate,Peso Morto Total,fMetasAbate[pesomorto_total]
+pecuarioCompras,Total de @,pecuarioCompras[peso_arroba] * pecuarioCompras[qtd]
+financeiroDre,Classificacao,"
+SWITCH(financeiroDre[centro_de_custo_bi],
+        ""Arrendamento"",""A - RECEITAS"",
+        ""Cultura - Receita"",""A - RECEITAS"",
+        ""Rebanho"",""A - RECEITAS"",
+        ""Receitas financeiras"",""A - RECEITAS"",
+        ""Receitas outros"",""A - RECEITAS"",
+        ""Receitas Parque de máquinas"",""A - RECEITAS"",
+        ""Vendas outros animais"",""A - RECEITAS"",
+        ""Investimentos em infraestrutura"",""B - INVESTIMENTOS"",
+        ""Investimentos em outros animais"",""B - INVESTIMENTOS"",
+        ""Investimentos em RH"",""B - INVESTIMENTOS"",
+        ""Rebanho Investimento"",""B - INVESTIMENTOS"",
+        ""Algodão"",""C - CUSTEIO"",
+        ""Aveia"",""C - CUSTEIO"",
+        ""Feno"",""C - CUSTEIO"",
+        ""Forrageiras e Culturas Anuais"",""C - CUSTEIO"",
+        ""Insumos do rebanho"",""C - CUSTEIO"",
+        ""Manutenção da fazenda"",""C - CUSTEIO"",
+        ""Mão de Obra Geral"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Administração"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Cultura"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Manutenção da Fazenda"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Parque de Máquinas"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Rebanho"",""C - CUSTEIO"",
+        ""Milho Safrinha"",""C - CUSTEIO"",
+        ""Milho Verão"",""C - CUSTEIO"",
+        ""Outros animais"",""C - CUSTEIO"",
+        ""Pastagens"",""C - CUSTEIO"",
+        ""Silagem de Capiaçu"",""C - CUSTEIO"",
+        ""Silagem de Capim"",""C - CUSTEIO"",
+        ""Silagem de Milheto"",""C - CUSTEIO"",
+        ""Silagem de Milho"",""C - CUSTEIO"",
+        ""Silagem de Sorgo"",""C - CUSTEIO"",
+        ""Soja"",""C - CUSTEIO"",
+        ""Sorgo Grão"",""C - CUSTEIO"",
+        ""Suporte à Produção Administração"",""C - CUSTEIO"",
+        ""Suporte à Produção Parque de máquinas"",""C - CUSTEIO"",
+        ""Taxas e impostos"",""C - CUSTEIO"",
+        ""Empréstimos sócios crédito"",""D - OUTROS CRÉDITOS"",
+        ""Financiamentos créditos"",""D - OUTROS CRÉDITOS"",
+        ""Dividendos"",""E - OUTROS DÉBITOS"",
+        ""Empréstimos sócios débito"",""E - OUTROS DÉBITOS"",
+        ""Financiamentos débitos"",""E - OUTROS DÉBITOS"",
+        ""Outros Débitos"",""E - OUTROS DÉBITOS"",
+        ""Almoxarifado"","""",
+        ""Aporte de capital"","""",
+        ""Prejuízo Administração"","""",
+        ""Venda de Imóveis"",""""
+)"
+financeiroDre,Meta C,"IF(financeiroDre[F/V] <> ""A - RECEITAS"",financeiroDre[meta] * -1,financeiroDre[meta])"
+financeiroDre,Valor C,"IF(financeiroDre[F/V] <> ""A - RECEITAS"",financeiroDre[valor] * -1,financeiroDre[valor])"
+planejadoXRealizado,Classificacao2,"
+SWITCH(planejadoXRealizado[centro_de_custo_bi],
+        ""Arrendamento"",""A - RECEITAS"",
+        ""Cultura - Receita"",""A - RECEITAS"",
+        ""Rebanho"",""A - RECEITAS"",
+        ""Receitas financeiras"",""A - RECEITAS"",
+        ""Receitas outros"",""A - RECEITAS"",
+        ""Receitas Parque de máquinas"",""A - RECEITAS"",
+        ""Vendas outros animais"",""A - RECEITAS"",
+        ""Investimentos em infraestrutura"",""B - INVESTIMENTOS"",
+        ""Investimentos em outros animais"",""B - INVESTIMENTOS"",
+        ""Investimentos em RH"",""B - INVESTIMENTOS"",
+        ""Rebanho Investimento"",""B - INVESTIMENTOS"",
+        ""Algodão"",""C - CUSTEIO"",
+        ""Aveia"",""C - CUSTEIO"",
+        ""Feno"",""C - CUSTEIO"",
+        ""Forrageiras e Culturas Anuais"",""C - CUSTEIO"",
+        ""Insumos do rebanho"",""C - CUSTEIO"",
+        ""Manutenção da fazenda"",""C - CUSTEIO"",
+        ""Mão de Obra Geral"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Administração"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Cultura"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Manutenção da Fazenda"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Parque de Máquinas"",""C - CUSTEIO"",
+        ""Mão de Obra Permanente Rebanho"",""C - CUSTEIO"",
+        ""Milho Safrinha"",""C - CUSTEIO"",
+        ""Milho Verão"",""C - CUSTEIO"",
+        ""Outros animais"",""C - CUSTEIO"",
+        ""Pastagens"",""C - CUSTEIO"",
+        ""Silagem de Capiaçu"",""C - CUSTEIO"",
+        ""Silagem de Capim"",""C - CUSTEIO"",
+        ""Silagem de Milheto"",""C - CUSTEIO"",
+        ""Silagem de Milho"",""C - CUSTEIO"",
+        ""Silagem de Sorgo"",""C - CUSTEIO"",
+        ""Soja"",""C - CUSTEIO"",
+        ""Sorgo Grão"",""C - CUSTEIO"",
+        ""Suporte à Produção Administração"",""C - CUSTEIO"",
+        ""Suporte à Produção Parque de máquinas"",""C - CUSTEIO"",
+        ""Taxas e impostos"",""C - CUSTEIO"",
+        ""Empréstimos sócios crédito"",""D - OUTROS CRÉDITOS"",
+        ""Financiamentos créditos"",""D - OUTROS CRÉDITOS"",
+        ""Dividendos"",""E - OUTROS DÉBITOS"",
+        ""Empréstimos sócios débito"",""E - OUTROS DÉBITOS"",
+        ""Financiamentos débitos"",""E - OUTROS DÉBITOS"",
+        ""Outros Débitos"",""E - OUTROS DÉBITOS"",
+        ""Almoxarifado"","""",
+        ""Aporte de capital"","""",
+        ""Prejuízo Administração"","""",
+        ""Venda de Imóveis"",""""
+)"
+planejadoXRealizado,F/V,"/*IF(planejadoXRealizado[tipo_custeio-CAT] IN {""Receita Pec"",""Receita outras"",""Receita Agr""}, ""A - RECEITAS"",
+        IF(planejadoXRealizado[tipo_custeio-CAT] = ""CF"",""B - CUSTO FIXO"",
+            IF(planejadoXRealizado[tipo_custeio-CAT] = ""CV"",""C - CUSTO VARIAVEL"",
+                IF(planejadoXRealizado[tipo_custeio-CAT] = ""Financiamentos"",""D - FINANCIAMENTOS"",""VERIFICAR""
+
+                )
+            )
+        )
+    )*/
+    --planejadoXRealizado[custeio]"
+planejadoXRealizado,Valor C,"
+planejadoXRealizado[realizado]
+--IF(planejadoXRealizado[F/V] <> ""A - RECEITAS"",planejadoXRealizado[realizado] * -1,planejadoXRealizado[realizado])"
+planejadoXRealizado,Meta C,"
+planejadoXRealizado[meta]
+
+--IF(planejadoXRealizado[F/V] <> ""A - RECEITAS"",planejadoXRealizado[meta] * -1,planejadoXRealizado[meta])"
+dCalendar,Safra Abreviada,"MID(dCalendar[safra],9,5)"
+fMetasEmPe,Total de @,fMetasEmPe[pesovivo_total] / 30
+fMetasEmPe,Peso Total,fMetasEmPe[pesovivo_total]
+fMetasAbate,Total de @,fMetasAbate[peso_arroba] * fMetasAbate[qtd]
+fTransferencias,Peso Total @,fTransferencias[peso_arroba] * fTransferencias[qtd]
+fMetasTransferencias,Peso Total @,fMetasTransferencias[peso_arroba] * fMetasTransferencias[qtd]

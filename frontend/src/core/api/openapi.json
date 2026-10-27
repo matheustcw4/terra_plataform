@@ -1,0 +1,5148 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Projeto Terra API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "saude"
+        ],
+        "summary": "Health",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api V1 Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaLogin"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Quem Sou",
+        "operationId": "quem_sou_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResumo"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/escopo": {
+      "get": {
+        "tags": [
+          "escopo"
+        ],
+        "summary": "Escopo",
+        "operationId": "escopo_api_v1_escopo_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Escopo"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboards/movimentacao": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Pagina Movimentacao",
+        "operationId": "pagina_movimentacao_api_v1_dashboards_movimentacao_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Inicio"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Fim"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "meses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim",
+              "title": "Meses"
+            },
+            "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Movimentacao"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboards/vendas": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Pagina Vendas",
+        "operationId": "pagina_vendas_api_v1_dashboards_vendas_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tipo",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "abate",
+                "em_pe"
+              ],
+              "type": "string",
+              "title": "Tipo"
+            }
+          },
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Inicio"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Fim"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "meses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim",
+              "title": "Meses"
+            },
+            "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Vendas"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboards/compras": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Pagina Compras",
+        "operationId": "pagina_compras_api_v1_dashboards_compras_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Inicio"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Fim"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "meses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim",
+              "title": "Meses"
+            },
+            "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Compras"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboards/nascimentos": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Pagina Nascimentos",
+        "operationId": "pagina_nascimentos_api_v1_dashboards_nascimentos_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Inicio"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Fim"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "meses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim",
+              "title": "Meses"
+            },
+            "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Nascimentos"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboards/mortes": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Pagina Mortes",
+        "operationId": "pagina_mortes_api_v1_dashboards_mortes_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Inicio"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Fim"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "meses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim",
+              "title": "Meses"
+            },
+            "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mortes"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboards/transferencias": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Pagina Transferencias",
+        "operationId": "pagina_transferencias_api_v1_dashboards_transferencias_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Inicio"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Fim"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "meses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim",
+              "title": "Meses"
+            },
+            "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transferencias"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboards/financeiro": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Pagina Financeiro",
+        "operationId": "pagina_financeiro_api_v1_dashboards_financeiro_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Inicio"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Fim"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "meses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim",
+              "title": "Meses"
+            },
+            "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Financeiro"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboards/previsto_realizado": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Pagina Previsto Realizado",
+        "operationId": "pagina_previsto_realizado_api_v1_dashboards_previsto_realizado_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Inicio"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Fim"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "meses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim",
+              "title": "Meses"
+            },
+            "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrevistoRealizado"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboards/analitico": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Boletim Do Mes",
+        "description": "O \"Exportar PDF\" no modo Analítico: o mês de referência, o acumulado do período (safra ou ano) até ele e a meta\ndo período inteiro, com as frases que explicam os números.",
+        "operationId": "boletim_do_mes_api_v1_dashboards_analitico_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "mes_referencia",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Mes Referencia"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "visao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "safra",
+                "civil"
+              ],
+              "type": "string",
+              "default": "safra",
+              "title": "Visao"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletimAnalitico"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/qualidade/pendencias": {
+      "get": {
+        "tags": [
+          "qualidade"
+        ],
+        "summary": "Pendencias De Lancamento",
+        "description": "Linhas que a última carga deixou fora dos números (quarentena) ou marcou para conferir, das fazendas pedidas.\nNão tem período: data errada é justamente um dos problemas.",
+        "operationId": "pendencias_de_lancamento_api_v1_qualidade_pendencias_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pendencias"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/categorias": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Listar Categorias",
+        "operationId": "listar_categorias_api_v1_admin_categorias_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "so_pendentes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "true: só os pendentes",
+              "default": true,
+              "title": "So Pendentes"
+            },
+            "description": "true: só os pendentes"
+          },
+          {
+            "name": "busca",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "parte do nome da categoria/conta, da fazenda ou do cliente",
+              "default": "",
+              "title": "Busca"
+            },
+            "description": "parte do nome da categoria/conta, da fazenda ou do cliente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriasDeOrigem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/categorias/{mapa_id}": {
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Classificar Categoria",
+        "operationId": "classificar_categoria_api_v1_admin_categorias__mapa_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mapa_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Mapa Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoDeCategoria"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/contas": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Listar Contas",
+        "operationId": "listar_contas_api_v1_admin_contas_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "so_pendentes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "true: só os pendentes",
+              "default": true,
+              "title": "So Pendentes"
+            },
+            "description": "true: só os pendentes"
+          },
+          {
+            "name": "busca",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "parte do nome da categoria/conta, da fazenda ou do cliente",
+              "default": "",
+              "title": "Busca"
+            },
+            "description": "parte do nome da categoria/conta, da fazenda ou do cliente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContasDeOrigem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/contas/{mapa_id}": {
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Classificar Conta",
+        "operationId": "classificar_conta_api_v1_admin_contas__mapa_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mapa_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Mapa Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoDeConta"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/usuarios": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Listar Usuarios",
+        "operationId": "listar_usuarios_api_v1_admin_usuarios_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UsuarioDoAdmin"
+                  },
+                  "type": "array",
+                  "title": "Response Listar Usuarios Api V1 Admin Usuarios Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Criar Usuario",
+        "operationId": "criar_usuario_api_v1_admin_usuarios_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovoUsuario"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioDoAdmin"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/usuarios/{usuario_id}": {
+      "patch": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Alterar Usuario",
+        "operationId": "alterar_usuario_api_v1_admin_usuarios__usuario_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "usuario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Usuario Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlteracaoDeUsuario"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioDoAdmin"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/usuarios/{usuario_id}/fazendas": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Fazendas Do Usuario",
+        "operationId": "fazendas_do_usuario_api_v1_admin_usuarios__usuario_id__fazendas_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "usuario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Usuario Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FazendaDoAcesso"
+                  },
+                  "title": "Response Fazendas Do Usuario Api V1 Admin Usuarios  Usuario Id  Fazendas Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Trocar Acesso",
+        "operationId": "trocar_acesso_api_v1_admin_usuarios__usuario_id__fazendas_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "usuario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Usuario Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoDeAcesso"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FazendaDoAcesso"
+                  },
+                  "title": "Response Trocar Acesso Api V1 Admin Usuarios  Usuario Id  Fazendas Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/funcoes": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Listar Funcoes",
+        "operationId": "listar_funcoes_api_v1_admin_funcoes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Funcao"
+                  },
+                  "type": "array",
+                  "title": "Response Listar Funcoes Api V1 Admin Funcoes Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Criar Funcao",
+        "operationId": "criar_funcao_api_v1_admin_funcoes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NovaFuncao"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Funcao"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/funcoes/{funcao_id}": {
+      "patch": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Alterar Funcao",
+        "operationId": "alterar_funcao_api_v1_admin_funcoes__funcao_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "funcao_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Funcao Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlteracaoDeFuncao"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Funcao"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Apagar Funcao",
+        "operationId": "apagar_funcao_api_v1_admin_funcoes__funcao_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "funcao_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Funcao Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/atualizacao": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Situacao Da Atualizacao",
+        "operationId": "situacao_da_atualizacao_api_v1_admin_atualizacao_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SituacaoDaAtualizacao"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Atualizar Agora",
+        "operationId": "atualizar_agora_api_v1_admin_atualizacao_post",
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PedidoDeAtualizacao"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AlteracaoDeFuncao": {
+        "properties": {
+          "nome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nome"
+          },
+          "ativo": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ativo"
+          }
+        },
+        "type": "object",
+        "title": "AlteracaoDeFuncao",
+        "description": "Só os campos enviados mudam."
+      },
+      "AlteracaoDeUsuario": {
+        "properties": {
+          "nome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nome"
+          },
+          "funcao_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Funcao Id"
+          },
+          "eh_admin": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eh Admin"
+          },
+          "ativo": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ativo"
+          },
+          "senha": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Senha"
+          }
+        },
+        "type": "object",
+        "title": "AlteracaoDeUsuario",
+        "description": "Só os campos enviados mudam."
+      },
+      "BoletimAnalitico": {
+        "properties": {
+          "mes_referencia": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes Referencia"
+          },
+          "inicio_do_periodo": {
+            "type": "string",
+            "format": "date",
+            "title": "Inicio Do Periodo"
+          },
+          "fim_do_periodo": {
+            "type": "string",
+            "format": "date",
+            "title": "Fim Do Periodo"
+          },
+          "visao": {
+            "type": "string",
+            "title": "Visao"
+          },
+          "estoque": {
+            "$ref": "#/components/schemas/SecaoEstoque"
+          },
+          "lotacao": {
+            "$ref": "#/components/schemas/SecaoLotacao"
+          },
+          "placar_zootecnico": {
+            "$ref": "#/components/schemas/SecaoPlacar"
+          },
+          "nascimentos": {
+            "$ref": "#/components/schemas/SecaoDeLotes"
+          },
+          "compras": {
+            "$ref": "#/components/schemas/SecaoDeLotes"
+          },
+          "vendas": {
+            "items": {
+              "$ref": "#/components/schemas/SecaoDeLotes"
+            },
+            "type": "array",
+            "title": "Vendas"
+          },
+          "transferencias": {
+            "$ref": "#/components/schemas/SecaoTransferencias"
+          },
+          "mortes": {
+            "$ref": "#/components/schemas/SecaoMortes"
+          },
+          "financeiro": {
+            "$ref": "#/components/schemas/SecaoFinanceiro"
+          },
+          "caixa": {
+            "$ref": "#/components/schemas/SecaoCaixa"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes_referencia",
+          "inicio_do_periodo",
+          "fim_do_periodo",
+          "visao",
+          "estoque",
+          "lotacao",
+          "placar_zootecnico",
+          "nascimentos",
+          "compras",
+          "vendas",
+          "transferencias",
+          "mortes",
+          "financeiro",
+          "caixa"
+        ],
+        "title": "BoletimAnalitico"
+      },
+      "Capacidades": {
+        "properties": {
+          "estoque": {
+            "type": "boolean",
+            "title": "Estoque"
+          },
+          "rebanho_medio": {
+            "type": "boolean",
+            "title": "Rebanho Medio"
+          },
+          "area": {
+            "type": "boolean",
+            "title": "Area"
+          },
+          "financeiro": {
+            "type": "boolean",
+            "title": "Financeiro"
+          },
+          "planejado": {
+            "type": "boolean",
+            "title": "Planejado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "estoque",
+          "rebanho_medio",
+          "area",
+          "financeiro",
+          "planejado"
+        ],
+        "title": "Capacidades",
+        "description": "Que dados a fazenda tem (o front mostra ou esconde telas por isso, nunca pela fonte)."
+      },
+      "CargaRecente": {
+        "properties": {
+          "fonte": {
+            "type": "string",
+            "title": "Fonte"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "iniciado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Iniciado Em"
+          },
+          "finalizado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finalizado Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fonte",
+          "status",
+          "iniciado_em",
+          "finalizado_em"
+        ],
+        "title": "CargaRecente"
+      },
+      "CategoriaDeOrigem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "fonte": {
+            "type": "string",
+            "title": "Fonte"
+          },
+          "cliente": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cliente"
+          },
+          "fazenda": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fazenda"
+          },
+          "nome_origem": {
+            "type": "string",
+            "title": "Nome Origem"
+          },
+          "categoria_bi_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria Bi Id"
+          },
+          "categoria_bi_sugerida_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria Bi Sugerida Id"
+          },
+          "lancamentos": {
+            "type": "integer",
+            "title": "Lancamentos"
+          },
+          "confirmado_por": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmado Por"
+          },
+          "confirmado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmado Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fonte",
+          "cliente",
+          "fazenda",
+          "nome_origem",
+          "categoria_bi_id",
+          "categoria_bi_sugerida_id",
+          "lancamentos",
+          "confirmado_por",
+          "confirmado_em"
+        ],
+        "title": "CategoriaDeOrigem",
+        "description": "Uma categoria como a fonte escreve, numa fazenda (planilha) ou num cliente (Metryx), e a categoria BI dela."
+      },
+      "CategoriasDeOrigem": {
+        "properties": {
+          "pendentes": {
+            "type": "integer",
+            "title": "Pendentes"
+          },
+          "opcoes": {
+            "items": {
+              "$ref": "#/components/schemas/OpcaoDeCategoria"
+            },
+            "type": "array",
+            "title": "Opcoes"
+          },
+          "itens": {
+            "items": {
+              "$ref": "#/components/schemas/CategoriaDeOrigem"
+            },
+            "type": "array",
+            "title": "Itens"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pendentes",
+          "opcoes",
+          "itens"
+        ],
+        "title": "CategoriasDeOrigem"
+      },
+      "CausaDeMorte": {
+        "properties": {
+          "causa": {
+            "type": "string",
+            "title": "Causa"
+          },
+          "cabecas": {
+            "type": "number",
+            "title": "Cabecas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "causa",
+          "cabecas"
+        ],
+        "title": "CausaDeMorte"
+      },
+      "CausaPorGrupo": {
+        "properties": {
+          "causa": {
+            "type": "string",
+            "title": "Causa"
+          },
+          "bezerros": {
+            "type": "number",
+            "title": "Bezerros"
+          },
+          "jovens": {
+            "type": "number",
+            "title": "Jovens"
+          },
+          "adultos": {
+            "type": "number",
+            "title": "Adultos"
+          },
+          "sem_grupo": {
+            "type": "number",
+            "title": "Sem Grupo"
+          },
+          "total": {
+            "type": "number",
+            "title": "Total"
+          },
+          "participacao": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participacao"
+          }
+        },
+        "type": "object",
+        "required": [
+          "causa",
+          "bezerros",
+          "jovens",
+          "adultos",
+          "sem_grupo",
+          "total",
+          "participacao"
+        ],
+        "title": "CausaPorGrupo"
+      },
+      "CentroDoDesembolso": {
+        "properties": {
+          "centro_custo": {
+            "type": "string",
+            "title": "Centro Custo"
+          },
+          "valor_mes": {
+            "type": "number",
+            "title": "Valor Mes"
+          },
+          "valor_acumulado": {
+            "type": "number",
+            "title": "Valor Acumulado"
+          },
+          "por_cabeca_mes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Por Cabeca Mes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "centro_custo",
+          "valor_mes",
+          "valor_acumulado",
+          "por_cabeca_mes"
+        ],
+        "title": "CentroDoDesembolso"
+      },
+      "ComMeta": {
+        "properties": {
+          "realizado": {
+            "type": "number",
+            "title": "Realizado"
+          },
+          "planejado": {
+            "type": "number",
+            "title": "Planejado"
+          },
+          "percentual_da_meta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentual Da Meta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "realizado",
+          "planejado",
+          "percentual_da_meta"
+        ],
+        "title": "ComMeta",
+        "description": "Um número do período com o planejado ao lado, como os cartões \"% em relação à meta\" do BI."
+      },
+      "Comparacao": {
+        "properties": {
+          "realizado": {
+            "type": "number",
+            "title": "Realizado"
+          },
+          "planejado": {
+            "type": "number",
+            "title": "Planejado"
+          },
+          "variacao": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variacao"
+          },
+          "semaforo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Semaforo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "realizado",
+          "planejado",
+          "variacao",
+          "semaforo"
+        ],
+        "title": "Comparacao"
+      },
+      "Comparado": {
+        "properties": {
+          "previsto": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previsto"
+          },
+          "realizado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realizado"
+          },
+          "variacao": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variacao"
+          },
+          "variacao_percentual": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variacao Percentual"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "previsto",
+          "realizado",
+          "variacao",
+          "variacao_percentual",
+          "status"
+        ],
+        "title": "Comparado",
+        "description": "Previsto × realizado de um indicador num recorte (o mês ou o acumulado)."
+      },
+      "Compras": {
+        "properties": {
+          "periodo": {
+            "$ref": "#/components/schemas/Periodo"
+          },
+          "quadro": {
+            "items": {
+              "$ref": "#/components/schemas/QuadroDoLote"
+            },
+            "type": "array",
+            "title": "Quadro"
+          },
+          "preco_arroba_compra": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preco Arroba Compra"
+          },
+          "preco_arroba_venda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preco Arroba Venda"
+          },
+          "agio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agio"
+          },
+          "serie_mensal": {
+            "items": {
+              "$ref": "#/components/schemas/MesDoLote"
+            },
+            "type": "array",
+            "title": "Serie Mensal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periodo",
+          "quadro",
+          "preco_arroba_compra",
+          "preco_arroba_venda",
+          "agio",
+          "serie_mensal"
+        ],
+        "title": "Compras"
+      },
+      "ContaDeOrigem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "fonte": {
+            "type": "string",
+            "title": "Fonte"
+          },
+          "centro": {
+            "type": "string",
+            "title": "Centro"
+          },
+          "subcentro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcentro"
+          },
+          "centro_custo_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centro Custo Id"
+          },
+          "lancamentos": {
+            "type": "integer",
+            "title": "Lancamentos"
+          },
+          "orcamentos": {
+            "type": "integer",
+            "title": "Orcamentos"
+          },
+          "valor": {
+            "type": "number",
+            "title": "Valor"
+          },
+          "fazendas": {
+            "type": "integer",
+            "title": "Fazendas"
+          },
+          "confirmado_por": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmado Por"
+          },
+          "confirmado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmado Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fonte",
+          "centro",
+          "subcentro",
+          "centro_custo_id",
+          "lancamentos",
+          "orcamentos",
+          "valor",
+          "fazendas",
+          "confirmado_por",
+          "confirmado_em"
+        ],
+        "title": "ContaDeOrigem",
+        "description": "Uma conta (centro e subcentro) como a fonte escreve, e o centro de custo do plano unificado."
+      },
+      "ContasDeOrigem": {
+        "properties": {
+          "pendentes": {
+            "type": "integer",
+            "title": "Pendentes"
+          },
+          "opcoes": {
+            "items": {
+              "$ref": "#/components/schemas/OpcaoDeConta"
+            },
+            "type": "array",
+            "title": "Opcoes"
+          },
+          "itens": {
+            "items": {
+              "$ref": "#/components/schemas/ContaDeOrigem"
+            },
+            "type": "array",
+            "title": "Itens"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pendentes",
+          "opcoes",
+          "itens"
+        ],
+        "title": "ContasDeOrigem"
+      },
+      "DesembolsoDoCentro": {
+        "properties": {
+          "centro_custo": {
+            "type": "string",
+            "title": "Centro Custo"
+          },
+          "valor": {
+            "type": "number",
+            "title": "Valor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "centro_custo",
+          "valor"
+        ],
+        "title": "DesembolsoDoCentro"
+      },
+      "Escopo": {
+        "properties": {
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioResumo"
+          },
+          "fazendas": {
+            "items": {
+              "$ref": "#/components/schemas/FazendaDoEscopo"
+            },
+            "type": "array",
+            "title": "Fazendas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "usuario",
+          "fazendas"
+        ],
+        "title": "Escopo"
+      },
+      "EstoqueDaCategoria": {
+        "properties": {
+          "categoria": {
+            "type": "string",
+            "title": "Categoria"
+          },
+          "estoque_final": {
+            "type": "number",
+            "title": "Estoque Final"
+          }
+        },
+        "type": "object",
+        "required": [
+          "categoria",
+          "estoque_final"
+        ],
+        "title": "EstoqueDaCategoria"
+      },
+      "EstoqueDoMes": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes"
+          },
+          "estoque_final": {
+            "type": "number",
+            "title": "Estoque Final"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "estoque_final"
+        ],
+        "title": "EstoqueDoMes"
+      },
+      "FatiaDoRebanho": {
+        "properties": {
+          "categoria": {
+            "type": "string",
+            "title": "Categoria"
+          },
+          "cabecas": {
+            "type": "number",
+            "title": "Cabecas"
+          },
+          "participacao": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participacao"
+          }
+        },
+        "type": "object",
+        "required": [
+          "categoria",
+          "cabecas",
+          "participacao"
+        ],
+        "title": "FatiaDoRebanho"
+      },
+      "FazendaDoAcesso": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "cliente": {
+            "type": "string",
+            "title": "Cliente"
+          },
+          "origem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origem"
+          },
+          "tem_acesso": {
+            "type": "boolean",
+            "title": "Tem Acesso"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "cliente",
+          "origem",
+          "tem_acesso"
+        ],
+        "title": "FazendaDoAcesso"
+      },
+      "FazendaDoEscopo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "cliente": {
+            "type": "string",
+            "title": "Cliente"
+          },
+          "origem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origem"
+          },
+          "sistema_produtivo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sistema Produtivo"
+          },
+          "primeiro_mes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primeiro Mes"
+          },
+          "ultimo_mes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimo Mes"
+          },
+          "capacidades": {
+            "$ref": "#/components/schemas/Capacidades"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "cliente",
+          "origem",
+          "sistema_produtivo",
+          "primeiro_mes",
+          "ultimo_mes",
+          "capacidades"
+        ],
+        "title": "FazendaDoEscopo"
+      },
+      "Financeiro": {
+        "properties": {
+          "periodo": {
+            "$ref": "#/components/schemas/Periodo"
+          },
+          "desembolso": {
+            "type": "number",
+            "title": "Desembolso"
+          },
+          "receitas": {
+            "type": "number",
+            "title": "Receitas"
+          },
+          "desembolso_por_cabeca_mes": {
+            "$ref": "#/components/schemas/Velocimetro"
+          },
+          "custeio_por_cabeca_mes": {
+            "$ref": "#/components/schemas/Velocimetro"
+          },
+          "preco_arroba_venda": {
+            "$ref": "#/components/schemas/Velocimetro"
+          },
+          "desembolso_por_centro": {
+            "items": {
+              "$ref": "#/components/schemas/DesembolsoDoCentro"
+            },
+            "type": "array",
+            "title": "Desembolso Por Centro"
+          },
+          "serie_mensal": {
+            "items": {
+              "$ref": "#/components/schemas/MesDoFinanceiro"
+            },
+            "type": "array",
+            "title": "Serie Mensal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periodo",
+          "desembolso",
+          "receitas",
+          "desembolso_por_cabeca_mes",
+          "custeio_por_cabeca_mes",
+          "preco_arroba_venda",
+          "desembolso_por_centro",
+          "serie_mensal"
+        ],
+        "title": "Financeiro"
+      },
+      "Funcao": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "ativo": {
+            "type": "boolean",
+            "title": "Ativo"
+          },
+          "usuarios": {
+            "type": "integer",
+            "title": "Usuarios"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "ativo",
+          "usuarios"
+        ],
+        "title": "Funcao"
+      },
+      "GrupoDoPrevisto": {
+        "properties": {
+          "classificacao": {
+            "type": "string",
+            "title": "Classificacao"
+          },
+          "total": {
+            "$ref": "#/components/schemas/LinhaDoPrevisto"
+          },
+          "contas": {
+            "items": {
+              "$ref": "#/components/schemas/LinhaDoPrevisto"
+            },
+            "type": "array",
+            "title": "Contas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "classificacao",
+          "total",
+          "contas"
+        ],
+        "title": "GrupoDoPrevisto"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IndicadoresDoLote": {
+        "properties": {
+          "cabecas": {
+            "type": "number",
+            "title": "Cabecas"
+          },
+          "valor": {
+            "type": "number",
+            "title": "Valor"
+          },
+          "kg_vivo": {
+            "type": "number",
+            "title": "Kg Vivo"
+          },
+          "arrobas": {
+            "type": "number",
+            "title": "Arrobas"
+          },
+          "preco_arroba": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preco Arroba"
+          },
+          "preco_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preco Kg"
+          },
+          "peso_medio_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peso Medio Kg"
+          },
+          "rendimento_carcaca": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rendimento Carcaca"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cabecas",
+          "valor",
+          "kg_vivo",
+          "arrobas",
+          "preco_arroba",
+          "preco_kg",
+          "peso_medio_kg",
+          "rendimento_carcaca"
+        ],
+        "title": "IndicadoresDoLote"
+      },
+      "LinhaDoEstoque": {
+        "properties": {
+          "categoria": {
+            "type": "string",
+            "title": "Categoria"
+          },
+          "estoque_inicial": {
+            "type": "number",
+            "title": "Estoque Inicial"
+          },
+          "nascimentos": {
+            "type": "number",
+            "title": "Nascimentos"
+          },
+          "compras": {
+            "type": "number",
+            "title": "Compras"
+          },
+          "desmame_entrada": {
+            "type": "number",
+            "title": "Desmame Entrada"
+          },
+          "transferencia_entrada": {
+            "type": "number",
+            "title": "Transferencia Entrada"
+          },
+          "mudanca_entrada": {
+            "type": "number",
+            "title": "Mudanca Entrada"
+          },
+          "mortes": {
+            "type": "number",
+            "title": "Mortes"
+          },
+          "vendas": {
+            "type": "number",
+            "title": "Vendas"
+          },
+          "desmame_saida": {
+            "type": "number",
+            "title": "Desmame Saida"
+          },
+          "transferencia_saida": {
+            "type": "number",
+            "title": "Transferencia Saida"
+          },
+          "consumo_doacao": {
+            "type": "number",
+            "title": "Consumo Doacao"
+          },
+          "mudanca_saida": {
+            "type": "number",
+            "title": "Mudanca Saida"
+          },
+          "ajuste": {
+            "type": "number",
+            "title": "Ajuste"
+          },
+          "estoque_final": {
+            "type": "number",
+            "title": "Estoque Final"
+          }
+        },
+        "type": "object",
+        "required": [
+          "categoria",
+          "estoque_inicial",
+          "nascimentos",
+          "compras",
+          "desmame_entrada",
+          "transferencia_entrada",
+          "mudanca_entrada",
+          "mortes",
+          "vendas",
+          "desmame_saida",
+          "transferencia_saida",
+          "consumo_doacao",
+          "mudanca_saida",
+          "ajuste",
+          "estoque_final"
+        ],
+        "title": "LinhaDoEstoque",
+        "description": "Uma categoria BI no mês de referência (a última linha é o TOTAL)."
+      },
+      "LinhaDoPlacar": {
+        "properties": {
+          "grupo": {
+            "type": "string",
+            "title": "Grupo"
+          },
+          "indicador": {
+            "type": "string",
+            "title": "Indicador"
+          },
+          "unidade": {
+            "type": "string",
+            "title": "Unidade"
+          },
+          "mes": {
+            "$ref": "#/components/schemas/Comparado"
+          },
+          "acumulado": {
+            "$ref": "#/components/schemas/Comparado"
+          },
+          "meta_periodo": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meta Periodo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grupo",
+          "indicador",
+          "unidade",
+          "mes",
+          "acumulado",
+          "meta_periodo"
+        ],
+        "title": "LinhaDoPlacar"
+      },
+      "LinhaDoPrevisto": {
+        "properties": {
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "mensal": {
+            "$ref": "#/components/schemas/Comparacao"
+          },
+          "acumulado": {
+            "$ref": "#/components/schemas/Comparacao"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nome",
+          "mensal",
+          "acumulado"
+        ],
+        "title": "LinhaDoPrevisto",
+        "description": "Uma linha da matriz: o total de uma classificação ou uma conta (centro de custo)."
+      },
+      "LoteDoMes": {
+        "properties": {
+          "data": {
+            "type": "string",
+            "format": "date",
+            "title": "Data"
+          },
+          "categoria": {
+            "type": "string",
+            "title": "Categoria"
+          },
+          "contraparte": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contraparte"
+          },
+          "cabecas": {
+            "type": "number",
+            "title": "Cabecas"
+          },
+          "kg_vivo": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kg Vivo"
+          },
+          "kg_carcaca": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kg Carcaca"
+          },
+          "arrobas": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrobas"
+          },
+          "rendimento_carcaca": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rendimento Carcaca"
+          },
+          "preco_arroba": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preco Arroba"
+          },
+          "valor_por_cabeca": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valor Por Cabeca"
+          },
+          "preco_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preco Kg"
+          },
+          "valor": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "categoria",
+          "contraparte",
+          "cabecas",
+          "kg_vivo",
+          "kg_carcaca",
+          "arrobas",
+          "rendimento_carcaca",
+          "preco_arroba",
+          "valor_por_cabeca",
+          "preco_kg",
+          "valor"
+        ],
+        "title": "LoteDoMes",
+        "description": "Um lançamento de lote no mês de referência (nascimento, compra, venda ou transferência)."
+      },
+      "MesComparado": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes"
+          },
+          "realizado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realizado"
+          },
+          "previsto": {
+            "type": "number",
+            "title": "Previsto"
+          },
+          "realizado_acumulado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realizado Acumulado"
+          },
+          "previsto_acumulado": {
+            "type": "number",
+            "title": "Previsto Acumulado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "realizado",
+          "previsto",
+          "realizado_acumulado",
+          "previsto_acumulado"
+        ],
+        "title": "MesComparado"
+      },
+      "MesDaContagem": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes"
+          },
+          "realizado": {
+            "type": "number",
+            "title": "Realizado"
+          },
+          "planejado": {
+            "type": "number",
+            "title": "Planejado"
+          },
+          "realizado_acumulado": {
+            "type": "number",
+            "title": "Realizado Acumulado"
+          },
+          "planejado_acumulado": {
+            "type": "number",
+            "title": "Planejado Acumulado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "realizado",
+          "planejado",
+          "realizado_acumulado",
+          "planejado_acumulado"
+        ],
+        "title": "MesDaContagem"
+      },
+      "MesDaLotacao": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes"
+          },
+          "rebanho_medio_cab": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rebanho Medio Cab"
+          },
+          "rebanho_medio_ua": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rebanho Medio Ua"
+          },
+          "area_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area Ha"
+          },
+          "lotacao_cab_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Cab Ha"
+          },
+          "lotacao_ua_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Ua Ha"
+          },
+          "lotacao_cab_ha_prevista": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Cab Ha Prevista"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "rebanho_medio_cab",
+          "rebanho_medio_ua",
+          "area_ha",
+          "lotacao_cab_ha",
+          "lotacao_ua_ha",
+          "lotacao_cab_ha_prevista"
+        ],
+        "title": "MesDaLotacao"
+      },
+      "MesDaMortalidade": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes"
+          },
+          "realizado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realizado"
+          },
+          "previsto": {
+            "type": "number",
+            "title": "Previsto"
+          },
+          "realizado_acumulado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realizado Acumulado"
+          },
+          "previsto_acumulado": {
+            "type": "number",
+            "title": "Previsto Acumulado"
+          },
+          "mortalidade": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mortalidade"
+          },
+          "mortalidade_acumulada": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mortalidade Acumulada"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "realizado",
+          "previsto",
+          "realizado_acumulado",
+          "previsto_acumulado",
+          "mortalidade",
+          "mortalidade_acumulada"
+        ],
+        "title": "MesDaMortalidade"
+      },
+      "MesDeTransferencia": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes"
+          },
+          "entradas": {
+            "type": "number",
+            "title": "Entradas"
+          },
+          "saidas": {
+            "type": "number",
+            "title": "Saidas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "entradas",
+          "saidas"
+        ],
+        "title": "MesDeTransferencia"
+      },
+      "MesDoFinanceiro": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes"
+          },
+          "receitas": {
+            "type": "number",
+            "title": "Receitas"
+          },
+          "receitas_planejadas": {
+            "type": "number",
+            "title": "Receitas Planejadas"
+          },
+          "despesas": {
+            "type": "number",
+            "title": "Despesas"
+          },
+          "saldo": {
+            "type": "number",
+            "title": "Saldo"
+          },
+          "desembolso": {
+            "type": "number",
+            "title": "Desembolso"
+          },
+          "desembolso_planejado": {
+            "type": "number",
+            "title": "Desembolso Planejado"
+          },
+          "desembolso_por_cabeca": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desembolso Por Cabeca"
+          },
+          "desembolso_por_cabeca_planejado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desembolso Por Cabeca Planejado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "receitas",
+          "receitas_planejadas",
+          "despesas",
+          "saldo",
+          "desembolso",
+          "desembolso_planejado",
+          "desembolso_por_cabeca",
+          "desembolso_por_cabeca_planejado"
+        ],
+        "title": "MesDoFinanceiro"
+      },
+      "MesDoLote": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes"
+          },
+          "cabecas": {
+            "type": "number",
+            "title": "Cabecas"
+          },
+          "cabecas_planejadas": {
+            "type": "number",
+            "title": "Cabecas Planejadas"
+          },
+          "cabecas_acumuladas": {
+            "type": "number",
+            "title": "Cabecas Acumuladas"
+          },
+          "valor": {
+            "type": "number",
+            "title": "Valor"
+          },
+          "valor_planejado": {
+            "type": "number",
+            "title": "Valor Planejado"
+          },
+          "preco_arroba": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preco Arroba"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "cabecas",
+          "cabecas_planejadas",
+          "cabecas_acumuladas",
+          "valor",
+          "valor_planejado",
+          "preco_arroba"
+        ],
+        "title": "MesDoLote"
+      },
+      "MortalidadeDoGrupo": {
+        "properties": {
+          "grupo": {
+            "type": "string",
+            "title": "Grupo"
+          },
+          "previsto": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Previsto"
+          },
+          "realizado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realizado"
+          },
+          "meta_periodo": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meta Periodo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grupo",
+          "previsto",
+          "realizado",
+          "meta_periodo"
+        ],
+        "title": "MortalidadeDoGrupo"
+      },
+      "MorteDoMes": {
+        "properties": {
+          "data": {
+            "type": "string",
+            "format": "date",
+            "title": "Data"
+          },
+          "causa": {
+            "type": "string",
+            "title": "Causa"
+          },
+          "local": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Local"
+          },
+          "categoria": {
+            "type": "string",
+            "title": "Categoria"
+          },
+          "cabecas": {
+            "type": "number",
+            "title": "Cabecas"
+          },
+          "peso_vivo_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peso Vivo Kg"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "causa",
+          "local",
+          "categoria",
+          "cabecas",
+          "peso_vivo_kg"
+        ],
+        "title": "MorteDoMes"
+      },
+      "Mortes": {
+        "properties": {
+          "periodo": {
+            "$ref": "#/components/schemas/Periodo"
+          },
+          "quadro": {
+            "items": {
+              "$ref": "#/components/schemas/MortesDoGrupo"
+            },
+            "type": "array",
+            "title": "Quadro"
+          },
+          "causas": {
+            "items": {
+              "$ref": "#/components/schemas/CausaDeMorte"
+            },
+            "type": "array",
+            "title": "Causas"
+          },
+          "serie_mensal": {
+            "items": {
+              "$ref": "#/components/schemas/MesDaContagem"
+            },
+            "type": "array",
+            "title": "Serie Mensal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periodo",
+          "quadro",
+          "causas",
+          "serie_mensal"
+        ],
+        "title": "Mortes"
+      },
+      "MortesDoGrupo": {
+        "properties": {
+          "recorte": {
+            "type": "string",
+            "title": "Recorte"
+          },
+          "realizado": {
+            "type": "number",
+            "title": "Realizado"
+          },
+          "planejado": {
+            "type": "number",
+            "title": "Planejado"
+          },
+          "percentual_da_meta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentual Da Meta"
+          },
+          "sobre_rebanho_medio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sobre Rebanho Medio"
+          },
+          "sobre_nascimentos": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sobre Nascimentos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recorte",
+          "realizado",
+          "planejado",
+          "percentual_da_meta",
+          "sobre_rebanho_medio",
+          "sobre_nascimentos"
+        ],
+        "title": "MortesDoGrupo"
+      },
+      "Movimentacao": {
+        "properties": {
+          "periodo": {
+            "$ref": "#/components/schemas/Periodo"
+          },
+          "estoque_final": {
+            "type": "number",
+            "title": "Estoque Final"
+          },
+          "rebanho_medio_cab": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rebanho Medio Cab"
+          },
+          "rebanho_medio_ua": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rebanho Medio Ua"
+          },
+          "lotacao_cab_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Cab Ha"
+          },
+          "lotacao_ua_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Ua Ha"
+          },
+          "nascimentos": {
+            "$ref": "#/components/schemas/ComMeta"
+          },
+          "mortes": {
+            "$ref": "#/components/schemas/ComMeta"
+          },
+          "indice_mortalidade": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Indice Mortalidade"
+          },
+          "compras": {
+            "$ref": "#/components/schemas/ComMeta"
+          },
+          "vendas": {
+            "$ref": "#/components/schemas/ComMeta"
+          },
+          "estoque_mensal": {
+            "items": {
+              "$ref": "#/components/schemas/EstoqueDoMes"
+            },
+            "type": "array",
+            "title": "Estoque Mensal"
+          },
+          "estoque_por_categoria": {
+            "items": {
+              "$ref": "#/components/schemas/EstoqueDaCategoria"
+            },
+            "type": "array",
+            "title": "Estoque Por Categoria"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periodo",
+          "estoque_final",
+          "rebanho_medio_cab",
+          "rebanho_medio_ua",
+          "lotacao_cab_ha",
+          "lotacao_ua_ha",
+          "nascimentos",
+          "mortes",
+          "indice_mortalidade",
+          "compras",
+          "vendas",
+          "estoque_mensal",
+          "estoque_por_categoria"
+        ],
+        "title": "Movimentacao"
+      },
+      "Nascimentos": {
+        "properties": {
+          "periodo": {
+            "$ref": "#/components/schemas/Periodo"
+          },
+          "quadro": {
+            "items": {
+              "$ref": "#/components/schemas/NascimentosDoSexo"
+            },
+            "type": "array",
+            "title": "Quadro"
+          },
+          "serie_mensal": {
+            "items": {
+              "$ref": "#/components/schemas/MesDaContagem"
+            },
+            "type": "array",
+            "title": "Serie Mensal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periodo",
+          "quadro",
+          "serie_mensal"
+        ],
+        "title": "Nascimentos"
+      },
+      "NascimentosDoSexo": {
+        "properties": {
+          "recorte": {
+            "type": "string",
+            "title": "Recorte"
+          },
+          "realizado": {
+            "type": "number",
+            "title": "Realizado"
+          },
+          "planejado": {
+            "type": "number",
+            "title": "Planejado"
+          },
+          "percentual_da_meta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentual Da Meta"
+          },
+          "participacao_no_total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participacao No Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recorte",
+          "realizado",
+          "planejado",
+          "percentual_da_meta",
+          "participacao_no_total"
+        ],
+        "title": "NascimentosDoSexo"
+      },
+      "NovaFuncao": {
+        "properties": {
+          "nome": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Nome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nome"
+        ],
+        "title": "NovaFuncao"
+      },
+      "NovoUsuario": {
+        "properties": {
+          "nome": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Nome"
+          },
+          "email": {
+            "type": "string",
+            "minLength": 3,
+            "title": "Email"
+          },
+          "senha": {
+            "type": "string",
+            "minLength": 8,
+            "title": "Senha"
+          },
+          "funcao_id": {
+            "type": "integer",
+            "title": "Funcao Id"
+          },
+          "eh_admin": {
+            "type": "boolean",
+            "title": "Eh Admin",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "nome",
+          "email",
+          "senha",
+          "funcao_id"
+        ],
+        "title": "NovoUsuario"
+      },
+      "OpcaoDeCategoria": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "sexo": {
+            "type": "string",
+            "title": "Sexo"
+          },
+          "grupo": {
+            "type": "string",
+            "title": "Grupo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "sexo",
+          "grupo"
+        ],
+        "title": "OpcaoDeCategoria"
+      },
+      "OpcaoDeConta": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "classificacao": {
+            "type": "string",
+            "title": "Classificacao"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "classificacao"
+        ],
+        "title": "OpcaoDeConta"
+      },
+      "PedidoDeAcesso": {
+        "properties": {
+          "fazendas": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Fazendas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fazendas"
+        ],
+        "title": "PedidoDeAcesso"
+      },
+      "PedidoDeAtualizacao": {
+        "properties": {
+          "pedida_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Pedida Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pedida_em"
+        ],
+        "title": "PedidoDeAtualizacao"
+      },
+      "PedidoDeCategoria": {
+        "properties": {
+          "categoria_bi_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria Bi Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "categoria_bi_id"
+        ],
+        "title": "PedidoDeCategoria"
+      },
+      "PedidoDeConta": {
+        "properties": {
+          "centro_custo_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Centro Custo Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "centro_custo_id"
+        ],
+        "title": "PedidoDeConta"
+      },
+      "PedidoLogin": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "senha": {
+            "type": "string",
+            "title": "Senha"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "senha"
+        ],
+        "title": "PedidoLogin"
+      },
+      "Pendencia": {
+        "properties": {
+          "fazenda_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fazenda Id"
+          },
+          "fazenda": {
+            "type": "string",
+            "title": "Fazenda"
+          },
+          "situacao": {
+            "type": "string",
+            "title": "Situacao"
+          },
+          "codigo": {
+            "type": "string",
+            "title": "Codigo"
+          },
+          "problema": {
+            "type": "string",
+            "title": "Problema"
+          },
+          "detalhe": {
+            "type": "string",
+            "title": "Detalhe"
+          },
+          "como_corrigir": {
+            "type": "string",
+            "title": "Como Corrigir"
+          },
+          "quem_corrige": {
+            "type": "string",
+            "title": "Quem Corrige"
+          },
+          "origem": {
+            "type": "string",
+            "title": "Origem"
+          },
+          "local": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Local"
+          },
+          "valores": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Valores"
+          },
+          "salvo_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Salvo Em"
+          },
+          "carregado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carregado Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fazenda_id",
+          "fazenda",
+          "situacao",
+          "codigo",
+          "problema",
+          "detalhe",
+          "como_corrigir",
+          "quem_corrige",
+          "origem",
+          "local",
+          "valores",
+          "salvo_em",
+          "carregado_em"
+        ],
+        "title": "Pendencia"
+      },
+      "Pendencias": {
+        "properties": {
+          "resumo": {
+            "$ref": "#/components/schemas/ResumoDePendencias"
+          },
+          "itens": {
+            "items": {
+              "$ref": "#/components/schemas/Pendencia"
+            },
+            "type": "array",
+            "title": "Itens"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resumo",
+          "itens"
+        ],
+        "title": "Pendencias"
+      },
+      "Periodo": {
+        "properties": {
+          "inicio": {
+            "type": "string",
+            "format": "date",
+            "title": "Inicio"
+          },
+          "fim": {
+            "type": "string",
+            "format": "date",
+            "title": "Fim"
+          },
+          "meses": {
+            "type": "integer",
+            "title": "Meses"
+          }
+        },
+        "type": "object",
+        "required": [
+          "inicio",
+          "fim",
+          "meses"
+        ],
+        "title": "Periodo"
+      },
+      "PrevistoRealizado": {
+        "properties": {
+          "periodo": {
+            "$ref": "#/components/schemas/Periodo"
+          },
+          "ultimo_mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Ultimo Mes"
+          },
+          "grupos": {
+            "items": {
+              "$ref": "#/components/schemas/GrupoDoPrevisto"
+            },
+            "type": "array",
+            "title": "Grupos"
+          },
+          "resultado": {
+            "$ref": "#/components/schemas/LinhaDoPrevisto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periodo",
+          "ultimo_mes",
+          "grupos",
+          "resultado"
+        ],
+        "title": "PrevistoRealizado"
+      },
+      "QuadroDoLote": {
+        "properties": {
+          "recorte": {
+            "type": "string",
+            "title": "Recorte"
+          },
+          "realizado": {
+            "$ref": "#/components/schemas/IndicadoresDoLote"
+          },
+          "planejado": {
+            "$ref": "#/components/schemas/IndicadoresDoLote"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recorte",
+          "realizado",
+          "planejado"
+        ],
+        "title": "QuadroDoLote"
+      },
+      "RespostaLogin": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioResumo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "usuario"
+        ],
+        "title": "RespostaLogin"
+      },
+      "ResumoDePendencias": {
+        "properties": {
+          "nao_entrou": {
+            "type": "integer",
+            "title": "Nao Entrou"
+          },
+          "confira": {
+            "type": "integer",
+            "title": "Confira"
+          },
+          "para_a_equipe": {
+            "type": "integer",
+            "title": "Para A Equipe"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nao_entrou",
+          "confira",
+          "para_a_equipe"
+        ],
+        "title": "ResumoDePendencias"
+      },
+      "ResumoDoEstoque": {
+        "properties": {
+          "estoque_inicial": {
+            "type": "number",
+            "title": "Estoque Inicial"
+          },
+          "nascimentos": {
+            "type": "number",
+            "title": "Nascimentos"
+          },
+          "compras": {
+            "type": "number",
+            "title": "Compras"
+          },
+          "vendas": {
+            "type": "number",
+            "title": "Vendas"
+          },
+          "mortes": {
+            "type": "number",
+            "title": "Mortes"
+          },
+          "consumo_doacao": {
+            "type": "number",
+            "title": "Consumo Doacao"
+          },
+          "transferencia_entrada": {
+            "type": "number",
+            "title": "Transferencia Entrada"
+          },
+          "transferencia_saida": {
+            "type": "number",
+            "title": "Transferencia Saida"
+          },
+          "ajuste": {
+            "type": "number",
+            "title": "Ajuste"
+          },
+          "estoque_final": {
+            "type": "number",
+            "title": "Estoque Final"
+          }
+        },
+        "type": "object",
+        "required": [
+          "estoque_inicial",
+          "nascimentos",
+          "compras",
+          "vendas",
+          "mortes",
+          "consumo_doacao",
+          "transferencia_entrada",
+          "transferencia_saida",
+          "ajuste",
+          "estoque_final"
+        ],
+        "title": "ResumoDoEstoque",
+        "description": "O período até o mês de referência, somado (o \"ACUMULADO SAFRA\")."
+      },
+      "SecaoCaixa": {
+        "properties": {
+          "previsto_realizado": {
+            "$ref": "#/components/schemas/PrevistoRealizado"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          }
+        },
+        "type": "object",
+        "required": [
+          "previsto_realizado",
+          "leitura"
+        ],
+        "title": "SecaoCaixa"
+      },
+      "SecaoDeLotes": {
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "titulo": {
+            "type": "string",
+            "title": "Titulo"
+          },
+          "lancamentos": {
+            "items": {
+              "$ref": "#/components/schemas/LoteDoMes"
+            },
+            "type": "array",
+            "title": "Lancamentos"
+          },
+          "meses": {
+            "items": {
+              "$ref": "#/components/schemas/MesComparado"
+            },
+            "type": "array",
+            "title": "Meses"
+          },
+          "resumo": {
+            "items": {
+              "$ref": "#/components/schemas/LinhaDoPlacar"
+            },
+            "type": "array",
+            "title": "Resumo"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tipo",
+          "titulo",
+          "lancamentos",
+          "meses",
+          "resumo",
+          "leitura"
+        ],
+        "title": "SecaoDeLotes"
+      },
+      "SecaoEstoque": {
+        "properties": {
+          "mes": {
+            "items": {
+              "$ref": "#/components/schemas/LinhaDoEstoque"
+            },
+            "type": "array",
+            "title": "Mes"
+          },
+          "acumulado": {
+            "$ref": "#/components/schemas/ResumoDoEstoque"
+          },
+          "distribuicao_final": {
+            "items": {
+              "$ref": "#/components/schemas/FatiaDoRebanho"
+            },
+            "type": "array",
+            "title": "Distribuicao Final"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "acumulado",
+          "distribuicao_final",
+          "leitura"
+        ],
+        "title": "SecaoEstoque"
+      },
+      "SecaoFinanceiro": {
+        "properties": {
+          "placar": {
+            "items": {
+              "$ref": "#/components/schemas/LinhaDoPlacar"
+            },
+            "type": "array",
+            "title": "Placar"
+          },
+          "centros": {
+            "items": {
+              "$ref": "#/components/schemas/CentroDoDesembolso"
+            },
+            "type": "array",
+            "title": "Centros"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          }
+        },
+        "type": "object",
+        "required": [
+          "placar",
+          "centros",
+          "leitura"
+        ],
+        "title": "SecaoFinanceiro"
+      },
+      "SecaoLotacao": {
+        "properties": {
+          "estoque_inicial": {
+            "type": "number",
+            "title": "Estoque Inicial"
+          },
+          "estoque_final": {
+            "type": "number",
+            "title": "Estoque Final"
+          },
+          "variacao_do_rebanho": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variacao Do Rebanho"
+          },
+          "rebanho_medio_cab": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rebanho Medio Cab"
+          },
+          "rebanho_medio_ua": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rebanho Medio Ua"
+          },
+          "lotacao_cab_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Cab Ha"
+          },
+          "lotacao_ua_ha": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Ua Ha"
+          },
+          "lotacao_cab_ha_prevista": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Cab Ha Prevista"
+          },
+          "lotacao_maxima": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Maxima"
+          },
+          "lotacao_minima": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lotacao Minima"
+          },
+          "meses": {
+            "items": {
+              "$ref": "#/components/schemas/MesDaLotacao"
+            },
+            "type": "array",
+            "title": "Meses"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          }
+        },
+        "type": "object",
+        "required": [
+          "estoque_inicial",
+          "estoque_final",
+          "variacao_do_rebanho",
+          "rebanho_medio_cab",
+          "rebanho_medio_ua",
+          "lotacao_cab_ha",
+          "lotacao_ua_ha",
+          "lotacao_cab_ha_prevista",
+          "lotacao_maxima",
+          "lotacao_minima",
+          "meses",
+          "leitura"
+        ],
+        "title": "SecaoLotacao"
+      },
+      "SecaoMortes": {
+        "properties": {
+          "lancamentos": {
+            "items": {
+              "$ref": "#/components/schemas/MorteDoMes"
+            },
+            "type": "array",
+            "title": "Lancamentos"
+          },
+          "meses": {
+            "items": {
+              "$ref": "#/components/schemas/MesDaMortalidade"
+            },
+            "type": "array",
+            "title": "Meses"
+          },
+          "por_grupo": {
+            "items": {
+              "$ref": "#/components/schemas/MortalidadeDoGrupo"
+            },
+            "type": "array",
+            "title": "Por Grupo"
+          },
+          "causas": {
+            "items": {
+              "$ref": "#/components/schemas/CausaPorGrupo"
+            },
+            "type": "array",
+            "title": "Causas"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lancamentos",
+          "meses",
+          "por_grupo",
+          "causas",
+          "leitura"
+        ],
+        "title": "SecaoMortes"
+      },
+      "SecaoPlacar": {
+        "properties": {
+          "linhas": {
+            "items": {
+              "$ref": "#/components/schemas/LinhaDoPlacar"
+            },
+            "type": "array",
+            "title": "Linhas"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          }
+        },
+        "type": "object",
+        "required": [
+          "linhas",
+          "leitura"
+        ],
+        "title": "SecaoPlacar"
+      },
+      "SecaoTransferencias": {
+        "properties": {
+          "entradas": {
+            "$ref": "#/components/schemas/SecaoDeLotes"
+          },
+          "saidas": {
+            "$ref": "#/components/schemas/SecaoDeLotes"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entradas",
+          "saidas",
+          "leitura"
+        ],
+        "title": "SecaoTransferencias"
+      },
+      "SituacaoDaAtualizacao": {
+        "properties": {
+          "rodando": {
+            "type": "boolean",
+            "title": "Rodando"
+          },
+          "agora": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Agora"
+          },
+          "ultima": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CargaRecente"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "rodando",
+          "agora",
+          "ultima"
+        ],
+        "title": "SituacaoDaAtualizacao"
+      },
+      "Transferencias": {
+        "properties": {
+          "periodo": {
+            "$ref": "#/components/schemas/Periodo"
+          },
+          "entrada": {
+            "items": {
+              "$ref": "#/components/schemas/QuadroDoLote"
+            },
+            "type": "array",
+            "title": "Entrada"
+          },
+          "saida": {
+            "items": {
+              "$ref": "#/components/schemas/QuadroDoLote"
+            },
+            "type": "array",
+            "title": "Saida"
+          },
+          "serie_mensal": {
+            "items": {
+              "$ref": "#/components/schemas/MesDeTransferencia"
+            },
+            "type": "array",
+            "title": "Serie Mensal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periodo",
+          "entrada",
+          "saida",
+          "serie_mensal"
+        ],
+        "title": "Transferencias"
+      },
+      "UsuarioDoAdmin": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "funcao_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Funcao Id"
+          },
+          "funcao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Funcao"
+          },
+          "eh_admin": {
+            "type": "boolean",
+            "title": "Eh Admin"
+          },
+          "ativo": {
+            "type": "boolean",
+            "title": "Ativo"
+          },
+          "fazendas": {
+            "type": "integer",
+            "title": "Fazendas"
+          },
+          "criado_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Criado Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "email",
+          "funcao_id",
+          "funcao",
+          "eh_admin",
+          "ativo",
+          "fazendas",
+          "criado_em"
+        ],
+        "title": "UsuarioDoAdmin"
+      },
+      "UsuarioResumo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "eh_admin": {
+            "type": "boolean",
+            "title": "Eh Admin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "email",
+          "eh_admin"
+        ],
+        "title": "UsuarioResumo"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "Velocimetro": {
+        "properties": {
+          "realizado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realizado"
+          },
+          "planejado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planejado"
+          },
+          "maximo": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximo"
+          },
+          "dentro_da_meta": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dentro Da Meta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "realizado",
+          "planejado",
+          "maximo",
+          "dentro_da_meta"
+        ],
+        "title": "Velocimetro",
+        "description": "Um dos velocímetros do topo da página: o realizado, a meta e o fim da escala."
+      },
+      "Vendas": {
+        "properties": {
+          "periodo": {
+            "$ref": "#/components/schemas/Periodo"
+          },
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "quadro": {
+            "items": {
+              "$ref": "#/components/schemas/QuadroDoLote"
+            },
+            "type": "array",
+            "title": "Quadro"
+          },
+          "serie_mensal": {
+            "items": {
+              "$ref": "#/components/schemas/MesDoLote"
+            },
+            "type": "array",
+            "title": "Serie Mensal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "periodo",
+          "tipo",
+          "quadro",
+          "serie_mensal"
+        ],
+        "title": "Vendas"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

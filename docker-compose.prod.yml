@@ -1,0 +1,181 @@
+# Produção (VPS Linux): o painel inteiro num docker compose. Guia: docs/03_DEPLOY_VPS.md.
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env.producao up -d --build
+#
+# Cada serviço recebe só a credencial de que precisa: a migração usa o superusuário do banco; a API, o app_user (com
+# RLS); o worker, o app_etl. Só o Caddy (web) fica exposto na internet; o Postgres escuta apenas em 127.0.0.1 da VPS
+# (para túnel SSH de manutenção).
+name: terra-producao
+
+# O que todo serviço do backend tem em comum (a mesma imagem; o comando e as credenciais mudam).
+x-backend: &backend
+  image: terra-backend:latest
+  build: ./backend
+  restart: unless-stopped
+
+x-banco: &banco
+  TZ: America/Cuiaba
+  AMBIENTE: producao
+  POSTGRES_HOST: db
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: ${POSTGRES_DB:-terra}
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-terra}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD:?defina APP_USER_PASSWORD}
+      APP_ETL_PASSWORD: ${APP_ETL_PASSWORD:?defina APP_ETL_PASSWORD}
+      TZ: America/Cuiaba
+    ports:
+      - "127.0.0.1:${POSTGRES_PORTA_LOCAL:-55432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # roda só na 1ª inicialização do volume: cria os papéis app_owner/app_user/app_etl
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # a fila das cargas; nada a guardar em disco (o resultado de cada carga fica no banco)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # aplica as migrações a cada subida e sai; a API só sobe depois que ela termina bem
+  migracao:
+    <<: *backend
+    restart: "no"
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      <<: *banco
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *backend
+    environment:
+      <<: *banco
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD}
+      JWT_SEGREDO: ${JWT_SEGREDO:?defina JWT_SEGREDO}
+      JWT_MINUTOS: ${JWT_MINUTOS:-480}
+      CORS_ORIGENS: https://${DOMINIO}
+      REDIS_URL: redis://redis:6379/0        # o "Atualizar agora" do admin põe a carga na fila do worker
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      migracao:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # executa as cargas, uma por vez
+  worker:
+    <<: *backend
+    command: ["celery", "-A", "app.tasks.fila", "worker", "--concurrency", "1", "--loglevel", "INFO"]
+    environment:
+      <<: *banco
+      APP_ETL_PASSWORD: ${APP_ETL_PASSWORD}
+      REDIS_URL: redis://redis:6379/0
+      PLANILHAS_DIR: /dados/planilhas
+      METRYX_CHAVE_CIFRA: ${METRYX_CHAVE_CIFRA:-}
+      AGENDA_METRYX: ${AGENDA_METRYX-}       # o "Atualizar agora" só chama o Metryx com a agenda dele ligada
+    volumes:
+      - ${PLANILHAS_HOST_DIR:-./planilhas}:/dados/planilhas:ro
+    depends_on:
+      migracao:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # dispara as cargas nos horários de AGENDA_* (formato do cron, horário de Cuiabá; vazio desliga)
+  beat:
+    <<: *backend
+    command: ["celery", "-A", "app.tasks.fila", "beat", "--schedule", "/tmp/celerybeat-schedule", "--loglevel", "INFO"]
+    environment:
+      TZ: America/Cuiaba
+      REDIS_URL: redis://redis:6379/0
+      AGENDA_PLANILHAS: ${AGENDA_PLANILHAS-0 */2 * * *}
+      AGENDA_METRYX: ${AGENDA_METRYX-}
+      AGENDA_ESTOQUE: ${AGENDA_ESTOQUE-30 0 1 * *}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # o painel e a API num endereço só, com HTTPS automático (Caddy)
+  web:
+    image: terra-web:latest
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+    restart: unless-stopped
+    environment:
+      DOMINIO: "${DOMINIO:?defina DOMINIO, por exemplo painel.terra.agr.br}"
+      EMAIL_HTTPS: "${EMAIL_HTTPS:?defina EMAIL_HTTPS, para os avisos do certificado}"
+    ports:
+      - "${PORTA_HTTP:-80}:80"
+      - "${PORTA_HTTPS:-443}:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # um pg_dump por dia, guardado em BACKUP_HOST_DIR (fora do volume do banco)
+  backup:
+    image: postgres:16
+    restart: unless-stopped
+    entrypoint: ["/bin/bash", "/backup.sh"]
+    environment:
+      TZ: America/Cuiaba
+      PGHOST: db
+      PGDATABASE: ${POSTGRES_DB:-terra}
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      HORA_DO_BACKUP: ${HORA_DO_BACKUP:-03:00}
+      DIAS_DE_BACKUP: ${DIAS_DE_BACKUP:-14}
+    volumes:
+      - ./docker/backup/backup.sh:/backup.sh:ro
+      - ${BACKUP_HOST_DIR:-./backups}:/backups
+    depends_on:
+      # o primeiro backup sai na subida: com o banco já migrado
+      migracao:
+        condition: service_completed_successfully
+
+  # opcional (perfil "drive"): traz as planilhas do Google Drive para PLANILHAS_HOST_DIR, a cada 10 minutos
+  planilhas:
+    image: rclone/rclone:1
+    profiles: ["drive"]
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/sincronizar.sh"]
+    environment:
+      RCLONE_ORIGEM: ${RCLONE_ORIGEM:-drive:Relatórios}
+      INTERVALO_S: ${INTERVALO_DO_DRIVE_S:-600}
+    volumes:
+      - ./docker/planilhas/sincronizar.sh:/sincronizar.sh:ro
+      - ${RCLONE_CONFIG_DIR:-./rclone}:/config/rclone
+      - ${PLANILHAS_HOST_DIR:-./planilhas}:/dados/planilhas
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

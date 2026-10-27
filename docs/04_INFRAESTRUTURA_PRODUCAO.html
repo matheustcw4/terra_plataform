@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Infraestrutura de produção do Projeto Terra</title>
+<!--
+  Fonte do PDF docs/04_INFRAESTRUTURA_PRODUCAO.pdf (página no formato de tela de celular). Para gerar de novo:
+  "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless=new --no-pdf-header-footer
+    --print-to-pdf="docs\04_INFRAESTRUTURA_PRODUCAO.pdf" "docs\04_INFRAESTRUTURA_PRODUCAO.html"
+-->
+<style>
+  @page {
+    size: 100mm 178mm;
+    margin: 8mm 7mm 10mm;
+    @bottom-center { content: counter(page) " / " counter(pages); font: 7pt "Segoe UI", sans-serif; color: #8a94a6; }
+  }
+  @page capa { margin: 0; @bottom-center { content: none; } }
+
+  :root {
+    --marinho: #0a3459;
+    --azul: #035fa5;
+    --azul-suave: #e7f0f9;
+    --verde: #0c9100;
+    --verde-suave: #e8f5e6;
+    --aviso: #9a521f;
+    --aviso-suave: #fbf1ea;
+    --texto: #1a2333;
+    --apagado: #5a6679;
+    --borda: #d6dde7;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 9.4pt;
+    line-height: 1.45;
+    color: var(--texto);
+  }
+
+  /* capa */
+  .capa {
+    page: capa;
+    height: 178mm;
+    padding: 16mm 9mm 10mm;
+    display: flex;
+    flex-direction: column;
+    background: var(--marinho);
+    color: #fff;
+  }
+  .capa img { width: 34mm; filter: brightness(0) invert(1); margin-bottom: 18mm; }
+  .capa .rotulo { font-size: 8pt; letter-spacing: 0.12em; text-transform: uppercase; color: #add5fa; }
+  .capa h1 { margin: 3mm 0 4mm; font-size: 21pt; line-height: 1.15; }
+  .capa p { margin: 0; font-size: 10pt; color: #dce8f4; }
+  .capa .rodape { margin-top: auto; font-size: 8pt; color: #add5fa; }
+
+  h2 {
+    break-after: avoid;
+    margin: 7mm 0 3mm;
+    padding-bottom: 1.5mm;
+    border-bottom: 2px solid var(--azul);
+    font-size: 13.5pt;
+    line-height: 1.2;
+    color: var(--marinho);
+  }
+  h3 { margin: 4.5mm 0 1.5mm; font-size: 10.5pt; color: var(--azul); break-after: avoid; }
+  p { margin: 0 0 2.2mm; }
+  ul, ol { margin: 0 0 2.5mm; padding-left: 4.5mm; }
+  li { margin-bottom: 1.2mm; }
+  strong { color: var(--marinho); }
+  code { font-family: Consolas, monospace; font-size: 8.3pt; background: #eef2f7; padding: 0 0.8mm; border-radius: 1mm; }
+
+  .caixa { margin: 2.5mm 0 3mm; padding: 2.5mm 3mm; border-radius: 2mm; break-inside: avoid; }
+  .caixa > :last-child { margin-bottom: 0; }
+  .caixa-titulo { display: block; margin-bottom: 1mm; font-size: 7.6pt; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; }
+  .ideia { background: var(--azul-suave); border-left: 1.2mm solid var(--azul); }
+  .ideia .caixa-titulo { color: var(--azul); }
+  .certo { background: var(--verde-suave); border-left: 1.2mm solid var(--verde); }
+  .certo .caixa-titulo { color: var(--verde); }
+  .atencao { background: var(--aviso-suave); border-left: 1.2mm solid #c9733d; }
+  .atencao .caixa-titulo { color: var(--aviso); }
+
+  table { width: 100%; border-collapse: collapse; margin: 1.5mm 0 3mm; font-size: 8.6pt; break-inside: avoid; }
+  th, td { padding: 1.3mm 1.5mm; border-bottom: 0.3mm solid var(--borda); text-align: left; vertical-align: top; }
+  th { background: #eef2f7; font-size: 7.6pt; color: var(--apagado); text-transform: uppercase; letter-spacing: 0.04em; }
+  td.numero { text-align: right; white-space: nowrap; font-weight: 600; }
+
+  .opcao { margin: 2.5mm 0 3.5mm; padding: 2.5mm 3mm; border: 0.3mm solid var(--borda); border-radius: 2mm;
+    break-inside: avoid; }
+  .opcao h3 { margin-top: 0; }
+  .opcao.recomendada { border: 0.6mm solid var(--verde); }
+  .selo { display: inline-block; margin-left: 1.5mm; padding: 0.3mm 1.5mm; border-radius: 1mm; background: var(--verde);
+    color: #fff; font-size: 6.8pt; font-weight: 700; letter-spacing: 0.05em; vertical-align: middle; }
+  .opcao dl { margin: 0; display: grid; grid-template-columns: 15mm 1fr; gap: 1mm 2mm; font-size: 8.8pt; }
+  .opcao dt { font-weight: 700; color: var(--apagado); }
+  .opcao dd { margin: 0; }
+
+  /* desenho da arquitetura: caixas empilhadas, do usuário ao backup */
+  .desenho { margin: 2mm 0 3mm; break-inside: avoid; }
+  .no { padding: 2mm 2.5mm; border-radius: 2mm; border: 0.4mm solid var(--borda); background: #fff; }
+  .no strong { display: block; font-size: 9pt; }
+  .no small { display: block; color: var(--apagado); font-size: 7.8pt; line-height: 1.35; }
+  .no.vm { border-color: var(--azul); background: var(--azul-suave); }
+  .no.banco { border-color: var(--verde); background: var(--verde-suave); }
+  .servicos { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm; margin-top: 1.5mm; }
+  .servicos span { padding: 1.2mm 1.5mm; border-radius: 1.2mm; background: #fff; border: 0.3mm solid #b9cfe6;
+    font-size: 7.6pt; line-height: 1.3; }
+  .seta { text-align: center; color: var(--apagado); font-size: 8pt; line-height: 1; margin: 0.8mm 0; }
+
+  .fase { margin: 2.5mm 0 3.5mm; padding-left: 3mm; border-left: 0.8mm solid var(--azul); break-inside: avoid; }
+  .fase h3 { margin-top: 0; }
+  .fase .prazo { font-size: 7.8pt; font-weight: 600; color: var(--apagado); }
+  .fase .pronto { margin-top: 1mm; font-size: 8.4pt; }
+  .fase .pronto b { color: var(--verde); }
+
+  .medicao { font-size: 7.6pt; color: var(--apagado); }
+</style>
+</head>
+<body>
+
+<section class="capa">
+  <img src="../frontend/src/assets/bi/terra-logo.png" alt="Terra">
+  <span class="rotulo">Projeto Terra · plataforma unificada</span>
+  <h1>Infraestrutura de produção</h1>
+  <p>Como colocar o painel no ar para cerca de 50 acessos simultâneos sem dor de cabeça: a arquitetura, o tamanho dos
+    servidores, as etapas da migração e a rotina de operação.</p>
+  <span class="rodape">21 de outubro de 2026 · feito para leitura no celular</span>
+</section>
+
+<h2>1. Resumo em um minuto</h2>
+<ul>
+  <li><strong>50 acessos simultâneos é carga pequena para este sistema.</strong> Medimos: as páginas respondem em 20 a
+    50 ms e o boletim analítico em cerca de 0,4 s. O PDF é montado no navegador de quem exporta, não no servidor.</li>
+  <li><strong>Sua intuição está meio certa.</strong> O banco deve sair de dentro do Docker, mas pela segurança dos
+    dados (backup, restauração, atualização), não por desempenho.</li>
+  <li><strong>Backend e frontend continuam em Docker.</strong> É justamente o que dá menos trabalho: a mesma imagem
+    testada vai para produção, e atualizar ou voltar atrás é um comando.</li>
+  <li><strong>Recomendação:</strong> uma máquina virtual (VM) para a aplicação, com o Docker Compose que o projeto já
+    tem, e um <strong>PostgreSQL gerenciado</strong> pelo provedor, os dois na região de São Paulo. Backups em dois
+    lugares e um alerta externo se o site cair.</li>
+  <li><strong>Prazo:</strong> de 1 a 2 semanas de trabalho até a virada, com os BIs atuais funcionando em paralelo por
+    1 ou 2 meses para conferência.</li>
+</ul>
+<div class="caixa atencao">
+  <span class="caixa-titulo">Um ponto a confirmar antes de escolher o provedor</span>
+  <p>As migrações do banco usam um superusuário e o papel <code>app_owner</code>, que ignora o RLS (a regra que
+    separa as fazendas por usuário). Bancos gerenciados não dão superusuário de verdade. Isso tem de ser testado no
+    provedor escolhido (fase 1 da migração). Se não funcionar, a opção C (VM própria só para o banco) resolve sem mudar
+    nada no sistema.</p>
+</div>
+
+<h2>2. O que medimos</h2>
+<p>Medições feitas em 21/10/2026 na API de desenvolvimento (um único processo, sem otimização), com o banco de
+  validação completo.</p>
+<table>
+  <tr><th>O quê</th><th>Resultado</th></tr>
+  <tr><td>Abrir o menu (lista de fazendas do usuário)</td><td class="numero">83 ms</td></tr>
+  <tr><td>Páginas (movimentação, vendas, financeiro, previsto × realizado)</td><td class="numero">22–46 ms</td></tr>
+  <tr><td>Página de um grupo de 6 fazendas</td><td class="numero">41 ms</td></tr>
+  <tr><td>Boletim analítico (dados do PDF)</td><td class="numero">≈ 0,4 s</td></tr>
+  <tr><td>20 pedidos de página ao mesmo tempo</td><td class="numero">0,6 s, 0 erros</td></tr>
+  <tr><td>10 boletins analíticos ao mesmo tempo</td><td class="numero">2,9 s, 0 erros</td></tr>
+  <tr><td>Tamanho do banco (230 planilhas e 2 clientes Metryx)</td><td class="numero">437 MB</td></tr>
+</table>
+<h3>O que isso quer dizer para 50 pessoas</h3>
+<p>Quem está lendo uma tela não gera pedido. Cada clique gera de 1 a 3 pedidos. Com 50 pessoas navegando ao mesmo
+  tempo, o servidor recebe na ordem de <strong>2 a 7 pedidos por segundo</strong>, e um único processo de
+  desenvolvimento já atendeu 36 por segundo.</p>
+<p>O caso mais pesado é muita gente exportando o boletim analítico no mesmo minuto. Mesmo assim, cada exportação
+  custa menos de meio segundo de servidor, porque a imagem do PDF é feita no navegador.</p>
+<p class="medicao">A máquina de desenvolvimento é mais forte que a VM proposta. Por isso a recomendação usa 4 processos
+  na API (hoje são 2) e folga de memória, e o teste de carga da fase 4 confirma na VM de verdade.</p>
+
+<h2>3. Docker sem mistério</h2>
+<h3>O que é</h3>
+<p>No Linux, um container <strong>não é uma máquina virtual</strong>. É um programa comum do sistema, rodando isolado,
+  com tudo de que precisa (Python, bibliotecas) dentro da imagem. Por isso o custo de desempenho é desprezível: para a
+  máquina, a API em Docker é praticamente o mesmo que a API instalada direto.</p>
+<h3>O que ele resolve</h3>
+<ul>
+  <li>A imagem testada aqui é a mesma que roda em produção. Não existe o "na minha máquina funciona".</li>
+  <li>Atualizar é <code>docker compose up -d</code>. Voltar à versão anterior é subir a imagem anterior.</li>
+  <li>Cada serviço tem as dependências dele, sem brigar com o sistema operacional.</li>
+  <li>O <code>docker-compose.prod.yml</code> do projeto já existe e foi validado (guia 03).</li>
+</ul>
+<h3>Onde ele exige cuidado</h3>
+<p>Nos <strong>dados guardados dentro dele</strong>. Com o banco num container, a atualização de versão do Postgres, o
+  backup, o disco e a restauração ficam inteiramente por sua conta, e banco e aplicação caem juntos se a VM tiver
+  problema.</p>
+<div class="caixa ideia">
+  <span class="caixa-titulo">E rodar backend e frontend direto na VM, sem Docker?</span>
+  <p>Não recomendo. Seria preciso instalar Python 3.12, Node e Caddy, configurar quatro serviços no systemd (API,
+    worker, beat e o servidor web) e repetir tudo a cada servidor novo ou atualização. É mais trabalho, sem ganho de
+    desempenho. O frontend nem é um programa rodando: é um conjunto de arquivos que o Caddy entrega.</p>
+</div>
+<div class="caixa certo">
+  <span class="caixa-titulo">Conclusão</span>
+  <p>Aplicação em Docker, banco fora dele. É exatamente a divisão que você intuiu, só que sem tirar o Docker da
+    aplicação.</p>
+</div>
+
+<h2>4. A arquitetura recomendada</h2>
+<div class="desenho">
+  <div class="no"><strong>Usuários</strong><small>navegador, no computador ou no celular</small></div>
+  <div class="seta">▼ HTTPS (porta 443)</div>
+  <div class="no vm">
+    <strong>VM de aplicação · Docker Compose</strong>
+    <small>Ubuntu 24.04 LTS, região São Paulo</small>
+    <div class="servicos">
+      <span><b>web</b>: Caddy, o painel e o HTTPS automático</span>
+      <span><b>api</b>: FastAPI, 4 processos</span>
+      <span><b>worker</b>: as cargas, uma por vez</span>
+      <span><b>beat</b>: dispara as cargas no horário</span>
+      <span><b>redis</b>: só a fila das cargas</span>
+      <span><b>planilhas</b>: rclone, traz do Drive</span>
+    </div>
+  </div>
+  <div class="seta">▼ rede privada do provedor, com SSL</div>
+  <div class="no banco">
+    <strong>PostgreSQL 16 gerenciado</strong>
+    <small>backup automático com restauração em qualquer ponto dos últimos dias; atualizações de segurança feitas pelo
+      provedor; sem acesso pela internet</small>
+  </div>
+  <div class="seta">▼ cópia diária</div>
+  <div class="no"><strong>Armazenamento de backups</strong><small>um bucket (S3 ou equivalente), fora da VM e do banco,
+    com 30 dias de retenção</small></div>
+</div>
+<h3>Por que assim</h3>
+<ul>
+  <li><strong>Os dados ficam no lugar mais seguro.</strong> Se a VM quebrar, o banco continua intacto; uma VM nova sobe
+    em menos de uma hora com o compose e o arquivo de configuração.</li>
+  <li><strong>Nada novo para aprender.</strong> A aplicação é o compose que já existe, só sem o serviço do banco.</li>
+  <li><strong>O Redis não guarda nada importante.</strong> É só a fila; o resultado das cargas fica no banco. Pode
+    continuar na VM.</li>
+  <li><strong>Só o Caddy fica exposto</strong> (portas 80 e 443). A API, o Redis e o banco não aparecem na
+    internet.</li>
+</ul>
+
+<h2>5. As três opções</h2>
+<div class="opcao">
+  <h3>A · Tudo numa VM, como está hoje</h3>
+  <dl>
+    <dt>Como</dt><dd>O <code>docker-compose.prod.yml</code> atual, com o banco num container.</dd>
+    <dt>Prós</dt><dd>Já está pronto; o mais barato; uma máquina só.</dd>
+    <dt>Contras</dt><dd>Banco e aplicação caem juntos. Backup, restauração e atualização do Postgres são por sua conta.
+      O backup diário fica na própria VM até alguém copiar para fora.</dd>
+    <dt>Quando</dt><dd>Para começar rápido ou para um piloto, desde que os backups sejam copiados para fora todo dia.</dd>
+  </dl>
+</div>
+<div class="opcao recomendada">
+  <h3>B · VM com Docker + PostgreSQL gerenciado <span class="selo">RECOMENDADA</span></h3>
+  <dl>
+    <dt>Como</dt><dd>A aplicação no compose, numa VM; o banco no serviço gerenciado do mesmo provedor (RDS na AWS,
+      Cloud SQL no Google, Azure Database etc.).</dd>
+    <dt>Prós</dt><dd>Backup automático com restauração em qualquer ponto no tempo, atualizações e monitoramento do banco
+      por conta do provedor. É a opção "sem dor de cabeça".</dd>
+    <dt>Contras</dt><dd>Custa mais que uma VM do mesmo tamanho. Não tem superusuário de verdade: é preciso confirmar
+      que as migrações e o papel <code>app_owner</code> funcionam (fase 1).</dd>
+    <dt>Quando</dt><dd>Quando ninguém da equipe quer ser responsável por administrar banco de dados.</dd>
+  </dl>
+</div>
+<div class="opcao">
+  <h3>C · VM com Docker + VM só para o banco</h3>
+  <dl>
+    <dt>Como</dt><dd>Duas VMs: a da aplicação e outra com o PostgreSQL instalado direto (sem Docker), com o pgBackRest
+      cuidando dos backups.</dd>
+    <dt>Prós</dt><dd>Controle total (superusuário, configuração, extensões); funciona sem mudar nada no sistema;
+      costuma sair mais barato que o gerenciado.</dd>
+    <dt>Contras</dt><dd>Backup, restauração, atualização e monitoramento do banco ficam com vocês, como na opção A, só
+      que numa máquina separada.</dd>
+    <dt>Quando</dt><dd>Se o provedor gerenciado não aceitar as migrações, ou se houver alguém com prática em
+      PostgreSQL.</dd>
+  </dl>
+</div>
+<div class="caixa ideia">
+  <span class="caixa-titulo">E Kubernetes, vários servidores, balanceador?</span>
+  <p>Não é necessário para 50 usuários. Seria mais caro e mais complicado, sem benefício no tamanho atual. A seção 12
+    diz quando pensar nisso.</p>
+</div>
+
+<h2>6. Tamanho dos servidores</h2>
+<table>
+  <tr><th>Item</th><th>Recomendação inicial</th></tr>
+  <tr><td><strong>VM de aplicação</strong></td><td>2 vCPU, 4 GB de RAM, 50 GB de SSD, Ubuntu 24.04 LTS. Subir para
+    4 vCPU e 8 GB se as cargas de planilhas deixarem o painel lento (aumentar uma VM leva minutos).</td></tr>
+  <tr><td><strong>PostgreSQL</strong></td><td>Versão 16, 2 vCPU, 4 GB de RAM, 20 GB de disco com crescimento automático.
+    Backup automático de 7 a 14 dias, com restauração em ponto no tempo.</td></tr>
+  <tr><td><strong>Backups</strong></td><td>Um bucket com 30 dias de retenção (poucos GB).</td></tr>
+  <tr><td><strong>Domínio</strong></td><td>Um subdomínio, por exemplo <code>painel.terra.agr.br</code>, apontando para a
+    VM.</td></tr>
+</table>
+<h3>Por que esse tamanho basta</h3>
+<p>O banco inteiro tem 437 MB e cresce devagar: uma safra a mais de planilhas e alguns clientes Metryx somam pouco. A
+  memória da VM é dominada pelo worker durante as cargas, quando ele lê as planilhas.</p>
+<h3>Onde contratar</h3>
+<p>Provedores com região em São Paulo (latência baixa para Cuiabá e dados no Brasil, o que simplifica a LGPD): AWS,
+  Google Cloud, Microsoft Azure, Oracle Cloud e Magalu Cloud. Para a opção B, AWS (VM + RDS) e Google Cloud
+  (VM + Cloud SQL) são os mais documentados.</p>
+<div class="caixa atencao">
+  <span class="caixa-titulo">Sobre preço</span>
+  <p>Não cito valores porque mudam com o tempo e entre provedores. Simule nas calculadoras de preço de cada um com o
+    tamanho acima. Como referência, o banco gerenciado costuma custar mais que uma VM equivalente; a diferença paga o
+    backup, a restauração e a atualização feitos por eles.</p>
+</div>
+
+<h2>7. O que muda no projeto</h2>
+<p>Pouca coisa, e tudo pequeno. Para a opção B:</p>
+<ol>
+  <li><strong>Tirar o serviço <code>db</code></strong> do compose de produção e apontar <code>POSTGRES_HOST</code>
+    para o endereço privado do banco gerenciado.</li>
+  <li><strong>Conexão com SSL.</strong> Hoje a URL do banco não tem essa opção (<code>backend/app/core/config.py</code>);
+    é um parâmetro a acrescentar (<code>sslmode=require</code>).</li>
+  <li><strong>Criar os papéis uma vez.</strong> O script <code>docker/postgres/init/01-papeis.sh</code> só roda quando o
+    volume do Docker nasce. No gerenciado, o mesmo SQL é executado uma vez pelo usuário administrador. É aqui que se
+    confirma o <code>BYPASSRLS</code> do <code>app_owner</code>.</li>
+  <li><strong>API com 4 processos</strong> (hoje 2, no <code>backend/Dockerfile</code>).</li>
+  <li><strong>Limite no tamanho dos logs</strong> dos containers. Hoje não há limite, e os logs podem encher o disco
+    com o tempo.</li>
+  <li><strong>Backup para fora.</strong> O dump diário passa a ser copiado para o bucket. Hoje ele fica só na VM.</li>
+  <li><strong>Alerta externo</strong> consultando <code>/api/v1/health</code> a cada minuto (UptimeRobot, Better Stack
+    ou o monitor do provedor).</li>
+  <li><strong>Depois (recomendado):</strong> GitHub Actions rodando os testes e gerando as imagens, para a VM só
+    baixar e subir, sem compilar nada lá.</li>
+</ol>
+<p class="medicao">Na opção C, os itens 1 e 2 mudam pouco (o host vira o IP privado da VM do banco) e o item 3 é o
+  próprio script, rodado como superusuário.</p>
+
+<h2>8. Etapas da migração</h2>
+<div class="fase">
+  <h3>Fase 0 · Decisões</h3>
+  <span class="prazo">1 dia</span>
+  <ul>
+    <li>Provedor, região e a opção (B ou C);</li>
+    <li>o domínio do painel;</li>
+    <li>como as planilhas chegam ao servidor (decisão D8; a recomendação é o rclone com uma conta de serviço do
+      Google, só leitura);</li>
+    <li>quem recebe os alertas e a data da virada.</li>
+  </ul>
+  <p class="pronto"><b>Pronto quando:</b> as quatro decisões estão escritas.</p>
+</div>
+<div class="fase">
+  <h3>Fase 1 · Montar a infraestrutura</h3>
+  <span class="prazo">1 a 2 dias</span>
+  <ul>
+    <li>Criar o banco (rede privada, backup automático, alerta de disco);</li>
+    <li>criar a VM, o firewall (22, 80 e 443), o Docker e o DNS;</li>
+    <li>criar o bucket de backups;</li>
+    <li><strong>testar os papéis e uma migração no banco gerenciado</strong>, o ponto de atenção do resumo.</li>
+  </ul>
+  <p class="pronto"><b>Pronto quando:</b> <code>alembic upgrade head</code> roda limpo no banco novo.</p>
+</div>
+<div class="fase">
+  <h3>Fase 2 · Ajustar o projeto</h3>
+  <span class="prazo">1 a 2 dias</span>
+  <p>Os itens da seção 7, com os testes passando e o guia de deploy (<code>docs/03_DEPLOY_VPS.md</code>)
+    atualizado.</p>
+  <p class="pronto"><b>Pronto quando:</b> o compose sobe na VM apontando para o banco gerenciado.</p>
+</div>
+<div class="fase">
+  <h3>Fase 3 · Levar os dados</h3>
+  <span class="prazo">1 dia</span>
+  <p>Ver a seção 9. Em resumo: restaurar o banco de validação, limpar o que é de teste e cadastrar de novo os tokens
+    do Metryx com a chave de produção.</p>
+  <p class="pronto"><b>Pronto quando:</b> os números do painel batem com os do banco de validação.</p>
+</div>
+<div class="fase">
+  <h3>Fase 4 · Ensaio geral</h3>
+  <span class="prazo">1 a 2 dias</span>
+  <ul>
+    <li>Conferir os números com os scripts de validação (<code>backend/validacao/cruzar_*</code>);</li>
+    <li>teste de carga com 50 usuários virtuais navegando e exportando (k6 ou Locust);</li>
+    <li>restaurar um backup num banco novo e conferir;</li>
+    <li>reiniciar a VM e ver tudo voltar sozinho.</li>
+  </ul>
+  <p class="pronto"><b>Pronto quando:</b> os quatro testes passaram e estão anotados.</p>
+</div>
+<div class="fase">
+  <h3>Fase 5 · Virada</h3>
+  <span class="prazo">1 dia</span>
+  <ul>
+    <li>Última carga das planilhas;</li>
+    <li>criar o admin real e importar a equipe (<code>importar-equipe</code>);</li>
+    <li>avisar os usuários e mandar o endereço.</li>
+  </ul>
+  <p class="pronto"><b>Pronto quando:</b> a equipe entrou e viu as suas fazendas.</p>
+</div>
+<div class="fase">
+  <h3>Fase 6 · Convivência com os BIs</h3>
+  <span class="prazo">1 a 2 meses</span>
+  <p>Os dois Power BIs continuam no ar. A equipe usa o painel novo e confere com os BIs o que estranhar. Pendências e
+    erros de carga são acompanhados toda semana. Depois disso, os BIs são desligados.</p>
+  <p class="pronto"><b>Pronto quando:</b> um fechamento de mês inteiro foi feito só pelo painel novo.</p>
+</div>
+
+<h2>9. Como levar os dados</h2>
+<h3>Caminho recomendado: restaurar o banco validado</h3>
+<p>O banco de validação já tem tudo conferido contra os BIs e o Metryx: as 230 planilhas, o histórico do snapshot do BI
+  (que só existe na máquina Windows), as cargas reais do Metryx e os de-paras classificados.</p>
+<ol>
+  <li>Gerar um dump do <code>terra_validacao</code> (<code>pg_dump --format=custom</code>);</li>
+  <li>restaurar no banco de produção, depois de criar os papéis;</li>
+  <li><strong>apagar os usuários de teste</strong> (o admin e o consultor de desenvolvimento);</li>
+  <li><strong>apagar as credenciais do Metryx</strong> e cadastrar de novo com a chave de cifra de produção, que deve
+    ser nova e diferente da de desenvolvimento (com a autorização de cada cliente);</li>
+  <li>rodar a carga de planilhas uma vez, para pegar o que mudou desde a validação.</li>
+</ol>
+<h3>Alternativa: carregar do zero</h3>
+<p>Subir o banco vazio e deixar as cargas trazerem tudo: planilhas pelo worker; o histórico (Q6) rodado da máquina
+  Windows por um túnel SSH, como já está no guia 03; o Metryx com os tokens. Fica mais limpo, mas é mais demorado e
+  os de-paras precisam ser classificados de novo.</p>
+<div class="caixa ideia">
+  <span class="caixa-titulo">Nos dois casos</span>
+  <p>Os segredos de produção (senhas do banco, a chave do login e a chave de cifra do Metryx) são novos e ficam num
+    cofre de senhas (1Password, Bitwarden), não só no arquivo da VM.</p>
+</div>
+
+<h2>10. Rotina de operação</h2>
+<table>
+  <tr><th>Quando</th><th>O quê</th></tr>
+  <tr><td><strong>Sozinho, todo dia</strong></td><td>Backup do provedor e dump copiado para o bucket; cargas de
+    planilhas a cada 2 horas; alerta se o site cair; patches de segurança do Ubuntu
+    (<code>unattended-upgrades</code>).</td></tr>
+  <tr><td><strong>Toda semana</strong></td><td>Olhar a aba Pendências e as cargas com erro; ler os alertas da
+    semana.</td></tr>
+  <tr><td><strong>Todo mês</strong></td><td>Restaurar um backup num banco de teste (backup não testado não é backup);
+    conferir espaço em disco; atualizar as imagens base.</td></tr>
+  <tr><td><strong>A cada versão</strong></td><td>Atualizar o código e rodar <code>up -d</code>: a migração roda
+    sozinha. Antes, garantir um backup recente; voltar atrás é subir a versão anterior.</td></tr>
+</table>
+<h3>Se algo der muito errado</h3>
+<table>
+  <tr><th>Problema</th><th>Recuperação</th></tr>
+  <tr><td>A VM quebrou ou foi perdida</td><td>VM nova, Docker, o código e o arquivo de configuração do cofre: em
+    menos de 1 hora. Nenhum dado se perde, porque o banco está fora.</td></tr>
+  <tr><td>Dados apagados ou estragados</td><td>Restaurar o banco no ponto no tempo anterior ao problema (gerenciado) ou
+    o dump da véspera (bucket).</td></tr>
+  <tr><td>Uma atualização quebrou o painel</td><td>Subir a imagem anterior. Se a migração mexeu em dados, restaurar o
+    backup feito antes da atualização.</td></tr>
+</table>
+
+<h2>11. Segurança</h2>
+<ul>
+  <li>Firewall aberto só nas portas 80 e 443 para todos, e 22 (SSH) só com chave, de preferência só dos IPs da
+    equipe;</li>
+  <li>o banco sem endereço público: só a VM fala com ele, pela rede privada e com SSL;</li>
+  <li>o RLS continua de verdade: a API conecta como <code>app_user</code> e as cargas como <code>app_etl</code>, sem
+    poder ignorar as regras;</li>
+  <li>os segredos fora do git (como já é) e guardados num cofre de senhas;</li>
+  <li>os backups no bucket com acesso restrito e criptografados;</li>
+  <li>o rclone com permissão só de leitura no Google Drive;</li>
+  <li>a documentação da API (<code>/docs</code>) continua fora da internet (o Caddy já não a publica);</li>
+  <li>os tokens do Metryx continuam cifrados no banco e só com a autorização de cada cliente.</li>
+</ul>
+
+<h2>12. Pendências e futuro</h2>
+<h3>O que não é infraestrutura, mas trava a virada</h3>
+<ul>
+  <li><strong>D8:</strong> como as planilhas chegam ao servidor (Google Drive pelo rclone com conta de serviço);</li>
+  <li><strong>Metryx:</strong> autorização de cada cliente para ligar a carga diária;</li>
+  <li><strong>Equipe:</strong> a lista de técnicos e as fazendas de cada um (a planilha de levantamento);</li>
+  <li><strong>D10:</strong> permissões por função ficaram para depois; hoje quem não é admin vê as fazendas que lhe
+    foram dadas.</li>
+</ul>
+<h3>Quando pensar em crescer</h3>
+<ul>
+  <li>Painel lento em horário de pico, ou mais de 200 pessoas ao mesmo tempo: primeiro aumentar a VM (minutos); depois,
+    guardar em cache o boletim analítico por alguns minutos;</li>
+  <li>cargas atrapalhando quem usa o painel: separar o worker numa segunda VM pequena;</li>
+  <li>banco no limite: aumentar o plano do gerenciado ou criar uma réplica só de leitura;</li>
+  <li>vários servidores com balanceador, ou Kubernetes, só muito além disso.</li>
+</ul>
+
+<h2>13. Glossário rápido</h2>
+<dl style="margin:0">
+  <dt><strong>VM</strong></dt><dd style="margin:0 0 2mm">Máquina virtual: um servidor alugado no provedor.</dd>
+  <dt><strong>Imagem / container</strong></dt><dd style="margin:0 0 2mm">A imagem é o pacote com o programa e tudo de
+    que ele precisa; o container é essa imagem rodando.</dd>
+  <dt><strong>Docker Compose</strong></dt><dd style="margin:0 0 2mm">O arquivo que diz quais containers sobem e como
+    se ligam (<code>docker-compose.prod.yml</code>).</dd>
+  <dt><strong>Banco gerenciado</strong></dt><dd style="margin:0 0 2mm">PostgreSQL em que o provedor cuida da máquina,
+    do backup e das atualizações; você só usa.</dd>
+  <dt><strong>Restauração em ponto no tempo</strong></dt><dd style="margin:0 0 2mm">Voltar o banco a como estava num
+    minuto exato do passado (por exemplo, logo antes de um erro).</dd>
+  <dt><strong>Bucket</strong></dt><dd style="margin:0 0 2mm">Uma pasta na nuvem para guardar arquivos (os
+    backups).</dd>
+  <dt><strong>RLS</strong></dt><dd style="margin:0 0 2mm">A regra do banco que só deixa cada usuário ver as fazendas
+    dele.</dd>
+  <dt><strong>Caddy</strong></dt><dd style="margin:0 0 2mm">O servidor web que entrega o painel e renova o certificado
+    HTTPS sozinho.</dd>
+</dl>
+
+</body>
+</html>

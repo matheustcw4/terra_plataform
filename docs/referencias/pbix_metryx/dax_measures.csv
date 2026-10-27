@@ -1,0 +1,1081 @@
+TableName,Name,Expression,DisplayFolder,Description
+Analytics Measures,Purchased Quantity,"
+CALCULATE(SUM(pecuarioCompras[qtd]))+0",Purchase Measures,
+Analytics Measures,Total Paid,"
+CALCULATE(SUM(pecuarioCompras[Paid]))",Purchase Measures,
+Analytics Measures,Purchase Quantity,COUNTROWS(pecuarioCompras),Purchase Measures,
+Analytics Measures,Dead KG Amount,"
+CALCULATE(SUM(pecuarioMortes[peso_total]))",Dead Measures,
+Analytics Measures,Dead Quantity,SUM(pecuarioMortes[qtd])+0,Dead Measures,
+Analytics Measures,Birth Quantity,CALCULATE(SUM(pecuarioNascimento[amount]))+0,Birth Measures,
+Analytics Measures,Average Birth Weight,CALCULATE(SUM(pecuarioNascimento[peso_nasc])) /  CALCULATE(SUM(pecuarioNascimento[qtd])) ,Birth Measures,
+Analytics Measures,Expenses,"CALCULATE(
+                     SUM('financeiroDre'[amountpaid]),
+                     'financeiroDre'[type]=""Débito""--,
+                    -- pecuarioRebanhoMedioMensal[amount] > 0
+                     ) * -1",Finance Measures,
+Analytics Measures,Revenues,"CALCULATE(SUM('financeiroDre'[amountpaid]),'financeiroDre'[type]=""Crédito"",financeiroDre[tipo_custeio_cat] IN {""Receita Pec"", ""Receita Agr""})",Finance Measures,
+Analytics Measures,Balance,[Revenues] + [Expenses],Finance Measures,
+Analytics Measures,% Resultado,"DIVIDE([Balance],[Expenses]*-1)",Finance Measures,
+Analytics Measures,Finance Indicator,"
+IF([% Resultado] > 0, 1, 
+   IF([% Resultado] < 0, -1, 0))",Finance Measures,
+Analytics Measures,Amount Saled (Abate),SUM(pecuarioVendaAbate[qtd]),IN - General Sales Measures,
+Analytics Measures,IN - Invoicing,SUM(pecuarioVendaEmPe[Faturamento])+SUM(pecuarioVendaAbate[Faturamento]),IN - General Sales Measures,
+Analytics Measures,AVG Price @ Dead Sale,"
+CALCULATE(SUM(pecuarioVendaAbate[Faturamento]) / (SUM(pecuarioVendaAbate[Total de @])))",IN - General Sales Measures,
+Analytics Measures,AVG Price @ Sale Venda em Pe,"
+CALCULATE(SUM(pecuarioVendaEmPe[Faturamento]) / SUM(pecuarioVendaEmPe[Total de @]))",IN - General Sales Measures,
+Analytics Measures,AVG Ticket Dead Sale,SUM(pecuarioVendaAbate[Faturamento]) / SUM(pecuarioVendaAbate[qtd]),IN - General Sales Measures,
+Analytics Measures,AVG Ticket Sale,SUM(pecuarioVendaEmPe[Faturamento]) / SUM(pecuarioVendaEmPe[qtd]),IN - General Sales Measures,
+Analytics Measures,Expenses Graph,"CALCULATE(SUM('financeiroDre'[amountpaid]),'financeiroDre'[type]=""Débito"") ",Finance Measures,
+Analytics Measures,Accumulated Death,"
+ VAR calc1 = 
+   CALCULATE(
+        [Dead Quantity],
+        FILTER(
+            ALL(dCalendar),  // Remove todos os filtros da tabela de calendário
+            dCalendar[Data] <= MAX(dCalendar[Data]) &&
+            YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  // Garante que o cálculo seja feito apenas dentro do ano corrente
+        )
+    )
+VAR calc2 = 
+    CALCULATE(
+        [Dead Quantity],
+        FILTER(
+            ALL(dCalendar),  // Remove todos os filtros de data
+            dCalendar[Data] <= MAX(dCalendar[Data])  // Inclui todas as datas até a data máxima no contexto
+        )
+    )
+RETURN IF([Count of Selected Years] = 1,
+            calc1,calc2)",Dead Measures,
+Analytics Measures,Const Death,"
+    CALCULATE(
+        [Dead Quantity],
+            ALLEXCEPT(dCalendar,dCalendar[Ano])
+
+    )",Dead Measures,
+Analytics Measures,Count of Selected Years,"
+    CALCULATE(
+        DISTINCTCOUNT(dCalendar[Ano]),
+        ALLSELECTED(dCalendar)
+    )",Dead Measures,
+Analytics Measures,% Death Accumulated,"DIVIDE([Accumulated Death],[Const Death])",Dead Measures,
+Analytics Measures,head outlay mOm,"
+(CALCULATE(DIVIDE([Outlay],[Mean Month])) * -1) / [Count of Selected Month]",Head Outlay,
+Analytics Measures,head outlay accumulated,"
+(DIVIDE([Expenses Accumulated], [Mean Month Accumulated - Aux (Desembolso)], 0) *-1) / [Count of Selected Month] + 0",Head Outlay,
+Analytics Measures,Expenses Accumulated,"
+VAR UltimoDiaDoMesContexto = MAX('dCalendar'[Data]) 
+VAR DataLimite = EOMONTH(UltimoDiaDoMesContexto, 0)
+
+RETURN
+CALCULATE(
+    [Outlay],
+    FILTER(
+        ALLSELECTED('dCalendar'),
+        'dCalendar'[Data] <= DataLimite
+    )
+)",Head Outlay,
+Analytics Measures,Mean Month,CALCULATE( SUM(pecuarioRebanhoMedioMensal[amount]) / [Count of Selected Month]),Head Outlay,
+Analytics Measures,Mean Month Accumulated,"
+ VAR calc1 = 
+   CALCULATE(
+        [Mean Month],
+        FILTER(
+            ALLSELECTED(dCalendar), 
+            dCalendar[Data] <= MAX(dCalendar[Data]) &&
+            YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  
+        )
+    )
+VAR calc2 = 
+    CALCULATE(
+        [Mean Month],
+        FILTER(
+            ALLSELECTED(dCalendar),  
+            dCalendar[Data] <= MAX(dCalendar[Data])  
+        )
+    )
+RETURN IF([Count of Selected Years] = 1,
+            calc1,calc2) / [Count of Selected Month]",Head Outlay,
+Analytics Measures,head outlay mOm (forecast),"
+(CALCULATE(DIVIDE([Outlay Forecast],[Mean Month - forecast])) * -1) / [Count of Selected Month]",Head Outlay,
+Analytics Measures,Dead Quantity forecast,"
+CALCULATE(SUM(fMetasMortes[amount]),USERELATIONSHIP(dCalendar[Data],fMetasMortes[date]))",Dead Measures,
+Analytics Measures,% Forecast Indicator,"DIVIDE([Dead Quantity forecast],SUM(fMetasRebanhoMedio[amount]))",Dead Measures,
+Analytics Measures,% Realized Indicator,"DIVIDE([Dead Quantity],SUM(pecuarioRebanhoMedioMensal[amount]))",Dead Measures,
+Analytics Measures,Dead Quantity Accumulated,"
+    CALCULATE(
+        [Dead Quantity],
+        FILTER(
+            ALL(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",Dead Measures,
+Analytics Measures,% Realized Indicator Accumulated,"
+DIVIDE([Dead Quantity Accumulated], ([Mean Month Accumulated]/[Count Mean Month Accumulated]), 0) ",Dead Measures,
+Analytics Measures,Dead Quantity Accumulated - Forecast,"
+    CALCULATE(
+        [Dead Quantity forecast],
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",Dead Measures,
+Analytics Measures,Mean Month Accumulated - Forecast,"
+    CALCULATE(
+        SUM(fMetasRebanhoMedio[amount]),
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        ),fMetasRebanhoMedio[amount] <> BLANK()
+    )",Head Outlay,
+Analytics Measures,% Forecast Indicator Accumulated,"
+CALCULATE(DIVIDE([Dead Quantity Accumulated - Forecast], ([Mean Month Accumulated - Forecast]/[Count Mean Month Accumulated]), 0) )",Dead Measures,
+Analytics Measures,Total de @,"
+[Arroba Value] * [Amount Saled (Abate)]",IN - General Sales Measures,
+Analytics Measures,Arroba Value,SUM(pecuarioVendaAbate[ArrobaAVG]) + SUM(pecuarioVendaEmPe[arrobaAvg]),IN - General Sales Measures,
+Analytics Measures,Amount Saled - Forecast (Abate),"
+
+VAR calc1 = CALCULATE(SUM(fMetasAbate[amount]))
+
+RETURN calc1",IN - General Sales Measures,
+Analytics Measures,Incoicing - Forecast,"
+
+VAR calc1 = CALCULATE(SUM(fMetasAbate[totalvalue]))
+
+--VAR calc2 = CALCULATE(SUM(fMetasEmPe))
+
+RETURN calc1",IN - General Sales Measures,
+Analytics Measures,% Death x Death Forecast,"DIVIDE([Dead Quantity],[Dead Quantity forecast])",Dead Measures,
+Analytics Measures,Dead Quantity (Teens),"CALCULATE(SUM(pecuarioMortes[qtd]),pecuarioMortes[grupo_categoria] = ""JOVENS"")",Dead Measures,
+Analytics Measures,Dead Quantity (Adults),"CALCULATE(SUM(pecuarioMortes[qtd]),pecuarioMortes[grupo_categoria] = ""ADULTOS"")",Dead Measures,
+Analytics Measures,Dead Quantity (Calves),"CALCULATE(SUM(pecuarioMortes[qtd]),pecuarioMortes[grupo_categoria] = ""BEZERROS"")",Dead Measures,
+Analytics Measures,head outlat accumulated - forecast,"
+(DIVIDE([Expenses Accumulated - Forecast], [Mean Month Accumulated - Aux (Desembolso) - Forecast], 0) *-1) / [Count of Selected Month] + 0",Head Outlay,
+Analytics Measures,Mean Month - forecast,"
+CALCULATE(
+        SUM(fMetasRebanhoMedio[amount]) / [Count of Selected Month],
+        USERELATIONSHIP(fMetasRebanhoMedio[idfarm],fUnidades[idfarm]),
+        USERELATIONSHIP(dCalendar[Data],fMetasRebanhoMedio[DATA])
+        )",Head Outlay,
+Analytics Measures,Stock,SUM(fMovGado[QTD C]),Stock Measures,
+Analytics Measures,Stock Accumulated Inicial,"
+    CALCULATE(
+        [Stock],
+        FILTER(
+            ALL(dCalendar),
+            dCalendar[Data] < EOMONTH(MIN(dCalendar[Data]), -1) + 1
+            
+        )
+    )",Stock Measures,
+Analytics Measures,Stock Accumulated Final,"
+CALCULATE(
+    [Stock],
+    FILTER(
+        ALL(dCalendar), -- Remove filtros de dCalendar, permitindo acumular dados retroativos
+        dCalendar[Data] <= MAX(dCalendar[Data])
+    )
+)",Stock Measures,
+Analytics Measures,Buy,CALCULATE(SUM(Compras[amount])),Stock Measures,
+Analytics Measures,Sell,CALCULATE(sum(pecuarioVendaAbate[qtd])),Stock Measures,
+Analytics Measures,Birth,CALCULATE(SUM(pecuarioNascimento[amount])),Stock Measures,
+Analytics Measures,Change Category entry,"CALCULATE([Stock],fMovGado[OPERAÇÃO] = ""Mud. de Categoria"", fMovGado[Type Operation] = ""Entrada"")",Stock Measures,
+Analytics Measures,Death,CALCULATE(SUM(pecuarioMortes[qtd])),Stock Measures,
+Analytics Measures,comsuption / donation,"CALCULATE(SUM(pecuarioMortes[qtd]),pecuarioMortes[causa] = ""Consumo Abate"")",Stock Measures,
+Analytics Measures,Weaning Exit,"CALCULATE([Stock],fMovGado[OPERAÇÃO] = ""DESMAME"",fMovGado[Type Operation] = ""Saída"")",Stock Measures,
+Analytics Measures,Change Category exit,"CALCULATE([Stock],fMovGado[OPERAÇÃO] = ""Mud. de Categoria"", fMovGado[Type Operation] = ""Saída"")",Stock Measures,
+Analytics Measures,Weaning Entry,"CALCULATE([Stock],fMovGado[OPERAÇÃO] = ""Desmame"",fMovGado[Type Operation] = ""Entrada"")",Stock Measures,
+Analytics Measures,Invoicing Accumulated,"
+    CALCULATE(
+        [IN - Invoicing],
+        FILTER(
+            ALL(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )
+
+/* Invoicing Accumulated = 
+VAR calc1 =
+    CALCULATE(
+        SUM(pecuarioVendaAbate[Total Value]),
+        FILTER(
+            ALL(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )
+
+VAR calc2 =
+    CALCULATE(
+        SUM(pecuarioVendaEmPe[totalValue]),
+        FILTER(
+            ALL(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )
+
+RETURN calc1+calc2*/",IN - General Sales Measures,
+Analytics Measures,Forecast Accumulated,"
+    CALCULATE(
+        [Incoicing - Forecast],
+        FILTER(
+            ALL(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",IN - General Sales Measures,
+Analytics Measures,Amount Head Saled Accumulated,"
+    CALCULATE(
+        [Amount Saled (Abate)],
+        FILTER(
+            ALL(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",IN - General Sales Measures,
+Analytics Measures,Amount Head Saled - Forecast Accumulated,"
+    CALCULATE(
+        [Amount Saled - Forecast (Abate)],
+        FILTER(
+            ALL(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",IN - General Sales Measures,
+Analytics Measures,Count Mean Month,"
+ VAR calc1 = 
+   CALCULATE(
+        COUNTROWS(pecuarioRebanhoMedioMensal),
+        FILTER(
+            ALL(dCalendar),  // Remove todos os filtros da tabela de calendário
+            dCalendar[Data] <= MAX(dCalendar[Data]) &&
+            YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  // Garante que o cálculo seja feito apenas dentro do ano corrente
+        )
+    )
+VAR calc2 = 
+    CALCULATE(
+        COUNTROWS(pecuarioRebanhoMedioMensal),
+        FILTER(
+            ALL(dCalendar),  // Remove todos os filtros de data
+            dCalendar[Data] <= MAX(dCalendar[Data])  // Inclui todas as datas até a data máxima no contexto
+        )
+    )
+RETURN IF([Count of Selected Years] = 1,
+            calc1,calc2)",Dead Measures,
+Analytics Measures,Count Mean Month Accumulated,"
+   CALCULATE(
+        DISTINCTCOUNT(dCalendar[mesano]),
+        FILTER(
+            ALLSELECTED(dCalendar), 
+            dCalendar[Data] <= MAX(dCalendar[Data]) --&&
+           -- YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  
+        )
+    )
+/*
+ VAR calc1 = 
+   CALCULATE(
+        DISTINCTCOUNT(dCalendar[mesano]),
+        FILTER(
+            ALL(dCalendar), 
+            dCalendar[Data] <= MAX(dCalendar[Data]) &&
+            YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  
+        )
+    )
+VAR calc2 = 
+    CALCULATE(
+        DISTINCTCOUNT(dCalendar[mesano]),
+        FILTER(
+            ALL(dCalendar),  
+            dCalendar[Data] <= MAX(dCalendar[Data])  
+        )
+    )
+RETURN IF([Count of Selected Years] = 1,
+            calc1,calc2)*/",Head Outlay,
+Analytics Measures,Rendimento Carcaça,SUM(pecuarioVendaAbate[pesomorto_total]) / SUM(pecuarioVendaAbate[pesovivo_total]),IN - General Sales Measures,
+Analytics Measures,Peso em @ Abate,"
+(SUM(pecuarioVendaAbate[Peso Morto Total]) / 15 ) / SUM(pecuarioVendaAbate[qtd])",IN - General Sales Measures,
+Analytics Measures,AVG Price @,[AVG Price @ Dead Sale] + [AVG Price @ Sale Venda em Pe],IN - General Sales Measures,
+Analytics Measures,Peso em @ Em Pe,"
+(SUM( pecuarioVendaEmPe[pesovivo_total])/30) / SUM(pecuarioVendaEmPe[qtd])",IN - General Sales Measures,
+Analytics Measures,Peso em @,"
+
+VAR totalArroba = (SUM(pecuarioVendaAbate[Peso Morto Total]) / 15) + (SUM( pecuarioVendaEmPe[pesovivo_total])/30)
+
+VAR totalCabecaVendida = SUM(pecuarioVendaAbate[qtd]) + SUM(pecuarioVendaEmPe[qtd])
+
+
+RETURN totalArroba / totalCabecaVendida",IN - General Sales Measures,
+Analytics Measures,Outlay,"
+CALCULATE(SUM(financeiroDre[Desembolso])) +0",Finance Measures,
+Analytics Measures,% Atingido Faturamento,"DIVIDE([IN - Invoicing],[Incoicing - Forecast]) + 0",IN - General Sales Measures,
+Analytics Measures,Rebanho Median Month,"DIVIDE([],[Count Mean Month Accumulated])",,
+Analytics Measures,UA Median Month,"DIVIDE([Mean Month Accumulated - UA],[Count Mean Month Accumulated])",Purchase Measures,
+Analytics Measures,Mean Month Accumulated - UA,"
+ VAR calc1 = 
+   CALCULATE(
+        [Mean Month - UA],
+        FILTER(
+            ALLSELECTED(dCalendar), 
+            dCalendar[Data] <= MAX(dCalendar[Data]) &&
+            YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  
+        )
+    )
+VAR calc2 = 
+    CALCULATE(
+        [Mean Month - UA],
+        FILTER(
+            ALLSELECTED(dCalendar),  
+            dCalendar[Data] <= MAX(dCalendar[Data])  
+        )
+    )
+RETURN IF([Count of Selected Years] = 1,
+            calc1,calc2) / [Count of Selected Month]",Head Outlay,
+Analytics Measures,Mean Month - UA,"0
+--Não tem por UA na API
+--SUM(pecuarioRebanhoMedioMensal[qtd_ua])",Head Outlay,
+Analytics Measures,Costing,SUM('financeiroDre'[Custeio]),Head Outlay,
+Analytics Measures,Costing Accumulated,"
+VAR UltimoDiaDoMesContexto = MAX(dCalendar[Data])
+VAR DataLimite = EOMONTH(UltimoDiaDoMesContexto, 0)
+
+RETURN
+    CALCULATE(
+        [Costing],
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= DataLimite
+        )
+    )",Head Outlay,
+Analytics Measures,Costing head Accumulated,"
+DIVIDE([Costing Accumulated], ([Mean Month Accumulated - Aux (Desembolso)]), 0) / [Count of Selected Month] + 0",Head Outlay,
+Analytics Measures,Costing Head accumulated - forecast,"
+DIVIDE([Costing Accumulated - Forecast], ([Mean Month Accumulated - Aux (Desembolso) - Forecast]), 0) / [Count of Selected Month] + 0",Head Outlay,
+Analytics Measures,AVG Price @ (Em Pe + Abate),"
+VAR fat = SUM(pecuarioVendaAbate[Faturamento]) + SUM(pecuarioVendaEmPe[Faturamento])
+
+VAR arr = (SUM(pecuarioVendaAbate[Peso Morto Total])/15) + SUM(pecuarioVendaEmPe[Peso Morto])
+
+RETURN fat / arr",IN - General Sales Measures,
+Analytics Measures,AVG Price @ Dead Sale - Forecast,"
+SUM(fMetasAbate[totalvalue]) / SUM(fMetasAbate[Total de @])",IN - General Sales Measures,
+Analytics Measures,AVG Price @ Sale Venda em Pe - Forecast,"
+CALCULATE(SUM(fMetasEmPe[totalvalue]) / SUM(fMetasEmPe[Total de @]))+0",IN - General Sales Measures,
+Analytics Measures,Birth Quantity - Forecast,"
+CALCULATE(SUM(fMetasNascimentos[amount]),
+         USERELATIONSHIP(dCalendar[Data],fMetasNascimentos[date])
+         )",Birth Measures,
+Analytics Measures,% Birth x Forecast,"DIVIDE([Birth Quantity],[Birth Quantity - Forecast])",Birth Measures,
+Analytics Measures,Birth Quantity Accumulated,"
+ VAR calc1 = 
+   CALCULATE(
+        [Birth Quantity],
+        FILTER(
+            ALL(dCalendar), 
+            dCalendar[Data] <= MAX(dCalendar[Data]) &&
+            YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  
+        )
+    )
+VAR calc2 = 
+    CALCULATE(
+        [Birth Quantity],
+        FILTER(
+            ALL(dCalendar),  
+            dCalendar[Data] <= MAX(dCalendar[Data])  
+        )
+    )
+RETURN IF([Count of Selected Years] = 1,
+            calc1,calc2)",Birth Measures,
+Analytics Measures,% Mortality,[Dead Quantity Accumulated] / [Birth Quantity Accumulated],Dead Measures,
+Analytics Measures,% Amount Saled,"DIVIDE([Amount Saled - Forecast (Abate)],[Amount Saled (Abate)])",IN - General Sales Measures,
+Analytics Measures,Purchased Quantity - Forecast,"
+CALCULATE(
+        SUM(fMetasCompras[amount]),
+        USERELATIONSHIP(dCalendar[Data],fMetasCompras[date])
+        )",Purchase Measures,
+Analytics Measures,% Purchased Quantity,"DIVIDE([Purchased Quantity],[Purchased Quantity - Forecast])",Purchase Measures,
+Analytics Measures,Dead Quantity - Forecast,"
+CALCULATE(SUM(fMetasMortes[amount]),USERELATIONSHIP(dCalendar[Data],fMetasMortes[date]))",Dead Measures,
+Analytics Measures,AVG Price KG Sale Venda em Pe,"
+CALCULATE(SUM(pecuarioVendaEmPe[Faturamento]) / SUM(pecuarioVendaEmPe[Peso Total]))",IN - General Sales Measures,
+Analytics Measures,MAX AVG Price @ Forecast,[AVG Price @ (Em Pe + Abate) - Forecast] + [AVG Price @ (Em Pe + Abate) - Forecast] * 0.15,IN - General Sales Measures,
+Analytics Measures,AVG Price @ (Em Pe + Abate) - Forecast,"
+
+VAR fat = SUM(fMetasAbate[totalvalue]) + SUM(fMetasEmPe[totalvalue])
+
+VAR arr = (SUM(fMetasAbate[pesomorto_total])/15) + SUM(fMetasEmPe[pesomorto_total])
+
+RETURN fat / arr",IN - General Sales Measures,
+Analytics Measures,Lotation,[Mean Month Accumulated - UA] / 2911 + 0,Stock Measures,
+Analytics Measures,Lotation - Forecast,[Lotation] + [Lotation] * 0.1,Stock Measures,
+Analytics Measures,Lotation - Forecast - MAX,[Lotation - Forecast] + [Lotation - Forecast] * 0.4,Stock Measures,
+Analytics Measures,Birth Quantity - Forecast - Const,"
+CALCULATE([Birth Quantity - Forecast],ALLEXCEPT(dCalendar,dCalendar[Ano]))",Birth Measures,
+Analytics Measures,% Birth x Forecast (Year),"DIVIDE([Birth Quantity],[Birth Quantity - Forecast - Const])",Birth Measures,
+pecuarioVendaEmPe,Medida,,,
+Analytics Measures,Count of Selected Month,"
+VAR MesesComDados = 
+    FILTER(
+        VALUES(dCalendar[Mês]),
+        CALCULATE( SUM(pecuarioRebanhoMedioMensal[amount]) ) > 0
+    )
+RETURN
+    COUNTROWS(MesesComDados)",Dead Measures,
+Analytics Measures,Invoicing Abate,SUM(pecuarioVendaAbate[Faturamento]),IN - General Sales Measures,
+fMetasCompras,VALORCALC,"CALCULATE(SUM(fMetasCompras[VALOR TOTAL]),USERELATIONSHIP(fUnidades[PROPRIETARIO],pecuarioCompras[proprietÁrio]))",,
+Analytics Measures,Mean Month Accumulated - Aux (Desembolso),"
+ VAR calc1 = 
+   CALCULATE(
+        [Mean Month],
+        FILTER(
+            ALLSELECTED(dCalendar), 
+            dCalendar[Data] <= MAX(dCalendar[Data]) &&
+            YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  
+        )
+    )
+VAR calc2 = 
+    CALCULATE(
+        [Mean Month],
+        FILTER(
+            ALLSELECTED(dCalendar),  
+            dCalendar[Data] <= MAX(dCalendar[Data])  
+        )
+    )
+RETURN IF([Count of Selected Years] = 1,
+            calc1,calc2) ",Head Outlay,
+Analytics Measures,Selected Farm,"
+IF(SELECTEDVALUE(fUnidades[farmname]) = BLANK(),""GRUPO"",SELECTEDVALUE(fUnidades[farmname]))",,
+Analytics Measures,Mean Month Accumulated - Aux (Desembolso) - Forecast,"
+ VAR calc1 = 
+   CALCULATE(
+        [Mean Month],
+        FILTER(
+            ALLSELECTED(dCalendar), 
+            dCalendar[Data] <= MAX(dCalendar[Data]) &&
+            YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  
+        )
+    )
+VAR calc2 = 
+    CALCULATE(
+        [Mean Month],
+        FILTER(
+            ALLSELECTED(dCalendar),  
+            dCalendar[Data] <= MAX(dCalendar[Data])  
+        )
+    )
+RETURN IF([Count of Selected Years] = 1,
+            calc1,calc2) ",Head Outlay,
+Analytics Measures,Outlay Forecast,"
+CALCULATE(
+        SUM(fMetasDre[Desembolso]),
+        USERELATIONSHIP(fMetasDre[idfarm],fUnidades[idfarm]),
+        USERELATIONSHIP(dCalendar[Data],fMetasDre[date])
+        )",Finance Measures,
+Analytics Measures,Expenses Accumulated - Forecast,"
+    CALCULATE(
+        [Outlay Forecast],
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",Head Outlay,
+Analytics Measures,Costing Forecast,"
+CALCULATE(
+        SUM(fMetasDre[Custeio]),
+        USERELATIONSHIP(fMetasDre[idfarm],fUnidades[idfarm]),
+        USERELATIONSHIP(dCalendar[Data],fMetasDre[date])
+        )",Head Outlay,
+Analytics Measures,Costing Accumulated - Forecast,"
+    CALCULATE(
+        [Costing Forecast],
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",Head Outlay,
+Analytics Measures,Birth Quantity Accumulated - Forecast,"
+ VAR calc1 = 
+   CALCULATE(
+        [Birth Quantity - Forecast],
+        FILTER(
+            ALL(dCalendar), 
+            dCalendar[Data] <= MAX(dCalendar[Data]) &&
+            YEAR(dCalendar[Data]) = YEAR(MAX(dCalendar[Data]))  
+        )
+    )
+VAR calc2 = 
+    CALCULATE(
+        [Birth Quantity - Forecast],
+        FILTER(
+            ALL(dCalendar),  
+            dCalendar[Data] <= MAX(dCalendar[Data])  
+        )
+    )
+RETURN IF([Count of Selected Years] = 1,
+            calc1,calc2)",Birth Measures,
+Analytics Measures,% Atingido Outlay,"DIVIDE([Outlay],[Outlay Forecast])",Finance Measures,
+Analytics Measures,Color Desemb Cab Mês,"
+    IF([head outlay accumulated] > [head outlat accumulated - forecast], ""#870000"",""#007D08"")",,
+Analytics Measures,Color Costing Cab Mês,"
+    IF([Costing head Accumulated] > [Costing Head accumulated - forecast], ""#870000"",""#007D08"")",,
+Analytics Measures,Color @ Venda Geral,"
+    IF([AVG Price @ (Em Pe + Abate)] > [AVG Price @ (Em Pe + Abate) - Forecast],""#007D08"", ""#870000"")",,
+Analytics Measures,IN Venda Geral,"
+    IF([IN - Invoicing] > [Incoicing - Forecast],1,-1)",,
+Analytics Measures,IN Costing Cab Mês,"
+    IF([Costing head Accumulated] > [Costing Head accumulated - forecast], 1,-1)",,
+Analytics Measures,IN Desembolso Cab Mês,"
+    IF([head outlay accumulated]> [head outlat accumulated - forecast], -1,1)",,
+Analytics Measures,IN Mean Month,"
+    IF([Mean Month] > [Mean Month - forecast],1,-1)",,
+fSaldoGado,Saldo Acumulado,"
+
+VAR UltimaDataMovimentacao = MAX(dCalendar[Data])
+   /* CALCULATE(
+        MAX(fSaldoGado[date]),
+        FILTER(
+            ALL(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )*/
+
+VAR calc = 
+    CALCULATE(
+        SUM(fSaldoGado[amountacc]),
+        FILTER(
+            ALLEXCEPT(fSaldoGado, fSaldoGado[farmname], fSaldoGado[owner], fSaldoGado[category], fSaldoGado[retironame],fUnidades[farmname],fUnidades[customer]),
+            fSaldoGado[date] = UltimaDataMovimentacao
+        ),
+        ALL(dCalendar)  -- <-- isso remove o cross-filter do dCalendar
+    )
+
+RETURN calc",,
+fSaldoGado,Saldo UltimaDataMovimentacao,"
+
+VAR RetiroSelecionado = SELECTEDVALUE(fSaldoGado[retironame])
+VAR Retiro = SELECTEDVALUE(fSaldoGado[retironame])
+VAR category = SELECTEDVALUE(fSaldoGado[category])
+VAR farm = SELECTEDVALUE(fSaldoGado[farmname])
+VAR Owner = SELECTEDVALUE(fSaldoGado[owner])
+VAR DataLinha = SELECTEDVALUE(fSaldoGado[date]) 
+RETURN
+    CALCULATE(
+        MAX(fSaldoGado[date]),
+        FILTER(
+            ALL(dCalendar),
+          --  fSaldoGado[owner] = Owner  &&
+          --  fSaldoGado[farmname] = farm &&
+          --  fSaldoGado[category] = category &&
+          --  fSaldoGado[retironame] = Retiro &&
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",,
+fSaldoGado,Saldo 32322,SUM(fSaldoGado[UltimaDataMovimentacao]),,
+fSaldoGado,SaldoCategoria_Final,"
+VAR DataMaximaVisivel =
+    MAX(dCalendar[Data])
+
+VAR TabelaRetirosCategorias =
+    SUMMARIZE(
+        fSaldoGado,
+        fSaldoGado[retironame],
+        fSaldoGado[category]
+    )
+
+VAR TabelaUltimosSaldosComValores =
+    ADDCOLUMNS(
+        TabelaRetirosCategorias,
+        ""Valor"",
+        VAR Retiro = [retironame]
+        VAR Categoria = [category]
+        VAR DataUltimaMovimentacao =
+            CALCULATE(
+                MAX(fSaldoGado[date]),
+                FILTER(
+                    fSaldoGado,
+                    fSaldoGado[retironame] = Retiro &&
+                    fSaldoGado[category] = Categoria &&
+                    fSaldoGado[date] <= DataMaximaVisivel
+                )
+            )
+        RETURN
+            CALCULATE(
+                MAX(fSaldoGado[amountacc]),
+                fSaldoGado[retironame] = Retiro &&
+                fSaldoGado[category] = Categoria &&
+                fSaldoGado[date] = DataUltimaMovimentacao
+            )
+    )
+
+RETURN
+    SUMX(
+        TabelaUltimosSaldosComValores,
+        [Valor]
+    )
+",,
+Analytics Measures,@ AVG Price Purchase,"
+CALCULATE(SUM(pecuarioCompras[VALOR TOTAL]) / (SUM(pecuarioCompras[Total de @])))",Purchase Measures,
+Analytics Measures,Ágio,"
+/*
+var Fat = CALCULATE(SUM(pecuarioVendaEmPe[Faturamento])+SUM(pecuarioVendaAbate[Faturamento]))
+var Quant = CALCULATE(SUM(pecuarioVendaEmPe[qtd])+SUM(pecuarioVendaAbate[qtd]))
+var pesoArr = CALCULATE(SUM(pecuarioVendaAbate[Total de @])+SUM(pecuarioVendaEmPe[Total de @]))
+
+RETURN DIVIDE(fat,pesoArr)
+*/
+
+var avgArrobaVenda = [AVG Price @ (Em Pe + Abate)]
+
+var avgArrobaCompra = [@ AVG Price Purchase]
+
+RETURN DIVIDE(avgArrobaCompra - avgArrobaVenda,avgArrobaVenda)",Purchase Measures,
+Analytics Measures,AVG Purchase Price KG,"
+CALCULATE(SUM(pecuarioCompras[VALOR TOTAL]) / SUM(pecuarioCompras[total_peso]))+0",Purchase Measures,
+Analytics Measures,AVG Purchase Price KG (Forecast),"
+CALCULATE(SUM(fMetasCompras[totalvalue]) / SUM(fMetasCompras[weight]))+0",Purchase Measures,
+Analytics Measures,IN AVG - Peso Médio de Compra,"
+
+VAR calc1 = SUM(pecuarioCompras[qtd])
+
+VAR calc2 = SUM(pecuarioCompras[total_peso])
+
+RETURN DIVIDE(calc2,calc1)",Purchase Measures,
+Analytics Measures,IN AVG - Peso Médio de Compra (Forecast),"
+
+VAR calc1 = SUM(fMetasCompras[amount])
+
+VAR calc2 = SUM(fMetasCompras[weight])
+
+RETURN DIVIDE(calc2,calc1)",Purchase Measures,
+Analytics Measures,Purchase Quantity Accumulated,"
+    CALCULATE(
+        SUM(pecuarioCompras[qtd])+0,
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )
+
+",Purchase Measures,
+Analytics Measures,Purchased Quantity FEMALE,"
+CALCULATE(
+    [Purchased Quantity],
+    pecuarioCompras[sexo] = ""FÊMEA""
+)",Purchase Measures,
+Analytics Measures,Total Paid - Forecast,"
+CALCULATE(
+        SUM(fMetasCompras[totalvalue]),
+        USERELATIONSHIP(dCalendar[Data],fMetasCompras[date])
+        )+0",Purchase Measures,
+Analytics Measures,UA Median Ha,[UA Median Month] / (SUM(fArea[Área_total]) / [Count of Selected Month]),Purchase Measures,
+Analytics Measures,IN - % Female Birth,"
+
+VAR tot = [Birth Quantity]
+
+VAR qtdmale = CALCULATE([Birth Quantity], pecuarioNascimento[gender] = ""FÊMEA"")
+
+RETURN DIVIDE(qtdmale,tot)",Birth Measures,
+Analytics Measures,IN - % Male Birth,"
+
+VAR tot = [Birth Quantity]
+
+VAR qtdmale = CALCULATE([Birth Quantity], pecuarioNascimento[gender] = ""MACHO"")
+
+RETURN DIVIDE(qtdmale,tot)",Birth Measures,
+Analytics Measures,% Mortality ( AVG Month),[Dead Quantity] / [Mean Month],Dead Measures,
+Analytics Measures,% Variação,"
+DIVIDE(
+                            [Valor Último Mês Selecionado]-[Meta Último Mês Selecionado],[Meta Último Mês Selecionado]
+                        )
+",Finance Measures,
+Analytics Measures,Valor Último Mês Selecionado,"
+
+VAR MaxDateSelecionada =
+    CALCULATE(
+        MAX('dcalendar'[Data]),
+        ALLSELECTED('dcalendar')
+    )
+VAR PrimeiroDiaDoUltimoMes =
+    EOMONTH(MaxDateSelecionada, -1) + 1
+
+VAR FiltrosDeData =
+    FILTER(
+        ALL('dcalendar'), 
+        'dcalendar'[Data] >= PrimeiroDiaDoUltimoMes &&
+        'dcalendar'[Data] <= MaxDateSelecionada
+    )
+    
+VAR Receitas = 
+    CALCULATE(
+        SUM('fPlanejadoxRealizado'[realizado]), 
+        FiltrosDeData,
+        'fPlanejadoxRealizado'[classificacao] = ""A - RECEITAS""
+    )
+
+VAR Despesas = 
+    CALCULATE(
+        SUM('fPlanejadoxRealizado'[realizado]), 
+        FiltrosDeData,
+        'fPlanejadoxRealizado'[classificacao] IN {""C - INVESTIMENTOS"",""D - CUSTEIO"",""E - OUTROS DÉBITOS""}
+    )
+
+RETURN 
+    IF(
+        ISINSCOPE('fPlanejadoxRealizado'[Classificacao]),
+        
+        -- Cálculo linha a linha (dentro do escopo)
+        CALCULATE(
+            SUM('fPlanejadoxRealizado'[realizado]), 
+            FiltrosDeData
+        ),
+        
+        -- Cálculo do Total Final
+        -- O COALESCE garante que se Receitas for BLANK, ele usa 0.
+        -- Assim a conta fica: 0 - Despesas = -Despesas (o total aparece negativo corretamente)
+        COALESCE(Receitas, 0) - COALESCE(Despesas, 0)
+    )",Finance Measures,
+Analytics Measures,Meta Último Mês Selecionado,"
+VAR MaxDateSelecionada =
+    CALCULATE(
+        MAX('dcalendar'[Data]),
+        ALLSELECTED('dcalendar')
+    )
+VAR PrimeiroDiaDoUltimoMes =
+    EOMONTH(MaxDateSelecionada, -1) + 1
+
+VAR FiltrosDeData =
+    FILTER(
+        ALL(dCalendar),
+        dCalendar[Data]>= PrimeiroDiaDoUltimoMes && dCalendar[Data] <=MaxDateSelecionada
+    )
+RETURN
+    IF(
+        ISINSCOPE('fPlanejadoxRealizado'[Classificacao]),
+        CALCULATE(
+            SUM('fPlanejadoxRealizado'[meta]), 
+            FiltrosDeData
+        ),
+        CALCULATE(
+            SUM('fPlanejadoxRealizado'[meta]), 
+            FiltrosDeData,
+            'fPlanejadoxRealizado'[Classificacao] = ""A - RECEITAS""
+        ) - 
+        CALCULATE(
+            SUM('fPlanejadoxRealizado'[meta]), 
+            FiltrosDeData,
+            'fPlanejadoxRealizado'[Classificacao] IN {""C - INVESTIMENTOS"",""D - CUSTEIO"",""E - OUTROS DÉBITOS""}
+        )
+    )",Finance Measures,
+Analytics Measures,% Variação Acc Graph,"
+VAR _valor = [%% Variação Acc]
+VAR _icone =
+    SWITCH(
+        TRUE(),
+        _valor >= 0, UNICHAR(10004),   -- ✅ check
+        _valor < 0, UNICHAR(10060),    -- ❌ X
+        BLANK()
+    )
+RETURN  [%% Variação Acc] 
+/*IF(
+        NOT ISFILTERED(planejadoXRealizado[centro_de_custo_bi]), 
+      
+        BLANK(), 
+        [%% Variação Acc] 
+    )*/",Finance Measures,
+Analytics Measures,% Variação Graph,"
+VAR _valor = [% Variação]
+VAR _icone =
+    SWITCH(
+        TRUE(),
+        _valor >= 0, UNICHAR(10004),   -- ✅ check
+        _valor < 0, UNICHAR(10060),    -- ❌ X
+        BLANK()
+    )
+RETURN [% Variação]
+/*IF(
+        NOT ISFILTERED(planejadoXRealizado[centro_de_custo_bi]), 
+        -- OU: NOT ISINSCOPE('Sua Tabela'[Sua Coluna de Linha]),
+        BLANK(), -- Se for um Total, retorna em branco
+        [% Variação] -- Se for o nível de detalhe (Linha), retorna o valor
+    )*/
+",Finance Measures,
+Analytics Measures,%% Variação Acc,"
+                DIVIDE( [Value Accumulated] - [Meta Accumulated],[Meta Accumulated])",Finance Measures,
+Analytics Measures,All Revenues,"CALCULATE(SUM('financeiroDre'[amountpaid]),'financeiroDre'[type]=""Crédito"",financeiroDre[tipo_custeio_cat] IN {""Receita Pec"", ""Receita Agr"",""Receita outras""})",Finance Measures,
+Analytics Measures,Expenses Forecast,"
+CALCULATE(
+        SUM(fMetasDre[valorprevisto]),
+        USERELATIONSHIP(dCalendar[Data],fMetasDre[date]),
+        'fMetasDre'[type]=""Débito""
+        )",Finance Measures,
+Analytics Measures,Icon,"
+--IF(
+   -- ISINSCOPE(planejadoXRealizado[centro_de_custo_bi]),
+    VAR _var = [% Variação]
+    VAR _class = SELECTEDVALUE(fPlanejadoxRealizado[classificacao])
+    RETURN
+        IF(
+            _var <> BLANK(),
+            SWITCH(
+                TRUE(),
+  
+                _class = ""A - RECEITAS"" && _var > 0.03, ""VERDE"",
+                _class = ""A - RECEITAS"" && _var < -0.03, ""VERMELHO"",
+                _class = ""A - RECEITAS"" && _var >= -0.03 && _var <= 0.03, ""AMARELO"",
+
+                _class <> ""A - RECEITAS"" && _var <= 0 && _var >= -1, ""VERDE"",
+                _class <> ""A - RECEITAS"" && _var > 0.03, ""VERMELHO"",
+                _class <> ""A - RECEITAS"" && _var > 0 && _var <= 0.03, ""AMARELO"",
+
+                BLANK()
+            ),
+            BLANK()
+        )--,
+    --BLANK()
+--)
+",Finance Measures,
+Analytics Measures,Icon Acc,"
+--IF(
+ --   ISINSCOPE(planejadoXRealizado[centro_de_custo_bi]),
+    VAR _var = [%% Variação Acc]
+    VAR _class = SELECTEDVALUE(fPlanejadoxRealizado[Classificacao2])
+    RETURN
+        IF(
+            _var <> BLANK(),
+            SWITCH(
+                TRUE(),
+                _class = ""A - RECEITAS"" && _var > 0.03, ""VERDE"",
+                _class = ""A - RECEITAS"" && _var < -0.03, ""VERMELHO"",
+                _class = ""A - RECEITAS"" && _var >= -0.03 && _var <= 0.03, ""AMARELO"",
+
+                _class <> ""A - RECEITAS"" && _var <= 0 && _var >= -1, ""VERDE"",
+                _class <> ""A - RECEITAS"" && _var > 0.03, ""VERMELHO"",
+                _class <> ""A - RECEITAS"" && _var > 0 && _var <= 0.03, ""AMARELO"",
+
+                BLANK()
+            ),
+            BLANK()
+        )--,
+--    BLANK()
+--)
+",Finance Measures,
+Analytics Measures,Meta Accumulated,"
+VAR _MaxDate = MAX(dCalendar[Data])
+VAR _IsClassInScope = ISINSCOPE(fPlanejadoxRealizado[classificacao])
+
+RETURN
+IF(
+    _IsClassInScope,
+    -- Acumulado da própria classificação (quando class está no escopo)
+    CALCULATE(
+        SUM('fPlanejadoxRealizado'[meta]),
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= _MaxDate
+        )
+    ),
+    -- Quando não há classificação no escopo: ReceitasAcum - DespesasAcum
+    VAR ReceitasAcum =
+        CALCULATE(
+            SUM('fPlanejadoxRealizado'[meta]),
+            FILTER(ALLSELECTED(dCalendar), dCalendar[Data] <= _MaxDate),
+            fPlanejadoxRealizado[Classificacao] = ""A - RECEITAS""
+        )
+    VAR DespesasAcum =
+        CALCULATE(
+            SUM('fPlanejadoxRealizado'[meta]),
+            FILTER(ALLSELECTED(dCalendar), dCalendar[Data] <= _MaxDate),
+            fPlanejadoxRealizado[Classificacao] IN {
+                ""C - INVESTIMENTOS"",
+                ""D - CUSTEIO"",
+                ""E - OUTROS DÉBITOS""
+            }
+        )
+    RETURN
+        ReceitasAcum - DespesasAcum
+)
+",Finance Measures,
+Analytics Measures,Revenues Forecast,"
+CALCULATE(
+        SUM(fMetasDre[valorprevisto]),
+        USERELATIONSHIP(dCalendar[Data],fMetasDre[date]),
+        'fMetasDre'[type]=""Crédito"",
+        fMetasDre[tipo_custeio_cat] IN {""ReceitasPec"",""ReceitasAgr"",""ReceitaPec"",""ReceitaAgr""}
+        )",Finance Measures,
+Analytics Measures,RL Acumulado,"""ACUMULADO""",Finance Measures,
+Analytics Measures,RL Mensal,"""MENSAL""",Finance Measures,
+Analytics Measures,Value Accumulated,"
+VAR LastDate2 = MAX(dCalendar[Data])
+VAR IsClassInScope = ISINSCOPE(fPlanejadoxRealizado[classificacao])
+
+RETURN
+IF(
+    IsClassInScope,
+    -- Quando o usuário está vendo uma classificação específica: acumulado simples da própria linha
+    CALCULATE(
+        SUM(fPlanejadoxRealizado[realizado]),
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= LastDate2
+        )
+    ),
+    -- Quando não está em escopo de classificacao: acumulado = Receitas acumuladas - Despesas acumuladas
+    VAR ReceitasAcum =
+        CALCULATE(
+            SUM(fPlanejadoxRealizado[realizado]),
+            FILTER(ALLSELECTED(dCalendar), dCalendar[Data] <= LastDate2),
+            fPlanejadoxRealizado[Classificacao] = ""A - RECEITAS""
+        )
+    VAR DespesasAcum =
+        CALCULATE(
+            SUM(fPlanejadoxRealizado[realizado]),
+            FILTER(ALLSELECTED(dCalendar), dCalendar[Data] <= LastDate2),
+            fPlanejadoxRealizado[Classificacao] IN {
+                ""C - INVESTIMENTOS"",
+                ""D - CUSTEIO"",
+                ""E - OUTROS DÉBITOS""
+            }
+        )
+    RETURN
+        ReceitasAcum - DespesasAcum
+)
+",Finance Measures,
+Analytics Measures,Mean Month Ha,[Mean Month] / (500 / [Count of Selected Month]),Head Outlay,
+Analytics Measures,IN - % Meta,"""% Em Relação a Meta""",IN - Data Labels,
+Analytics Measures,IN - Adultos,"""ADULTOS""",IN - Data Labels,
+Analytics Measures,IN - Ágio,"""Ágio""",IN - Data Labels,
+Analytics Measures,IN - Bezerro,"""BEZERROS""",IN - Data Labels,
+Analytics Measures,IN - Cabeças,"""Cb""",IN - Data Labels,
+Analytics Measures,IN - Cbs Compradas,"""Cbs Compradas""",IN - Data Labels,
+Analytics Measures,IN - Cbs Vendidas,"""Cabeças Vendidas""",IN - Data Labels,
+Analytics Measures,IN - Compra,"""Valor Compra""",IN - Data Labels,
+Analytics Measures,IN - COMPRA X VENDA,"""COMPRAS | VENDAS""",IN - Data Labels,
+Analytics Measures,IN - Compras (Label 2 ),"""Compras""",IN - Data Labels,
+Analytics Measures,IN - Compras (Label),"""COMPRAS""",IN - Data Labels,
+Analytics Measures,IN - Data Análise,"""Análise :""",IN - Data Labels,
+Analytics Measures,IN - Entrada,"""ENTRADA""",IN - Data Labels,
+Analytics Measures,IN - Faturamento,"""Fat. Realizado""",IN - Data Labels,
+Analytics Measures,IN - Faturamento Planejado,"""Fat. Planejado""",IN - Data Labels,
+Analytics Measures,IN - Fêmea,"""FÊMEA""",IN - Data Labels,
+Analytics Measures,IN - Geral,"""GERAL""",IN - Data Labels,
+Analytics Measures,IN - Indice de Mortalidade,"""Índ. Mortalidade""",IN - Data Labels,
+Analytics Measures,IN - Inv Planejado,"""Inv. Planejado""",IN - Data Labels,
+Analytics Measures,IN - Inv Realizado,"""Inv. Realizado""",IN - Data Labels,
+Analytics Measures,IN - Jovens,"""JOVENS""",IN - Data Labels,
+Analytics Measures,IN - Lotação Cab,"""Lotação Cab""",IN - Data Labels,
+Analytics Measures,IN - Lotação UA,"""Lotação UA""",IN - Data Labels,
+Analytics Measures,IN - Macho,"""MACHO""",IN - Data Labels,
+Analytics Measures,IN - Meta,"""Planejado""",IN - Data Labels,
+Analytics Measures,IN - Meta Valor KG,"""Meta Valor KG"" ",IN - Data Labels,
+Analytics Measures,IN - Mortalidade sobre Nascimento,"""% Sobre Nascimento""",IN - Data Labels,
+Analytics Measures,IN - Mortalidade sobre Rebanho Médio,"""% Sobre Rebanho Médio""",IN - Data Labels,
+Analytics Measures,IN - Mortes,"""MORTES""",IN - Data Labels,
+Analytics Measures,IN - Mortes (2),"""Mortes""",IN - Data Labels,
+Analytics Measures,IN - Nascimentos,"""% Sobre Sobre o Total""",IN - Data Labels,
+Analytics Measures,IN - Nascimentos (Label - 2),"""NASCIMENTOS""",IN - Data Labels,
+Analytics Measures,IN - Nascimentos (Label),"""Nascimentos""",IN - Data Labels,
+Analytics Measures,IN - Periodo Capa,"
+/*
+VAR ultmes = MAX(dCalendar[Mês])
+
+VAR ano = MAX(dCalendar[Ano])
+
+RETURN CONCATENATE(ultmes,CONCATENATE("" de "",ano))*/
+
+VAR UltimaData = MAX(dCalendar[Data]) -- Busca a maior data selecionada
+RETURN 
+FORMAT(UltimaData, ""MMMM \d\e yyyy"")",IN - Data Labels,
+Analytics Measures,IN - Periodo Envio,"
+
+VAR data = TODAY()
+
+VAR ultmes = FORMAT(data, ""MMMM"")
+
+VAR ano = YEAR(data)
+
+RETURN CONCATENATE(
+                    CONCATENATE(""Cuiabá, "",
+                                            CONCATENATE(ultmes,CONCATENATE("" de "",ano))),"".""
+                    )",IN - Data Labels,
+Analytics Measures,IN - Peso Médio Vivo,"""Peso Médio Vivo""",IN - Data Labels,
+Analytics Measures,IN - Planejado,"""Planejado""",IN - Data Labels,
+Analytics Measures,IN - Preço do KG,"""Preço do KG"" ",IN - Data Labels,
+Analytics Measures,IN - Quantidade,"""QTD"" ",IN - Data Labels,
+Analytics Measures,IN - Realizado,"""Realizado""",IN - Data Labels,
+Analytics Measures,IN - Rebanho Médio,"""REBANHO MÉDIO""",IN - Data Labels,
+Analytics Measures,IN - Rebanho Médio Cab,"""Rebanho Médio Cab""",IN - Data Labels,
+Analytics Measures,IN - Rebanho Médio UA,"""Rebanho Médio UA""",IN - Data Labels,
+Analytics Measures,IN - Relação a Meta,"""% Em relação a Meta""",IN - Data Labels,
+Analytics Measures,IN - Rendimento de Carcaça,"""Rendimento de Carcaça""",IN - Data Labels,
+Analytics Measures,IN - Saida,"""SAÍDA""",IN - Data Labels,
+Analytics Measures,IN - Separador de,"""de"" ",IN - Data Labels,
+Analytics Measures,IN - Site Terra,"""terradesenvolvimento.com.br""",IN - Data Labels,
+Analytics Measures,IN - TRANSFERÊNCIAS,"""TRANSFERÊNCIAS""",IN - Data Labels,
+Analytics Measures,IN - Valor da @,"""Preço de Venda da @""",IN - Data Labels,
+Analytics Measures,IN - Valor da @ Compra,"""Preço de @ de Compra""",IN - Data Labels,
+Analytics Measures,IN - Vendas (Geral),"""VENDAS""",IN - Data Labels,
+Analytics Measures,IN - Vendas (Label),"""Vendas""",IN - Data Labels,
+Analytics Measures,IN Peso Médio,"""PESO MÉDIO""",IN - Data Labels,
+Analytics Measures,IN Valor@,"""VALOR @""",IN - Data Labels,
+Analytics Measures,IN - Invoicing - Forecast (Abate),"
+
+VAR calc1 = CALCULATE(SUM(fMetasAbate[totalvalue]))
+
+RETURN calc1+0",,
+Analytics Measures,Invoicing Accumulated (Abate),"
+    CALCULATE(
+        SUM(pecuarioVendaAbate[qtd])+0,
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",IN - General Sales Measures,
+Analytics Measures,IN - AVG Live Weight,"
+
+VAR calc1 = SUM(pecuarioVendaAbate[qtd])
+
+VAR calc2 = SUM(pecuarioVendaAbate[pesovivo_total])
+
+RETURN DIVIDE(calc2,calc1)",IN - General Sales Measures,
+Analytics Measures,IN - AVG Live Weight (Forecast),"
+
+VAR calc1 = SUM(fMetasAbate[amount])
+
+VAR calc2 = SUM(fMetasAbate[weight])
+
+RETURN DIVIDE(calc2,calc1)",IN - General Sales Measures,
+Analytics Measures,IN - Rendimento Carcaça (Forecast),"SUM(fMetasAbate[pesomorto_total]) / SUM(fMetasAbate[pesovivo_total])
+",IN - General Sales Measures,
+Analytics Measures,Invoicing (Em Pe ),SUM(pecuarioVendaEmPe[Faturamento])+0,IN - General Sales Measures,
+Analytics Measures,Incoicing - Forecast (Em Pe),"
+
+VAR calc1 = CALCULATE(SUM(fMetasEmPe[totalvalue]))
+
+RETURN calc1",IN - General Sales Measures,
+Analytics Measures,Amount Saled Accumulated (Em Pe),"
+    CALCULATE(
+        SUM(pecuarioVendaEmPe[qtd])+0,
+        FILTER(
+            ALLSELECTED(dCalendar),
+            dCalendar[Data] <= MAX(dCalendar[Data])
+        )
+    )",IN - General Sales Measures,
+Analytics Measures,Amount Saled (Em pe),SUM(pecuarioVendaEmPe[qtd]),IN - General Sales Measures,
+Analytics Measures,Amount Saled - Forecast (Em Pe),"
+
+VAR calc1 = CALCULATE(SUM(fMetasEmPe[amount]))
+
+
+RETURN calc1",IN - General Sales Measures,
+Analytics Measures,IN - AVG Live Weight (Em Pe),"
+
+VAR calc1 = SUM(pecuarioVendaEmPe[qtd])
+
+VAR calc2 = SUM(pecuarioVendaEmPe[pesovivo_total])
+
+RETURN DIVIDE(calc2,calc1)+0",IN - General Sales Measures,
+Analytics Measures,IN - AVG Live Weight (Forecast - Em Pe),"
+
+VAR calc1 = SUM(fMetasEmPe[amount])
+
+VAR calc2 = SUM(fMetasEmPe[pesovivo_total])
+
+RETURN DIVIDE(calc2,calc1)",IN - General Sales Measures,
+Analytics Measures,AVG Price KG Sale Venda em Pe - Forecast,"
+CALCULATE(SUM(fMetasEmPe[totalvalue]) / SUM(fMetasEmPe[pesovivo_total]))+0",IN - General Sales Measures,

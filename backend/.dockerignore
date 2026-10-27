@@ -1,0 +1,8 @@
+# Só o que a imagem usa: pyproject, alembic e app. Testes, validação e o venv ficam de fora.
+.venv/
+tests/
+validacao/
+**/__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/

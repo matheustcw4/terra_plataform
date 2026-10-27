@@ -1,0 +1,2240 @@
+/* A base visual do AgTechLab (menu lateral, topo, cartões com borda fina, tabelas e gráficos discretos) com a paleta
+   da Terra (os azuis, o verde dos títulos e as cores das séries do BI Ciclo Completo). Os componentes usam só as
+   variáveis abaixo. */
+:root {
+  /* neutros: os do AgTechLab, puxados para o azul da Terra */
+  --cor-fundo: #f4f6f9;
+  --cor-superficie: #ffffff;
+  --cor-superficie-2: #f0f3f7;
+  --cor-borda: #e2e7ee;
+  --cor-borda-forte: #cfd7e2;
+  --cor-grade: #e6ebf1;
+  --cor-texto: #1a2333;
+  --cor-texto-apagado: #5a6679;
+  --cor-texto-terciario: #8a94a6;
+
+  /* a paleta da Terra (BI Ciclo Completo e capa do boletim) */
+  --cor-titulo: #0c9100; /* títulos dos quadros (REBANHO MÉDIO, FÊMEA...) e faturamento */
+  --cor-rebanho-final: #008d7d;
+  --cor-azul: #035fa5;
+  --cor-azul-escuro: #024b83;
+  --cor-azul-medio: #0d6abf;
+  --cor-azul-claro: #add5fa;
+  --cor-azul-suave: #e7f0f9;
+  --cor-marinho: #1b2c4f;
+  --cor-capa: #0a3459;
+  --cor-realizado: #035fa5;
+  --cor-planejado: #949494;
+  --cor-acumulado: #0d6abf;
+  --cor-despesa: #c0504d;
+  --cor-erro: #b3261e;
+  --cor-erro-fundo: #fbeceb;
+  --cor-aviso: #c9733d;
+  --cor-aviso-texto: #9a521f;
+  --cor-aviso-fundo: #fbf1ea;
+  --cor-meta-ok: #008d7d; /* velocímetro dentro da meta (as cores do BI) */
+  --cor-meta-fora: #870000;
+
+  /* o menu lateral: o azul-marinho da capa, com o azul médio aceso no alto */
+  --cor-rail: #0a3459;
+  --cor-rail-fim: #14284a;
+  --cor-sobre-rail: #eef4fb;
+  --cor-sobre-rail-2: #a9bfd8;
+  --cor-sobre-rail-3: rgba(255, 255, 255, 0.42);
+  --cor-linha-do-rail: rgba(255, 255, 255, 0.12);
+
+  --raio: 6px;
+  --raio-medio: 10px;
+  --espaco: 18px;
+  --sombra: 0 1px 2px rgba(16, 32, 56, 0.04), 0 8px 24px -12px rgba(16, 32, 56, 0.14);
+  --sombra-alta: 0 12px 40px -12px rgba(16, 32, 56, 0.3);
+  --fonte: "Figtree Variable", "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fonte-capa: "Segoe UI", system-ui, sans-serif; /* as posições da capa foram medidas com esta fonte */
+
+  --mov-rapida: 120ms; /* hover, foco */
+  --mov-media: 200ms; /* recolher o menu */
+  --mov-lenta: 320ms; /* gaveta do celular */
+  --mov-padrao: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --largura-do-rail: 248px;
+  --largura-do-rail-recolhido: 72px;
+  --altura-do-topo: 60px;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--cor-azul);
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+}
+
+.icone {
+  flex-shrink: 0;
+}
+
+/* --- campos --- */
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.campo > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cor-texto-apagado);
+}
+
+input:not([type="checkbox"], [type="radio"]),
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  transition:
+    border-color var(--mov-rapida) var(--mov-padrao),
+    box-shadow var(--mov-rapida) var(--mov-padrao);
+}
+
+input:not([type="checkbox"], [type="radio"]):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--cor-azul);
+  box-shadow: 0 0 0 3px rgba(3, 95, 165, 0.14);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--cor-azul);
+}
+
+/* --- botões: primário (.botao), contorno (.botao-sair, usado também nas ações das linhas) e o do PDF --- */
+
+.botao,
+.botao-sair,
+.botao-exportar {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: var(--raio);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color var(--mov-rapida) var(--mov-padrao),
+    border-color var(--mov-rapida) var(--mov-padrao),
+    color var(--mov-rapida) var(--mov-padrao);
+}
+
+.botao {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--cor-azul);
+  background: var(--cor-azul);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.botao:hover:not(:disabled) {
+  border-color: var(--cor-azul-escuro);
+  background: var(--cor-azul-escuro);
+}
+
+.botao-sair {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--cor-borda-forte);
+  background: var(--cor-superficie);
+  color: var(--cor-texto-apagado);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.botao-sair:hover:not(:disabled) {
+  border-color: var(--cor-texto-terciario);
+  color: var(--cor-texto);
+}
+
+.botao-exportar {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--cor-azul);
+  background: var(--cor-superficie);
+  color: var(--cor-azul);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.botao-exportar:hover {
+  background: var(--cor-azul-suave);
+}
+
+.botao:disabled,
+.botao-sair:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* --- avisos --- */
+
+.aviso {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-apagado);
+}
+
+.aviso-erro {
+  border-color: #f0c8c3;
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+}
+
+.sem-acesso {
+  padding: var(--espaco);
+}
+
+/* --- login --- */
+
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background:
+    radial-gradient(90% 70% at 0% 0%, rgba(13, 106, 191, 0.45), transparent 60%),
+    linear-gradient(160deg, var(--cor-rail), var(--cor-rail-fim));
+}
+
+.login-caixa {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px 30px 28px;
+  border-radius: var(--raio-medio);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-alta);
+}
+
+.login-caixa img {
+  width: 78%;
+  margin: 0 auto 4px;
+}
+
+.login-caixa h1 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--cor-texto-apagado);
+}
+
+.login-caixa .botao {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* --- casca: menu lateral + topo + área da página --- */
+
+.casca {
+  display: grid;
+  grid-template-columns: var(--largura-do-rail) minmax(0, 1fr);
+  min-height: 100vh;
+  transition: grid-template-columns var(--mov-media) var(--mov-padrao);
+}
+
+.casca:has(.rail.recolhido) {
+  grid-template-columns: var(--largura-do-rail-recolhido) minmax(0, 1fr);
+}
+
+.rail {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 20; /* abaixo do topo: a caixa do "Exportar PDF" nasce no topo e tem de cobrir o menu */
+  width: var(--largura-do-rail);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 14px 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(120% 45% at 0% 0%, rgba(13, 106, 191, 0.38), transparent 70%),
+    linear-gradient(180deg, var(--cor-rail), var(--cor-rail-fim));
+  color: var(--cor-sobre-rail);
+  transition:
+    width var(--mov-media) var(--mov-padrao),
+    padding var(--mov-media) var(--mov-padrao);
+}
+
+.rail-marca {
+  display: block;
+  padding: 0 6px 20px;
+  border-bottom: 1px solid var(--cor-linha-do-rail);
+}
+
+.rail-logo {
+  display: block;
+  width: 172px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.rail-globo {
+  display: block;
+  width: 38px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.rail-nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 0 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.rail-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 14px;
+}
+
+.rail-grupo-titulo {
+  padding: 0 10px 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--cor-sobre-rail-3);
+}
+
+.rail-item {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: var(--raio);
+  color: var(--cor-sobre-rail-2);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--mov-rapida) var(--mov-padrao),
+    color var(--mov-rapida) var(--mov-padrao);
+}
+
+.rail-item .icone {
+  justify-self: center;
+}
+
+.rail-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+
+.rail-item.active {
+  background: rgba(255, 255, 255, 0.13);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.rail-item.active .icone {
+  color: var(--cor-azul-claro);
+}
+
+.rail-recolher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 -14px;
+  padding: 13px 24px 14px;
+  border: 0;
+  border-top: 1px solid var(--cor-linha-do-rail);
+  background: none;
+  color: var(--cor-azul-claro);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--mov-rapida) var(--mov-padrao);
+}
+
+.rail-recolher:hover {
+  color: #ffffff;
+}
+
+/* menu recolhido: só os ícones; o título do grupo vira um fio separador */
+.rail.recolhido {
+  width: var(--largura-do-rail-recolhido);
+  padding: 22px 10px 0;
+}
+
+.rail.recolhido .rail-marca {
+  padding: 0 0 18px;
+}
+
+.rail.recolhido .rail-item {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+.rail.recolhido .rail-item span {
+  display: none;
+}
+
+.rail.recolhido .rail-grupo-titulo {
+  height: 1px;
+  margin: 4px 8px 8px;
+  padding: 0;
+  overflow: hidden;
+  font-size: 0;
+  background: var(--cor-linha-do-rail);
+}
+
+.rail.recolhido .rail-recolher {
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 -10px;
+  padding: 12px 0;
+  font-size: 9px;
+}
+
+.rail.recolhido .rail-recolher .icone {
+  transform: rotate(180deg);
+}
+
+/* o fundo escuro da gaveta só existe no celular */
+.gaveta-fundo {
+  display: none;
+}
+
+.casca-principal {
+  grid-column: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: var(--altura-do-topo);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 clamp(16px, 3vw, 36px);
+  border-bottom: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+}
+
+.topo-menu {
+  display: none;
+}
+
+.topo-migalhas {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--cor-texto-terciario);
+}
+
+.topo-migalhas strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--cor-texto-apagado);
+}
+
+.topo-controles {
+  margin-left: auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* "Atualizar agora" (só admin): pequeno e discreto; gira enquanto o worker carrega */
+.botao-atualizar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--raio);
+  background: transparent;
+  color: var(--cor-texto-terciario);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--mov-rapida) var(--mov-padrao),
+    color var(--mov-rapida) var(--mov-padrao);
+}
+
+.botao-atualizar:hover:not(:disabled) {
+  background: var(--cor-superficie-2);
+  color: var(--cor-azul);
+}
+
+.botao-atualizar:disabled {
+  cursor: progress;
+}
+
+.botao-atualizar.girando {
+  color: var(--cor-azul);
+}
+
+.botao-atualizar.girando .icone {
+  animation: girar 1s linear infinite;
+}
+
+.botao-atualizar.com-aviso {
+  border-color: var(--cor-aviso-fundo);
+  background: var(--cor-aviso-fundo);
+  color: var(--cor-aviso-texto);
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .botao-atualizar.girando .icone {
+    animation: none;
+  }
+}
+
+.topo-usuario {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--cor-texto-apagado);
+}
+
+/* o filtro em uso: os filtros ficam só no MENU, e o "Trocar" leva para lá */
+.filtro-em-uso {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-apagado);
+  font-size: 13px;
+  text-decoration: none;
+  transition: border-color var(--mov-rapida) var(--mov-padrao);
+}
+
+.filtro-em-uso span {
+  max-width: 360px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filtro-em-uso strong {
+  color: var(--cor-azul);
+  font-weight: 600;
+}
+
+.filtro-em-uso:hover {
+  border-color: var(--cor-azul);
+}
+
+.area-da-pagina {
+  flex: 1;
+  padding: 26px clamp(16px, 3vw, 36px) 56px;
+}
+
+.cabecalho-da-pagina {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+/* o logo do cabeçalho só aparece no PDF (no painel ele está no menu lateral) */
+.cabecalho-logo-pdf {
+  display: none;
+}
+
+.cabecalho-icone {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: var(--raio-medio);
+  background: var(--cor-azul-suave);
+  color: var(--cor-azul);
+}
+
+.cabecalho-textos {
+  min-width: 0;
+}
+
+.cabecalho-textos h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--cor-marinho);
+}
+
+.cabecalho-textos p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: var(--cor-texto-apagado);
+}
+
+/* --- MENU (a tela de filtros) --- */
+
+.menu-filtros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espaco);
+  max-width: 1040px;
+}
+
+.menu-bi-campos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 6px 0 4px;
+}
+
+.menu-bi-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menu-bi-campo > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cor-texto-apagado);
+}
+
+.menu-bi-rodape {
+  display: flex;
+  max-width: 1040px;
+  justify-content: flex-end;
+  margin-top: var(--espaco);
+}
+
+/* fazenda e mês, de seleção múltipla: o botão tem a cara dos outros campos; a lista abre por cima */
+.seletor-multiplo {
+  position: relative;
+}
+
+.seletor-multiplo-botao {
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 32px 7px 10px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.seletor-multiplo-botao[aria-expanded="true"] {
+  border-color: var(--cor-azul);
+  box-shadow: 0 0 0 3px rgba(3, 95, 165, 0.14);
+}
+
+.seletor-multiplo-botao::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cor-texto-terciario);
+}
+
+.seletor-multiplo-lista {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-alta);
+}
+
+.seletor-multiplo-lista label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  cursor: pointer;
+}
+
+.seletor-multiplo-lista label.seletor-multiplo-todos {
+  grid-column: 1 / -1;
+  border-bottom: 1px solid var(--cor-borda);
+  font-weight: 600;
+}
+
+/* nomes de fazenda: uma coluna; cliente com muitas fazendas rola dentro da lista */
+.seletor-multiplo-lista.uma-coluna {
+  grid-template-columns: minmax(0, 1fr);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.seletor-multiplo-lista.uma-coluna label.seletor-multiplo-todos {
+  position: sticky;
+  top: -8px;
+  background: var(--cor-superficie);
+}
+
+/* --- página --- */
+
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco);
+  transition: opacity var(--mov-media) var(--mov-padrao);
+}
+
+.pagina.atualizando {
+  opacity: 0.55;
+}
+
+.paineis-4,
+.paineis-3,
+.paineis-2 {
+  display: grid;
+  gap: var(--espaco);
+}
+
+.paineis-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.paineis-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.paineis-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* --- cartões (os quadros do BI): borda fina, cabeçalho com fio embaixo --- */
+
+.painel-bi,
+.painel-grafico,
+.painel {
+  min-width: 0;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.painel-bi-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.painel-bi-icone {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--raio);
+  background: var(--cor-azul-suave);
+}
+
+.painel-bi-icone img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.painel-bi-titulo h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-titulo);
+}
+
+.painel-bi-conteudo {
+  padding: 10px 18px 14px;
+}
+
+/* nos cartões de gráfico e de lista o título é o primeiro filho: vira o cabeçalho, de borda a borda */
+.painel-grafico,
+.painel {
+  padding: 0 18px 16px;
+}
+
+.painel-grafico > h2,
+.painel > h2 {
+  margin: 0 -18px 14px;
+  padding: 14px 18px 13px;
+  border-bottom: 1px solid var(--cor-borda);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-marinho);
+}
+
+/* o número nunca quebra; no cartão estreito o rótulo fica em cima e o número embaixo, à direita */
+.linha-bi {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2px 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--cor-superficie-2);
+}
+
+.linha-bi strong {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.linha-bi:last-child {
+  border-bottom: 0;
+}
+
+.linha-bi span {
+  font-size: 13px;
+  color: var(--cor-texto-apagado);
+}
+
+.linha-bi strong {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.linha-bi.destaque strong {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--cor-titulo);
+}
+
+/* --- tabelas --- */
+
+.tabela-bi,
+.tabela-admin,
+.tabela-previsto,
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabela-bi thead th,
+.tabela-admin thead th,
+.tabela-previsto thead th,
+.tabela thead th {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--cor-borda);
+  background: var(--cor-superficie-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-texto-terciario);
+}
+
+.tabela-bi th,
+.tabela-bi td {
+  padding: 7px 10px;
+  text-align: right;
+}
+
+.tabela-bi tbody tr {
+  border-bottom: 1px solid var(--cor-superficie-2);
+}
+
+.tabela-bi tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.tabela-bi tbody th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--cor-texto-apagado);
+}
+
+/* a barra azul entre Realizado e Planejado */
+.tabela-bi td:last-child,
+.tabela-bi thead th:last-child {
+  border-left: 3px solid var(--cor-azul-claro);
+}
+
+/* tabela com dois grupos de colunas (Entrada | Saída): a barra separa os grupos, e não o último par */
+.tabela-dupla td:last-child,
+.tabela-dupla thead th:last-child {
+  border-left: none;
+}
+
+.tabela-dupla td.separador,
+.tabela-dupla thead th.separador {
+  border-left: 3px solid var(--cor-azul-claro);
+}
+
+.tabela-dupla thead th.grupo {
+  text-align: center;
+  font-size: 12px;
+  color: var(--cor-titulo);
+}
+
+.tabela-admin {
+  min-width: 860px;
+}
+
+.tabela-admin th,
+.tabela-admin td,
+.tabela th,
+.tabela td {
+  padding: 9px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.tabela-admin tbody td,
+.tabela tbody td {
+  border-bottom: 1px solid var(--cor-superficie-2);
+}
+
+.tabela-admin tbody tr,
+.tabela tbody tr {
+  transition: background-color var(--mov-rapida) var(--mov-padrao);
+}
+
+.tabela-admin tbody tr:hover,
+.tabela tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* a lista de usuários divide a tela com o usuário aberto: o e-mail quebra para a lista caber na coluna */
+.tabela-admin.tabela-compacta {
+  min-width: 0;
+}
+
+.tabela-admin.tabela-compacta th,
+.tabela-admin.tabela-compacta td {
+  padding: 8px;
+}
+
+.tabela-admin.tabela-compacta th {
+  white-space: nowrap;
+}
+
+.tabela-admin.tabela-compacta td.email {
+  overflow-wrap: anywhere;
+}
+
+.tabela-admin .numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabela-admin select {
+  max-width: 320px;
+}
+
+/* pendente: a linha que ainda precisa de alguém */
+.tabela-admin tr.pendente td:first-child {
+  box-shadow: inset 3px 0 0 var(--cor-aviso);
+}
+
+.tabela-admin tr.inativo td {
+  color: var(--cor-texto-terciario);
+}
+
+.tabela.pendencias td {
+  vertical-align: top;
+}
+
+.tabela .quebra {
+  min-width: 220px;
+}
+
+.tabela-rolavel,
+.rolagem {
+  overflow-x: auto;
+}
+
+/* --- página previsto × realizado: a matriz do DRE --- */
+
+.tabela-previsto {
+  min-width: 860px;
+}
+
+.tabela-previsto th,
+.tabela-previsto td {
+  padding: 7px 10px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tabela-previsto tbody th,
+.tabela-previsto tfoot th {
+  text-align: left;
+  font-weight: 500;
+}
+
+.tabela-previsto .inicio-do-bloco {
+  border-left: 3px solid var(--cor-azul-claro);
+}
+
+.tabela-previsto .linha-grupo {
+  background: var(--cor-superficie-2);
+  font-weight: 700;
+}
+
+.tabela-previsto .linha-grupo th {
+  font-weight: 700;
+  color: var(--cor-marinho);
+}
+
+.tabela-previsto .linha-conta th {
+  padding-left: 40px;
+  color: var(--cor-texto-apagado);
+}
+
+.tabela-previsto .linha-conta td,
+.tabela-previsto .linha-conta th {
+  border-bottom: 1px solid var(--cor-superficie-2);
+}
+
+.tabela-previsto .linha-resultado {
+  border-top: 2px solid var(--cor-marinho);
+  font-weight: 700;
+}
+
+.tabela-previsto .linha-resultado th {
+  font-weight: 700;
+  color: var(--cor-titulo);
+}
+
+.botao-abrir {
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: 4px;
+  background: var(--cor-superficie);
+  color: var(--cor-marinho);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.botao-abrir:hover {
+  border-color: var(--cor-azul);
+  color: var(--cor-azul);
+}
+
+/* o subtotal (desembolso) não abre: o espaço do botão mantém o nome alinhado com os outros */
+.espaco-do-botao {
+  display: inline-block;
+  width: 22px;
+  margin-right: 8px;
+}
+
+.semaforo {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-left: 8px;
+  border-radius: 50%;
+}
+
+.semaforo-verde {
+  background: var(--cor-meta-ok);
+}
+
+.semaforo-amarelo {
+  background: var(--cor-aviso);
+}
+
+.semaforo-vermelho {
+  background: var(--cor-meta-fora);
+}
+
+/* --- gráficos --- */
+
+.rotulo-de-coluna {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--cor-texto-apagado);
+}
+
+.recharts-legend-item-text {
+  font-weight: 500;
+}
+
+.estoque-por-categoria {
+  position: relative;
+}
+
+/* espaço à direita para o cartão do rebanho final não cobrir as colunas; o cabeçalho continua de borda a borda */
+.estoque-por-categoria .painel-grafico {
+  padding-right: 210px;
+}
+
+.estoque-por-categoria .painel-grafico > h2 {
+  margin-right: -210px;
+}
+
+.rebanho-final {
+  position: absolute;
+  top: 66px;
+  right: 22px;
+  width: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-2);
+}
+
+.rebanho-final strong {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-rebanho-final);
+}
+
+.rebanho-final span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--cor-texto-apagado);
+}
+
+.velocimetro svg {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.velocimetro-fundo,
+.velocimetro-valor {
+  fill: none;
+  stroke-width: 22;
+}
+
+.velocimetro-fundo {
+  stroke: var(--cor-grade);
+}
+
+.velocimetro-meta {
+  stroke: var(--cor-marinho);
+  stroke-width: 3;
+}
+
+.velocimetro-numero {
+  font-size: 22px;
+  font-weight: 700;
+  text-anchor: middle;
+  fill: var(--cor-texto);
+}
+
+.velocimetro-legenda {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--cor-texto-apagado);
+}
+
+/* --- disposição das páginas (as larguras do BI) --- */
+
+.vendas-corpo {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  gap: var(--espaco);
+}
+
+.coluna-faturamento,
+.coluna-graficos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco);
+}
+
+/* financeiro: desembolso por centro e fluxo de caixa à esquerda, realizado × planejado à direita */
+.financeiro-corpo,
+.mortes-corpo {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--espaco);
+  align-items: start;
+}
+
+.paineis-pendencias {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--espaco);
+}
+
+/* --- textos e selos --- */
+
+.explicacao {
+  margin: 0;
+  font-size: 13px;
+  color: var(--cor-texto-apagado);
+}
+
+.legenda {
+  margin: -4px 0 10px;
+  font-size: 12px;
+  color: var(--cor-texto-apagado);
+}
+
+.apagado {
+  color: var(--cor-texto-terciario);
+}
+
+.sugestao {
+  display: block;
+  font-size: 12px;
+  color: var(--cor-texto-terciario);
+}
+
+.selo {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 4px 4px 0;
+  padding: 1px 9px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  background: var(--cor-superficie-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--cor-texto-apagado);
+}
+
+.selo-erro {
+  border-color: transparent;
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+}
+
+.selo-aviso {
+  border-color: transparent;
+  background: var(--cor-aviso-fundo);
+  color: var(--cor-aviso-texto);
+}
+
+/* abas segmentadas (Safra | Cívil no MENU, o que mostrar nas pendências) */
+.abas {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-2);
+}
+
+.abas button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 30px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--cor-texto-apagado);
+  cursor: pointer;
+  transition:
+    background-color var(--mov-rapida) var(--mov-padrao),
+    color var(--mov-rapida) var(--mov-padrao);
+}
+
+.abas button:hover {
+  color: var(--cor-texto);
+}
+
+.abas button.active {
+  background: var(--cor-superficie);
+  box-shadow: 0 1px 2px rgba(16, 32, 56, 0.12);
+  color: var(--cor-azul);
+  font-weight: 600;
+}
+
+/* --- administração: de-paras, usuários, funções e acesso --- */
+
+.filtro-da-lista {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.filtro-da-lista input[type="search"] {
+  flex: 1 1 260px;
+  max-width: 420px;
+}
+
+.filtro-da-lista-marcar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--cor-texto-apagado);
+}
+
+.usuarios-corpo {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--espaco);
+  align-items: start;
+}
+
+.formulario-admin,
+.gerenciar-usuario {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gerenciar-usuario h3 {
+  margin: 10px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--cor-borda);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-marinho);
+}
+
+.acoes-usuario,
+.acesso-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.acesso-as-fazendas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.acesso-cliente {
+  margin: 0;
+  padding: 8px 14px 10px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+}
+
+.acesso-cliente legend {
+  padding: 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cor-marinho);
+}
+
+.acesso-fazenda {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 0 2px 18px;
+}
+
+.acesso-fazenda .sugestao {
+  display: inline;
+}
+
+/* cadastro de funções: os botões da linha lado a lado */
+.acoes-da-funcao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* --- caixa do "Exportar PDF" --- */
+
+.dialogo-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(10, 22, 40, 0.45);
+}
+
+.dialogo {
+  width: min(480px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding: 22px 24px;
+  border-radius: var(--raio-medio);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-alta);
+}
+
+.dialogo h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  color: var(--cor-marinho);
+}
+
+.dialogo p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--cor-texto-apagado);
+}
+
+.dialogo-atalhos {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.dialogo-atalhos button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--cor-azul);
+  cursor: pointer;
+}
+
+.dialogo-atalhos button:hover {
+  text-decoration: underline;
+}
+
+.dialogo-paginas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+}
+
+.dialogo-paginas legend {
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cor-texto-apagado);
+}
+
+.dialogo-paginas label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.dialogo-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.dialogo-campo span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cor-texto-apagado);
+}
+
+.dialogo-botoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.dialogo-botoes button,
+.exportacao-aviso button {
+  font: inherit;
+  font-weight: 600;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  cursor: pointer;
+}
+
+.dialogo-botoes .primario {
+  border-color: var(--cor-azul);
+  background: var(--cor-azul);
+  color: #ffffff;
+}
+
+.dialogo-botoes .primario:hover:not(:disabled) {
+  border-color: var(--cor-azul-escuro);
+  background: var(--cor-azul-escuro);
+}
+
+.dialogo-botoes .primario:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* --- telas menores --- */
+
+@media (max-width: 1100px) {
+  .paineis-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .paineis-3,
+  .paineis-2,
+  .vendas-corpo,
+  .mortes-corpo,
+  .financeiro-corpo,
+  .usuarios-corpo,
+  .paineis-pendencias {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* no celular o menu lateral vira gaveta, aberta pelo botão do topo */
+@media (max-width: 900px) {
+  .casca,
+  .casca:has(.rail.recolhido) {
+    display: block;
+  }
+
+  .rail,
+  .rail.recolhido {
+    z-index: 60;
+    width: var(--largura-do-rail);
+    padding: 22px 14px 0;
+    transform: translateX(-100%);
+    transition: transform var(--mov-lenta) var(--mov-padrao);
+  }
+
+  .rail.aberto {
+    transform: translateX(0);
+    box-shadow: var(--sombra-alta);
+  }
+
+  .rail-recolher {
+    display: none;
+  }
+
+  .gaveta-fundo.ativo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    border: 0;
+    background: rgba(10, 22, 40, 0.45);
+  }
+
+  .topo {
+    padding: 0 16px;
+    gap: 10px;
+  }
+
+  .topo-menu {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    background: var(--cor-superficie);
+    color: var(--cor-texto);
+    cursor: pointer;
+  }
+
+  .area-da-pagina {
+    padding: 20px 16px 48px;
+  }
+}
+
+@media (max-width: 700px) {
+  .paineis-4,
+  .menu-filtros {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* no topo do celular ficam só os ícones (o nome dos botões continua no aria-label) */
+  .topo-migalhas > span,
+  .topo-usuario,
+  .filtro-em-uso span,
+  .topo .rotulo-do-botao,
+  .botao-atualizar-aviso {
+    display: none;
+  }
+
+  .topo .botao-exportar,
+  .topo .botao-sair {
+    padding: 0 10px;
+  }
+
+  .rebanho-final {
+    position: static;
+    width: auto;
+    margin-top: 12px;
+  }
+
+  .estoque-por-categoria .painel-grafico {
+    padding-right: 18px;
+  }
+
+  .estoque-por-categoria .painel-grafico > h2 {
+    margin-right: -18px;
+  }
+
+  .cabecalho-textos h1 {
+    font-size: 19px;
+  }
+}
+
+/* --- exportação em PDF --- */
+
+/* a página que gera o PDF: as folhas ficam desenhadas por trás do aviso de progresso */
+.exportacao-aviso {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+  font-size: 17px;
+  color: var(--cor-texto-apagado);
+  background: var(--cor-fundo);
+}
+
+.exportacao-folhas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.folha-pdf {
+  width: 1600px;
+  background: var(--cor-fundo);
+}
+
+/* na folha do PDF não entram o menu, o topo nem os botões; o cabeçalho ganha o logo (a moldura do BI) */
+.folha-pdf .casca,
+.folha-pdf .casca:has(.rail.recolhido) {
+  display: block;
+  min-height: 0;
+}
+
+.folha-pdf .rail,
+.folha-pdf .topo,
+.folha-pdf .gaveta-fundo {
+  display: none;
+}
+
+.folha-pdf .area-da-pagina {
+  padding: 28px 36px 36px;
+}
+
+.folha-pdf .cabecalho-da-pagina {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.folha-pdf .cabecalho-logo-pdf {
+  display: block;
+  height: 54px;
+  margin-right: 10px;
+}
+
+/* a capa: a arte da capa do boletim (1920×1080) e os textos nas posições da versão preenchida */
+.folha-capa {
+  width: 1920px;
+}
+
+.capa {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  font-family: var(--fonte-capa);
+}
+
+.capa-fundo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.capa p {
+  margin: 0;
+}
+
+.capa-titulo,
+.capa-periodo {
+  position: absolute;
+  left: 240px;
+  width: 400px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.capa-titulo {
+  top: 88px;
+  font-size: 42px;
+  font-weight: 300;
+  letter-spacing: 0.75em;
+  text-indent: 0.75em; /* o espaçamento fica depois de cada letra: compensa para centralizar */
+}
+
+.capa-periodo {
+  top: 196px;
+  font-size: 92px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.capa-analise {
+  position: absolute;
+  left: 30px;
+  top: 714px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 32px;
+  color: #111111;
+}
+
+.capa-analise strong {
+  padding-left: 8px;
+}
+
+.capa-nomes {
+  position: absolute;
+  left: 1000px;
+  top: 600px;
+  width: 680px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--cor-capa);
+  overflow-wrap: anywhere;
+}
+
+.capa-rodape {
+  position: absolute;
+  left: 0;
+  top: 930px;
+  width: 900px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-left: 14px;
+  font-size: 27px;
+  color: #ffffff;
+}
+
+.capa-globo {
+  display: grid;
+  place-items: center;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.capa-globo img {
+  width: 46px;
+  height: 46px;
+}
+
+.capa-local {
+  position: absolute;
+  left: 470px;
+  width: 430px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* --- boletim analítico (o "Exportar PDF" no modo Analítico): folhas A4 em pé, com a leitura do mês --- */
+
+.dialogo-modo {
+  margin-bottom: 4px;
+}
+
+/* A4 em pé: 1240 × 1754 px (210 × 297 mm); folha com mais conteúdo cresce para baixo, sem cortar */
+.folha-pdf.folha-a4 {
+  width: 1240px;
+  background: var(--cor-superficie);
+}
+
+.folha-analitica {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 1754px;
+  padding: 44px 48px 48px;
+  color: var(--cor-texto);
+}
+
+.folha-analitica-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding-bottom: 14px;
+  border-bottom: 3px solid var(--cor-capa);
+}
+
+.folha-analitica-topo h1 {
+  margin: 0 0 10px;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--cor-capa);
+}
+
+.folha-analitica-topo dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 3px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.folha-analitica-topo dt {
+  color: var(--cor-texto-apagado);
+}
+
+.folha-analitica-topo dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.folha-analitica-topo img {
+  height: 56px;
+}
+
+.leitura-do-mes {
+  padding: 12px 18px 14px;
+  border-left: 4px solid var(--cor-azul);
+  border-radius: var(--raio);
+  background: var(--cor-azul-suave);
+}
+
+.leitura-do-mes h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-azul-escuro);
+}
+
+.leitura-do-mes ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.folha-analitica-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quadro-analitico {
+  padding: 12px 16px 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-medio);
+}
+
+.quadro-analitico h3 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cor-titulo);
+}
+
+.graficos-lado-a-lado {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.nota {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: var(--cor-texto-apagado);
+}
+
+/* cartões */
+.cartoes-analiticos {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.cartoes-analiticos.quatro-colunas {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.cartao-analitico {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+}
+
+.cartao-analitico span {
+  font-size: 11px;
+  color: var(--cor-texto-apagado);
+}
+
+.cartao-analitico strong {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cartao-analitico small {
+  font-size: 11px;
+  color: var(--cor-texto-terciario);
+}
+
+.cartao-analitico.forte {
+  border-color: var(--cor-azul-claro);
+  background: var(--cor-azul-suave);
+}
+
+.cartao-analitico.forte strong {
+  color: var(--cor-azul-escuro);
+}
+
+/* tabelas */
+.tabela-analitica {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabela-analitica th,
+.tabela-analitica td {
+  padding: 5px 7px;
+  border-bottom: 1px solid var(--cor-grade);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tabela-analitica thead th {
+  padding: 6px 7px;
+  border-bottom: 1px solid var(--cor-borda-forte);
+  background: var(--cor-superficie-2);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--cor-texto-apagado);
+}
+
+.tabela-analitica thead th:first-child,
+.tabela-analitica tbody th {
+  text-align: left;
+}
+
+.tabela-analitica tbody th {
+  font-weight: 500;
+  white-space: normal;
+}
+
+.tabela-analitica td.texto {
+  text-align: left;
+  white-space: normal;
+}
+
+.tabela-analitica .inicio-do-bloco {
+  border-left: 1px solid var(--cor-borda-forte);
+}
+
+.tabela-analitica .destaque {
+  font-weight: 700;
+}
+
+.tabela-analitica .apagado {
+  color: var(--cor-texto-apagado);
+}
+
+.tabela-analitica .unidade {
+  font-size: 11px;
+  text-align: left;
+  color: var(--cor-texto-terciario);
+}
+
+.tabela-analitica .status {
+  text-align: center;
+}
+
+.tabela-analitica tr.linha-do-grupo th {
+  padding-top: 8px;
+  background: var(--cor-azul-suave);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--cor-azul-escuro);
+}
+
+.tabela-analitica tr.linha-total th,
+.tabela-analitica tr.linha-total td {
+  border-top: 2px solid var(--cor-borda-forte);
+  background: var(--cor-azul-suave);
+  font-weight: 700;
+}
+
+.tabela-analitica tr.linha-do-grupo-com-valores th,
+.tabela-analitica tr.linha-do-grupo-com-valores td {
+  background: var(--cor-superficie-2);
+  font-weight: 700;
+}
+
+.tabela-analitica tr.linha-da-conta th {
+  padding-left: 20px;
+  font-weight: 400;
+}
+
+/* o placar tem 13 colunas: letra e espaço menores para caber na largura do A4 */
+.tabela-placar th,
+.tabela-placar td,
+.tabela-estoque th,
+.tabela-estoque td {
+  padding: 4px 5px;
+  font-size: 11px;
+}
+
+.tabela-distribuicao .barra-da-participacao {
+  width: 45%;
+}
+
+.barra-da-participacao span {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--cor-azul-medio);
+}
+
+.status-bolinha {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.status-verde {
+  background: var(--cor-meta-ok);
+}
+
+.status-amarelo {
+  background: var(--cor-aviso);
+}
+
+.status-vermelho {
+  background: var(--cor-meta-fora);
+}
+
+.legenda-do-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  color: var(--cor-texto-apagado);
+}
+
+.legenda-do-status .status-bolinha:not(:first-child) {
+  margin-left: 12px;
+}
+
+.legenda-do-status .apagado {
+  margin-left: 16px;
+  color: var(--cor-texto-terciario);
+}
+
+.tabela-lotes td:first-child {
+  text-align: left;
+}
+
+/* --- boletim personalizado: assuntos em blocos, vários por folha A4 --- */
+
+.bloco-do-assunto {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* a margem entra na conta da paginação (ESPACO_ENTRE_BLOCOS em PaginasPersonalizadas.tsx) */
+.bloco-do-assunto + .bloco-do-assunto {
+  margin-top: 12px;
+}
+
+.bloco-do-assunto-titulo {
+  margin: 0;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--cor-azul-claro);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--cor-capa);
+}
+
+.leitura-do-mes h3 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cor-azul-escuro);
+}
+
+/* a folha onde os blocos são medidos antes de ir para as folhas do PDF */
+.medicao-das-folhas {
+  width: 1240px;
+  background: var(--cor-superficie);
+}
+
+.dialogo-partes {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.dialogo-partes label {
+  align-items: flex-start;
+}
+
+.dialogo-partes label input {
+  margin-top: 3px;
+}
+
+.dialogo-partes span {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialogo-partes small {
+  font-size: 12px;
+  color: var(--cor-texto-apagado);
+}
+
+/* --- nota técnica do começo e do fim do PDF (digitada na exportação) --- */
+
+.nota-tecnica {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nota-tecnica-paragrafo {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-line; /* a quebra simples digitada continua dentro do parágrafo */
+  color: var(--cor-texto);
+}

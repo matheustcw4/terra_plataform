@@ -1,0 +1,67 @@
+// Nomes curtos para os tipos que vêm do contrato da API.
+// esquema.d.ts é gerado (npm run tipos), nunca editado à mão: se a API mudar, gere de novo e o TypeScript aponta
+// cada lugar do front que precisa acompanhar.
+import type { components } from "./esquema";
+
+type Schemas = components["schemas"];
+
+export type Usuario = Schemas["UsuarioResumo"];
+export type RespostaLogin = Schemas["RespostaLogin"];
+export type Escopo = Schemas["Escopo"];
+export type FazendaDoEscopo = Schemas["FazendaDoEscopo"];
+export type Periodo = Schemas["Periodo"];
+export type Movimentacao = Schemas["Movimentacao"];
+export type ComMeta = Schemas["ComMeta"];
+export type EstoqueDoMes = Schemas["EstoqueDoMes"];
+export type EstoqueDaCategoria = Schemas["EstoqueDaCategoria"];
+export type Vendas = Schemas["Vendas"];
+export type Compras = Schemas["Compras"];
+export type IndicadoresDoLote = Schemas["IndicadoresDoLote"];
+export type QuadroDoLote = Schemas["QuadroDoLote"];
+export type MesDoLote = Schemas["MesDoLote"];
+export type Transferencias = Schemas["Transferencias"];
+export type MesDeTransferencia = Schemas["MesDeTransferencia"];
+export type Nascimentos = Schemas["Nascimentos"];
+export type NascimentosDoSexo = Schemas["NascimentosDoSexo"];
+export type Mortes = Schemas["Mortes"];
+export type MortesDoGrupo = Schemas["MortesDoGrupo"];
+export type CausaDeMorte = Schemas["CausaDeMorte"];
+export type MesDaContagem = Schemas["MesDaContagem"];
+export type Financeiro = Schemas["Financeiro"];
+export type ValoresDoVelocimetro = Schemas["Velocimetro"];
+export type MesDoFinanceiro = Schemas["MesDoFinanceiro"];
+export type PrevistoRealizado = Schemas["PrevistoRealizado"];
+export type GrupoDoPrevisto = Schemas["GrupoDoPrevisto"];
+export type LinhaDoPrevisto = Schemas["LinhaDoPrevisto"];
+export type Comparacao = Schemas["Comparacao"];
+export type CategoriasDeOrigem = Schemas["CategoriasDeOrigem"];
+export type CategoriaDeOrigem = Schemas["CategoriaDeOrigem"];
+export type OpcaoDeCategoria = Schemas["OpcaoDeCategoria"];
+export type ContasDeOrigem = Schemas["ContasDeOrigem"];
+export type ContaDeOrigem = Schemas["ContaDeOrigem"];
+export type OpcaoDeConta = Schemas["OpcaoDeConta"];
+export type UsuarioDoAdmin = Schemas["UsuarioDoAdmin"];
+export type NovoUsuario = Schemas["NovoUsuario"];
+export type AlteracaoDeUsuario = Schemas["AlteracaoDeUsuario"];
+export type FazendaDoAcesso = Schemas["FazendaDoAcesso"];
+export type Funcao = Schemas["Funcao"];
+export type NovaFuncao = Schemas["NovaFuncao"];
+export type AlteracaoDeFuncao = Schemas["AlteracaoDeFuncao"];
+export type Pendencias = Schemas["Pendencias"];
+export type Pendencia = Schemas["Pendencia"];
+export type SituacaoDaAtualizacao = Schemas["SituacaoDaAtualizacao"];
+export type PedidoDeAtualizacao = Schemas["PedidoDeAtualizacao"];
+export type BoletimAnalitico = Schemas["BoletimAnalitico"];
+export type Comparado = Schemas["Comparado"];
+export type LinhaDoPlacar = Schemas["LinhaDoPlacar"];
+export type SecaoEstoque = Schemas["SecaoEstoque"];
+export type LinhaDoEstoque = Schemas["LinhaDoEstoque"];
+export type SecaoLotacao = Schemas["SecaoLotacao"];
+export type SecaoPlacar = Schemas["SecaoPlacar"];
+export type SecaoDeLotes = Schemas["SecaoDeLotes"];
+export type LoteDoMes = Schemas["LoteDoMes"];
+export type MesComparado = Schemas["MesComparado"];
+export type SecaoTransferencias = Schemas["SecaoTransferencias"];
+export type SecaoMortes = Schemas["SecaoMortes"];
+export type SecaoFinanceiro = Schemas["SecaoFinanceiro"];
+export type SecaoCaixa = Schemas["SecaoCaixa"];
