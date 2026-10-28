@@ -7,6 +7,8 @@ Entrada (o que AdapterMetryx.extrair grava em raw.payload):
 
 Regras (validadas contra o BI em 14/10/2026, docs/validacao/2026-10-14_cruzamento_bi.md):
 - estoque: checkpoints no fim de cada mês com registro de balanço, pela regra do BI (saldo.py);
+- rebanho médio: média do saldo de cada dia do balanço, como o relatório do Metryx (rebanho.py), e não o endpoint
+  `rebanho-medio-pecuario` do BI, que conta animais a mais (27/10/2026);
 - `morte-pecuario` traz o idRetiro legado (inteiro): resolvido pelo nome do retiro dentro da fazenda;
 - `weightTotal` da compra às vezes é total, às vezes por cabeça (doc 02 §5.1);
 - baixa com causa de consumo ou doação ("Consumo Abate", "Consumo Acidente", "Doação") vira consumo/doação, como
@@ -19,21 +21,26 @@ Regras (validadas contra o BI em 14/10/2026, docs/validacao/2026-10-14_cruzament
 - área de pasto: `utilizacao-pasto`, as pastagens de uso Pecuária no fim de cada mês (pasto.py), do mês do primeiro
   período cadastrado até o último mês do rebanho médio; a UA ainda não vem da API (o `weight` do rebanho médio não
   entra);
-- partições só dos endpoints que vieram ("ok"), com guarda de volume: resposta vazia/parcial não apaga dados.
+- partições só dos endpoints que vieram ("ok"), com guarda de volume: resposta vazia/parcial não apaga dados;
+- planejamento (cenário planejado): regras em planejamento.py (versão mais recente de cada fazenda e safra).
 
-Como ler: `normalizar()` chama uma etapa por endpoint; cada etapa é um método de `MontagemMetryx`.
+Como ler: `normalizar()` chama uma etapa por endpoint; cada etapa é um método de `MontagemMetryx` (realizado) ou de
+`MontagemDoPlano` (planejamento).
 """
 
 import unicodedata
 from collections import Counter
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from typing import Any
 
 from pydantic import ValidationError
 
 from app.etl.adapters.metryx.categoria import sugerir_categoria_bi
+from app.etl.adapters.metryx.conversao import limpar_nome, para_data, para_decimal, sem_vazios
 from app.etl.adapters.metryx.pasto import PeriodoDePasto, area_no_dia, eh_uso_pecuario
+from app.etl.adapters.metryx.planejamento import MontagemDoPlano
+from app.etl.adapters.metryx.rebanho import rebanho_medio_mensal
 from app.etl.adapters.metryx.saldo import RegistroBalanco, fim_do_mes, saldo_fim_de_mes
 from app.etl.canonical import (
     AreaMensal,
@@ -55,56 +62,30 @@ from app.etl.canonical import (
 )
 
 GUARDA_VOLUME = 0.5
-CARACTERES_INVISIVEIS = dict.fromkeys(map(ord, "​‌‍﻿"))   # aparecem nos nomes de centro de custo
 
-# endpoint -> (entidade canônica, tipos de mov_animal pelos quais ele é autoritativo)
-PARTICOES_DO_ENDPOINT: dict[str, tuple[str, tuple[str, ...] | None]] = {
-    "venda": ("mov_animal", ("ABATE", "VENDA_EM_PE")),
-    "compra": ("mov_animal", ("COMPRA",)),
-    "nascimento": ("mov_animal", ("NASCIMENTO",)),
-    "morte": ("mov_animal", ("MORTE", "CONSUMO_DOACAO")),
-    "desmame": ("mov_animal", ("DESMAME",)),
-    "mudanca_categoria": ("mov_animal", ("MUDANCA_CATEGORIA",)),
-    "transferencia": ("mov_animal", ("TRANSF_ENTRADA", "TRANSF_SAIDA")),
-    "balanco": ("inventario", None),
-    "rebanho_medio": ("rebanho_medio", None),
-    "lancamento": ("lancamento", None),
-    "pasto": ("area", None),
-}
-
-
-def para_decimal(valor: Any) -> Decimal | None:
-    if valor is None or valor == "":
-        return None
-    return Decimal(str(valor))
-
-
-def para_data(valor: Any) -> date | None:
-    """Datas do Metryx: 'AAAA-MM-DD' (às vezes com hora depois) ou 'DD/MM/AAAA'; nos mensais, 'M-AAAA' / 'MM/AA'."""
-    if valor is None or valor == "":
-        return None
-    if isinstance(valor, date):
-        return valor
-    texto = str(valor).strip()
-    for formato in ("%Y-%m-%d", "%d/%m/%Y"):
-        try:
-            return datetime.strptime(texto[:10], formato).date()
-        except ValueError:
-            continue
-    return _mes_e_ano(texto)
-
-
-def _mes_e_ano(texto: str) -> date | None:
-    for separador in ("-", "/"):
-        partes = texto.split(separador)
-        if len(partes) != 2 or not all(parte.isdigit() for parte in partes):
-            continue
-        mes, ano = int(partes[0]), int(partes[1])
-        if ano < 100:
-            ano += 2000
-        if 1 <= mes <= 12:
-            return date(ano, mes, 1)
-    return None
+# (endpoint, entidade canônica, cenário, tipos de mov_animal): as partições pelas quais cada endpoint é autoritativo.
+# O balanço dá o estoque e também o rebanho médio realizado (rebanho.py). No planejado, a partição vale para todas as
+# versões da fazenda: quando a versão escolhida muda, as metas da anterior saem.
+PARTICOES_DOS_ENDPOINTS: tuple[tuple[str, str, str, tuple[str, ...] | None], ...] = (
+    ("venda", "mov_animal", "realizado", ("ABATE", "VENDA_EM_PE")),
+    ("compra", "mov_animal", "realizado", ("COMPRA",)),
+    ("nascimento", "mov_animal", "realizado", ("NASCIMENTO",)),
+    ("morte", "mov_animal", "realizado", ("MORTE", "CONSUMO_DOACAO")),
+    ("desmame", "mov_animal", "realizado", ("DESMAME",)),
+    ("mudanca_categoria", "mov_animal", "realizado", ("MUDANCA_CATEGORIA",)),
+    ("transferencia", "mov_animal", "realizado", ("TRANSF_ENTRADA", "TRANSF_SAIDA")),
+    ("balanco", "inventario", "realizado", None),
+    ("balanco", "rebanho_medio", "realizado", None),
+    ("lancamento", "lancamento", "realizado", None),
+    ("pasto", "area", "realizado", None),
+    ("venda_plano", "mov_animal", "planejado", ("ABATE", "VENDA_EM_PE")),
+    ("compra_plano", "mov_animal", "planejado", ("COMPRA",)),
+    ("nascimento_plano", "mov_animal", "planejado", ("NASCIMENTO",)),
+    ("morte_plano", "mov_animal", "planejado", ("MORTE", "CONSUMO_DOACAO")),
+    ("desmame_plano", "mov_animal", "planejado", ("DESMAME",)),
+    ("rebanho_plano", "rebanho_medio", "planejado", None),
+    ("previsao_financeiro", "orcamento", "planejado", None),
+)
 
 
 def peso_total_compra(peso: Any, qtd: Any) -> tuple[Decimal | None, str | None]:
@@ -126,20 +107,12 @@ def chave_do_evento(item: dict, campo_origem: str, campo_destino: str) -> tuple:
             para_decimal(item.get("amount")))
 
 
-def sem_vazios(campos: dict[str, Any]) -> dict[str, Any]:
-    return {nome: valor for nome, valor in campos.items() if valor is not None}
-
-
 def eh_consumo_ou_doacao(causa: Any) -> bool:
     """O Consolidado Pecuário do Metryx põe em "Consumo e Doação" as baixas de causa "Consumo ..." (U6, mai/2026:
     "Consumo Abate" e "Consumo Acidente") e as de doação. A regra segue o Metryx, não o BI (que só contava "Consumo
     Abate"): o número tem de bater com o Metryx (pedido do usuário, 20/10/2026)."""
     texto = unicodedata.normalize("NFKD", str(causa or "")).encode("ascii", "ignore").decode().upper().strip()
     return texto.startswith("CONSUMO") or texto.startswith("DOACAO")
-
-
-def limpar_nome(texto: Any) -> str:
-    return (texto or "").translate(CARACTERES_INVISIVEIS).strip()
 
 
 # --- montagem do lote ----------------------------------------------------------------------------------------------
@@ -160,6 +133,17 @@ def normalizar(conteudo: dict[str, Any]) -> LoteCanonico:
     metryx.rebanho_medio()
     metryx.areas()
     metryx.lancamentos()
+    plano = MontagemDoPlano(metryx)
+    plano.versoes()
+    plano.categorias()
+    plano.compras()
+    plano.vendas()
+    plano.nascimentos()
+    plano.mortes()
+    plano.desmames()
+    plano.rebanho_medio()
+    plano.orcamento()
+    plano.declarar_versoes()
     metryx.particoes()
     return metryx.lote
 
@@ -295,6 +279,12 @@ class MontagemMetryx:
 
     def saldos_do_balanco(self) -> None:
         """Checkpoints de estoque no fim de cada mês, pela regra do BI (saldo.py)."""
+        for (fazenda, retiro, categoria), por_mes in saldo_fim_de_mes(self.registros_do_balanco()).items():
+            for fim, qtd in por_mes.items():
+                self._checkpoint(fazenda, retiro, categoria, fim, qtd)
+
+    def registros_do_balanco(self) -> list[RegistroBalanco]:
+        """O balanço como o estoque e o rebanho médio o leem (lido a cada uso: é barato e evita estado entre etapas)."""
         registros = []
         for ordem, item in enumerate(self.dados.get("balanco", [])):
             fazenda = self.fazenda_de(item)
@@ -308,9 +298,7 @@ class MontagemMetryx:
                 categoria=item.get("uuidCategory"), owner=item.get("owner"), data=data, quantidade=qtd,
                 grupo=categoria.get("categoryGroup") if categoria else None, ano_safra=item.get("anoSafra"),
                 nascimento=item.get("birth"), safra=item.get("harvest"), ordem=ordem))
-        for (fazenda, retiro, categoria), por_mes in saldo_fim_de_mes(registros).items():
-            for fim, qtd in por_mes.items():
-                self._checkpoint(fazenda, retiro, categoria, fim, qtd)
+        return registros
 
     def _checkpoint(self, fazenda: str, retiro: str | None, categoria: str, fim: date, qtd: Decimal) -> None:
         ref = f"balanco:{categoria}:{retiro}:{fim}"
@@ -486,25 +474,22 @@ class MontagemMetryx:
     # -- rebanho médio --
 
     def rebanho_medio(self) -> None:
-        """Soma das linhas da mesma categoria no mês (entre retiros e owners)."""
-        somas: dict[tuple, Decimal] = {}                  # (fazenda, mês, categoria) -> cabeças
-        for numero, item in enumerate(self.dados.get("rebanho_medio", [])):
-            fazenda = self.fazenda_de(item)
-            mes = para_data(item.get("month"))
-            qtd = para_decimal(item.get("amount"))
-            if fazenda is None or mes is None or qtd is None:
+        """Média do saldo de cada dia do balanço, por mês e categoria, como o relatório do Metryx (rebanho.py). O
+        endpoint `rebanho-medio-pecuario` (o do BI) conta animais a mais e fica só no bruto. Sem peso: a UA não entra
+        até a API trazê-la."""
+        registros = self.registros_do_balanco()
+        if not registros:
+            return
+        ate = fim_do_mes(max(registro.data for registro in registros))
+        for (fazenda, categoria, mes), media in rebanho_medio_mensal(registros, ate).items():
+            ref = f"rebanho:{categoria}:{mes}"
+            if media < 0:
+                dados = {"fazenda": fazenda, "categoria": categoria, "mes": mes.isoformat(), "qtd": str(media)}
+                self.rejeitar("rebanho_medio", dados, ref, "NEGATIVE_VALUE", "rebanho médio negativo", fazenda)
                 continue
-            if qtd < 0:
-                self.rejeitar("rebanho_medio", item, f"rebanho:{numero}", "NEGATIVE_VALUE", "rebanho médio negativo",
-                              fazenda)
-                continue
-            chave = (fazenda, mes.replace(day=1), item.get("idCategory"))
-            somas[chave] = somas.get(chave, Decimal(0)) + qtd
-        # TODO (doc 02 §5.2): `weight` é médio ou total? Até validar com payload real, o peso não entra (UA estimada).
-        for (fazenda, mes, categoria), qtd in somas.items():
             self.lote.rebanho_medio.append(RebanhoMedio(fazenda=fazenda, cenario="realizado", competencia=mes,
-                                                        categoria=self.categoria(categoria), qtd_cab=qtd,
-                                                        origem_linha=f"rebanho:{categoria}:{mes}"))
+                                                        categoria=self.categoria(categoria), qtd_cab=media,
+                                                        origem_linha=ref))
 
     # -- área de pasto --
 
@@ -597,11 +582,13 @@ class MontagemMetryx:
         self.lote.retiros = list(self.retiros.values())
         vieram = {nome for nome, situacao in self.status.items() if situacao == "ok"}
         for fazenda in self.lote.fazendas:
-            for nome in sorted(vieram & PARTICOES_DO_ENDPOINT.keys()):
-                entidade, tipos = PARTICOES_DO_ENDPOINT[nome]
-                self.lote.particoes.append(Particao(entidade=entidade, fazenda=fazenda.id_externo, cenario="realizado",
+            for endpoint, entidade, cenario, tipos in PARTICOES_DOS_ENDPOINTS:
+                if endpoint not in vieram:
+                    continue
+                self.lote.particoes.append(Particao(entidade=entidade, fazenda=fazenda.id_externo, cenario=cenario,
                                                     estrategia="substituir", tipos=tipos, guarda_volume=GUARDA_VOLUME))
-        ausentes = sorted(PARTICOES_DO_ENDPOINT.keys() - vieram)
+        com_particao = {particao[0] for particao in PARTICOES_DOS_ENDPOINTS}
+        ausentes = sorted(com_particao - vieram)
         if ausentes:
             situacao = {nome: self.status.get(nome, "ausente") for nome in ausentes}
             self.aviso("ENDPOINT_NOT_LOADED",

@@ -20,7 +20,6 @@ from app.etl.adapters.metryx.normalizar import normalizar
 from app.etl.adapters.metryx.pasto import PeriodoDePasto, area_no_dia, eh_uso_pecuario
 from app.etl.pipeline import MotorCarga
 from tests.sinteticos import (
-    CAT_BEZ,
     CAT_DESM,
     CAT_VACA,
     CLIENTE,
@@ -260,14 +259,13 @@ def test_mudanca_que_repete_o_desmame_fica_de_fora_e_retiro_legado_vai_pelo_nome
 def test_area_do_mes_sai_das_pastagens_de_uso_pecuaria():
     """Fim de julho: p1 (600) e p2 (400) são pasto. Em agosto p2 virou agricultura (um período novo começa no dia em
     que o anterior acaba, sem contar duas vezes) e só p1 conta. A APP nunca entra; a pastagem de outra fazenda fica de
-    fora com um aviso. Do primeiro período (jun) até o último mês do rebanho médio (ago)."""
+    fora com um aviso. Do primeiro período (jun) até o último mês do rebanho médio (ago, o do último balanço)."""
     pastos = [pastagem("p1", "Pecuária", 600, "2025-06-15", produtiva=500),
               pastagem("p2", "Pecuária", 400, "2025-06-15", fim="2025-08-01"),
               pastagem("p2", "Agricultura", 400, "2025-08-01"),
               pastagem("p3", "APP", 50, "2025-06-15"),
               pastagem("p9", "Pecuária", 999, "2025-06-15", fazenda="fazenda-de-outro-cliente")]
-    rebanho = [{"idFarm": FAZENDA, "month": mes, "idCategory": CAT_BEZ, "amount": 100} for mes in ("7-2025", "8-2025")]
-    lote = normalizar(conteudo_bruto(payloads_metryx(pasto=pastos, rebanho_medio=rebanho)))
+    lote = normalizar(conteudo_bruto(payloads_metryx(pasto=pastos)))
     areas = {linha.competencia: (linha.area_total_ha, linha.area_produtiva_ha) for linha in lote.area}
     assert areas == {date(2025, 6, 1): (1000, 900), date(2025, 7, 1): (1000, 900), date(2025, 8, 1): (600, 500)}
     assert {linha.fazenda for linha in lote.area} == {f"{CLIENTE}|{FAZENDA}"}
@@ -276,7 +274,7 @@ def test_area_do_mes_sai_das_pastagens_de_uso_pecuaria():
 
 
 def test_sem_rebanho_medio_nao_ha_area():
-    lote = normalizar(conteudo_bruto(payloads_metryx(rebanho_medio=[])))
+    lote = normalizar(conteudo_bruto(payloads_metryx(balanco=[])))
     assert lote.area == []
 
 

@@ -61,7 +61,7 @@ def _mes(d: date) -> tuple[int, int]:
 Desempate = Literal["maior", "menor", "primeiro", "ultimo"]
 
 
-def _vence(r: RegistroBalanco, atual: RegistroBalanco, desempate: Desempate) -> bool:
+def registro_vence(r: RegistroBalanco, atual: RegistroBalanco, desempate: Desempate) -> bool:
     """`r` substitui `atual` como registro do mês? Data mais recente vence; no mesmo dia, aplica o desempate."""
     if r.data != atual.data:
         return r.data > atual.data
@@ -75,7 +75,7 @@ def _ultimo_por_mes(regs: Iterable[RegistroBalanco], desempate: Desempate = "mai
     escolhido: dict[tuple[int, int], RegistroBalanco] = {}
     for r in regs:
         m = _mes(r.data)
-        if m not in escolhido or _vence(r, escolhido[m], desempate):
+        if m not in escolhido or registro_vence(r, escolhido[m], desempate):
             escolhido[m] = r
     return {m: (r.data, r.quantidade) for m, r in escolhido.items()}
 

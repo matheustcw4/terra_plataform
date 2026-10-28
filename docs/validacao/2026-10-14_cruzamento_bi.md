@@ -960,3 +960,43 @@ dos 10 clientes Metryx):
 
 Daqui em diante a paridade com o BI Metryx (cruzamentos §12–§16) fica diferente nesses meses-fazenda. Isso é o
 esperado: a referência dos clientes Metryx passou a ser o próprio Metryx.
+
+## 21. Rebanho médio do Metryx e a Maister pela API real (27/10)
+
+O usuário comparou jul–set/2026 com os relatórios do Metryx e achou o rebanho médio alto nos dois grupos (U6: 8.505 no
+painel, 7.705 no Metryx; Maister: 35.629 e 30.667). Na Maister, também nascimentos e mortes a menos (3.176 e 148 no
+painel, 3.196 e 150 no Metryx).
+
+- **P18: rebanho médio.** O BI Metryx (e a plataforma, que o seguia) somava o endpoint `rebanho-medio-pecuario` por
+  mês. Esse endpoint não é a média do rebanho no mês: dá mais cabeças do que o mês teve. Exemplos:
+  - U6, jul/2026: 1.496 bezerros, com o saldo indo de 107 a 884;
+  - Maister, ago/2026: 19.697 adultos, com o saldo nunca acima de 17.269;
+  - Mimoso (Maister): 159 cab todo mês desde 2024, com o balanço e o inventário em zero;
+  - o endpoint também traz os meses até o fim da safra seguinte (mai/2027), que ainda não aconteceram.
+
+  O relatório do Metryx usa a **média do saldo de cada dia do mês**, e no período a média dos meses. Pelo balanço, U6
+  jul–set/2026 dá 7.257, 7.544 e 8.315 → **7.705**, igual ao Metryx. A plataforma passou a fazer assim
+  (`adapters/metryx/rebanho.py`): o saldo do dia é o do inventário (`saldo.py`, mesmas séries e desempates), cada
+  saldo vale até a véspera do registro seguinte, do primeiro registro de cada série até o fim do mês do último
+  registro do cliente. O endpoint continua no bruto, para conferência. Testes em `tests/test_rebanho_metryx.py`.
+- **Maister pela API.** A Maister vinha do datalake do BI, cujo último registro dela é de 06/10/2026: o que foi lançado
+  ou corrigido no Metryx depois não estava lá. O usuário passou o token do cliente, cadastrado cifrado nos bancos
+  `terra` e `terra_validacao`; a carga foi só com os GETs da allow-list. Como no U6, o token não tem a permissão do
+  `utilizacao-pasto` (401, A33): a área da Maister fica como estava.
+- **Recarga do banco de validação:** U6 e Serra Dourada reprocessados do bruto guardado, sem chamar a API; Maister pela
+  API; os outros 7 clientes Metryx pela ponte. A guarda de volume segurou o rebanho médio em 20 fazendas (por exemplo,
+  Santo André: 667 linhas novas onde havia 1.380). A queda é a esperada (linhas zeradas, os meses futuros e os valores
+  parados que o endpoint trazia) e foi aplicada com `--ignorar-guarda`.
+
+**Conferência com o Metryx, jul–set/2026 (a tabela do usuário):**
+
+| | Rebanho médio | Nascimentos | Mortes | Compras | Vendas |
+|---|---|---|---|---|---|
+| U6 no Metryx | 7.705 | 2.220 | 69 | 0 | 428 |
+| U6 na plataforma | 7.705 | 2.220 | 69 | 0 | 428 |
+| Maister no Metryx | 30.667 | 3.196 | 150 | 20 | 2.527 |
+| Maister na plataforma | 30.667 | 3.196 | 150 | 20 | 2.527 |
+
+O rebanho médio das fazendas Metryx deixa de bater com o BI Metryx em todos os meses (cruzamento §12). Mudam junto os
+indicadores que dividem por ele: lotação cab/ha, mortalidade sobre o rebanho médio, desembolso e custeio por cabeça e
+o boletim analítico. As planilhas não mudam.

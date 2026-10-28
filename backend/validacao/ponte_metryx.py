@@ -5,11 +5,16 @@ As stg_* são os DTOs da API com os nomes em minúsculas; os nomes voltam ao for
 reconstruído como o Pentaho/BI faz, e fica marcado:
 - vendas/compras sem idFarm (a API tem): casadas pelo nome da fazenda via stg_farm;
 - financeiro sem idFarmFiscal (a API tem): casado pelo nome da fazenda fiscal;
-- transferências e retiros: o Pentaho não extrai -> status "ausente" (nenhuma partição desses endpoints).
+- transferências e retiros: o Pentaho não extrai -> status "ausente" (nenhuma partição desses endpoints);
+- planejamento: nascimentos, mortes, desmames, a evolução do rebanho e o DRE previstos. Os inteiros que o Pentaho
+  gravou como texto ('1,0') voltam a ser inteiros. Compras e vendas previstas ficam "ausente": a stg perdeu a versão
+  do plano (plVersionCode) e as casas decimais do peso, do rendimento e dos valores (4800 no lugar de 480,0); elas só
+  vêm certas pela API.
 """
 
 import json
 from collections import defaultdict
+from decimal import Decimal
 
 from app.core.config import RAIZ_REPO
 from app.etl.adapters.base import Bruto, UnidadeOrigem, sha256_json
@@ -32,7 +37,22 @@ STG = {
     "mudanca_categoria": ("stg_mudanca_categoria", "ApiMetryxLiCategoryChangeDTO"),
     "rebanho_medio": ("stg_rebanho_medio", "ApiMetryxLiAvgRebanhoDTO"),
     "lancamento": ("stg_dre", "ApiMetryxLancamentoFinanceiroDTO"),
+    "nascimento_plano": ("stg_nascimentosprevisto", "ApiMetryxPlBirthMonthlyDTO"),
+    "morte_plano": ("stg_mortesprevisto", "ApiMetryxPlDeathMonthlyDTO"),
+    "desmame_plano": ("stg_desmameprevisto", "ApiMetryxPlWeaningMonthlyDTO"),
+    "rebanho_plano": ("stg_rebanhomedioprevisto", "ApiMetryxPlAverageStockMonthlyDTO"),
+    "previsao_financeiro": ("stg_dreprevisto", "ApiMetryxFiPrevisionDTO"),
 }
+AUSENTES = ("retiro", "transferencia", "compra_plano", "venda_plano")
+# inteiros do planejamento que a stg guarda como texto, às vezes com a vírgula decimal do Pentaho ('1,0')
+INTEIROS_DO_PLANO = ("plVersionCode", "month", "idCategory", "idAnimalGroup", "oldCategoryId", "newCategoryId",
+                     "oldAnimalGroupId", "newAnimalGroupId")
+
+
+def inteiro_do_pentaho(valor: object) -> int | None:
+    if valor is None or valor == "":
+        return None
+    return int(Decimal(str(valor).replace(",", ".")))
 
 
 def _campos_openapi() -> dict[str, dict[str, str]]:
@@ -53,6 +73,10 @@ class PonteMetryx:
             # ORDER BY ctid: ordem gravada pelo Pentaho = ordem do JSON da API (decide empates como o BI)
             for linha in consultar(BANCO, f'SELECT {colunas} FROM "DATABASE".{tabela} ORDER BY ctid'):
                 item = {mapa.get(k, k): jsonavel(v) for k, v in linha.items()}
+                if nome.endswith("_plano"):
+                    for campo in INTEIROS_DO_PLANO:
+                        if campo in item:
+                            item[campo] = inteiro_do_pentaho(item[campo])
                 self._por_cliente[linha["idcustomer"]][nome].append(item)
         for dados in self._por_cliente.values():   # reconstrói os ids que a stg perdeu (a API tem)
             por_nome = {f["farmName"]: f["idFarm"] for f in dados["fazenda"]}
@@ -69,7 +93,7 @@ class PonteMetryx:
     def extrair(self, unidade: UnidadeOrigem) -> Bruto:
         cid = unidade.chave.split(":", 1)[1]
         dados = self._por_cliente[cid]
-        status = {nome: "ok" for nome in STG} | {"retiro": "ausente", "transferencia": "ausente"}
+        status = {nome: "ok" for nome in STG} | dict.fromkeys(AUSENTES, "ausente")
         conteudo = {"idCustomer": cid, "endpoints": status, "dados": {nome: dados.get(nome, []) for nome in STG}}
         return Bruto(unidade, "json", conteudo, sha256_json(conteudo), len(str(conteudo)), {"endpoint": "stg_*"})
 

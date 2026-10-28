@@ -156,6 +156,7 @@ def payloads_metryx(**sobrescrever) -> dict[str, list[dict]]:
                            "idRetiroOrigin": RETIRO, "retiroNameOrigin": "Sede", "idFarmDestiny": FAZENDA_2,
                            "farmNameDestiny": "Outra", "date": "2025-09-01", "categoryId": CAT_VACA, "amount": 3,
                            "weightTotal": 1350, "totalFaturamento": 0}],
+        # o endpoint do BI vai só para o bruto: o rebanho médio sai do balanço (rebanho.py)
         "rebanho_medio": [{**base, "month": "7-2025", "idCategory": CAT_BEZ, "amount": 1050},
                           {**base, "month": "7-2025", "idCategory": CAT_VACA, "amount": 500}],
         # a área da planilha sintética (jul/2025: pasto 800 + ILP 200 = 1.000 ha) em duas pastagens de uso Pecuária;
@@ -172,6 +173,47 @@ def payloads_metryx(**sobrescrever) -> dict[str, list[dict]]:
     }
     dados.update(sobrescrever)
     return dados
+
+
+# catálogo global das categorias do planejamento do Metryx (idCategory -> nome, grupo, idade, sexo)
+CATALOGO_DO_PLANO = {
+    1: ("Bezerra 00 a 08 Meses", "Bezerras Mamando", "00-08", "Fêmea"),
+    7: ("Vaca Apta +36 Meses", "Matrizes em Reprodução", "36-00", "Fêmea"),
+    11: ("Bezerro 00 a 08 Meses", "Bezerros Mamando", "00-08", "Macho"),
+    12: ("Garrote 08 a 12 Meses", "Garrotes e Bois", "08-12", "Macho"),
+}
+
+
+def item_do_plano(data: str | None, categoria: int, qtd: float, *, versao: int = 1, safra: str = "25-26",
+                  fazenda: str = FAZENDA, **campos) -> dict:
+    """Um item de um endpoint *-mensal-planejamento (campos do OpenAPI; `date` no formato 'M/AA'). Sem data, é o
+    saldo inicial da evolução do rebanho (month 0)."""
+    nome, grupo, idade, sexo = CATALOGO_DO_PLANO[categoria]
+    mes = int(data.split("/")[0]) if data else 0
+    return {"idCustomer": CLIENTE, "customerName": "Cliente Teste", "idFarm": fazenda, "farmName": "Fazenda Metryx",
+            "idRetiro": RETIRO, "retiroName": "Sede", "plVersionCode": versao, "plVersionName": f"Versão {versao}",
+            "month": mes, "date": data, "harvest": safra.replace("-", "/"), "anoSafra": safra, "idCategory": categoria,
+            "categoryName": nome, "animalGroupName": grupo, "age": idade, "gender": sexo, "amount": qtd, **campos}
+
+
+def previsao_financeira(data: str, valor: float, tipo: str, centro: str = "Pastagens",
+                        subcentro: str = "Adubação") -> dict:
+    """Um item do `previsao-financeiro` (sem versão; o débito vem negativo)."""
+    return {"idCustomer": CLIENTE, "customer": "Cliente Teste", "idFarm": FAZENDA, "farmName": "Fazenda Metryx",
+            "costCenter": centro, "subCenter": subcentro, "className": "Adubo", "date": data, "type": tipo,
+            "valorPrevisto": valor, "valorRealizado": 0}
+
+
+def plano_metryx() -> dict[str, list[dict]]:
+    """O planejamento da mesma fazenda, na versão 1 da safra 25-26: 100 nascimentos previstos em jul/2025, a evolução
+    do rebanho (100 bezerros no saldo inicial e +20 em julho: rebanho médio previsto de 110 em julho) e R$ 1.500 de
+    adubação prevista em julho."""
+    return {
+        "nascimento_plano": [item_do_plano("7/25", 11, 100)],
+        "rebanho_plano": [item_do_plano(None, 11, 100, type="Entrada", originMovement="Saldo Inicial"),
+                          item_do_plano("7/25", 11, 20, type="Entrada", originMovement="nascimento")],
+        "previsao_financeiro": [previsao_financeira("2025-07-01", -1500, "Débito")],
+    }
 
 
 def transporte_metryx(dados: dict[str, list[dict]], status: dict[str, int] | None = None,

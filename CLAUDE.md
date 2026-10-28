@@ -160,9 +160,15 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     `.xlsm` reais;
   - **adapter Metryx** (cliente HTTP com allow-list, token cifrado, normalizador com a regra de saldo do BI),
     ajustado ao payload real (A29–A32 do relatório de validação §17), com a área de pasto do `utilizacao-pasto` para a
-    lotação cab/ha (16/10/2026, §18); a UA do Metryx fica de fora até a API trazê-la;
+    lotação cab/ha (16/10/2026, §18); a UA do Metryx fica de fora até a API trazê-la; e o **planejamento** (27/10/2026,
+    `adapters/metryx/planejamento.py`): metas de compra, venda, nascimento, morte e desmame, rebanho médio previsto
+    pela evolução do rebanho e DRE previsto, só da versão mais recente de cada fazenda e safra até a D7 (o BI soma
+    todas). A ponte do datalake traz o previsto menos compras e vendas (a stg perdeu a versão e as decimais). O
+    **rebanho médio realizado** sai da média do saldo de cada dia do balanço, como o relatório do Metryx
+    (`adapters/metryx/rebanho.py`, 27/10/2026); o endpoint `rebanho-medio-pecuario` do BI conta animais a mais e fica
+    só no bruto (defeito P18, relatório de validação §21);
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 140 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas e o
+  - 159 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas e o
     boletim analítico) + 70 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,
@@ -173,7 +179,10 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
 - O datalake de planilhas do BI é um snapshot de ago/2026; 55 planilhas já viraram para a safra 26/27 e não trazem
   mais a 25/26. Esse histórico entra pela carga única `planilhas-historico` (decisão Q6), que roda depois de
   `planilhas` e só preenche o que vem antes do que os arquivos cobrem.
-- **API Metryx real: dois clientes até agora.** Em 20/10/2026, com o token passado pelo usuário, o grupo U6 também foi
+- **API Metryx real: três clientes até agora.** Em 27/10/2026, com o token passado pelo usuário (cifrado nos bancos
+  `terra` e `terra_validacao`), a Maister passou a vir pela API, porque o datalake dela parou em 06/10; jul–set/2026 do
+  U6 e da Maister batem com o Metryx (rebanho médio, nascimentos, mortes, compras e vendas; relatório §21). O token da
+  Maister também não tem a permissão do `utilizacao-pasto` (401). Em 20/10/2026, com o token passado pelo usuário, o grupo U6 também foi
   recarregado pela API no banco de validação (relatório §19): o token não tem permissão para transferências nem para
   pastagens, e a API responde 401 nesses endpoints (A33: num opcional, só ele fica de fora). Em 15/10/2026, com autorização do usuário, foi consultado o cliente da
   Serra Dourada (Maria Cecília), com o token cifrado nos bancos `terra` e `terra_validacao`. Essa fazenda foi

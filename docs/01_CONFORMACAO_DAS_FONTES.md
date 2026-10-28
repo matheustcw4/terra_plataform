@@ -189,12 +189,20 @@ A planilha digita o rebanho por grupo e a UA quando o consultor preenche. O Metr
 não tem UA. O canônico fica no grão grupo × mês (regra 3) e a UA é calculada sempre pela mesma regra (§4.3), com a origem
 devolvida pela API. Assim o front mostra um selo "UA estimada" sem saber de que fonte o dado veio.
 
+No Metryx, o rebanho médio do mês é a média do saldo de cada dia do balanço, por categoria, como o relatório do próprio
+Metryx (`adapters/metryx/rebanho.py`, 27/10/2026). O endpoint `rebanho-medio-pecuario`, que o BI usa, conta animais a
+mais e fica só no bruto (relatório de validação §21, defeito P18).
+
 ### 5.3 Planejado: lançamento × agregado mensal, com versões
 
 A planilha planeja lançamento a lançamento; o Metryx planeja por mês e por versão (`plVersionCode`). Como nenhum KPI
 planejado usa grão menor que o mês, os dois entram em `fato.mov_animal` com `cenario='planejado'` e são sempre agregados
 por `competencia`. A versão é obrigatória: na planilha é uma única versão "PLANILHA" marcada como oficial; no Metryx, a
 versão oficial é escolhida pelo consultor (decisão D7). Isso acaba com a soma de todas as versões que existe hoje.
+Até a D7, entra a versão mais recente de cada fazenda e safra (27/10/2026). O número da versão só é único dentro da
+fazenda (cada fazenda tem a sua versão 1), então o código canônico é fazenda + número. O `previsao-financeiro` não tem
+versão e entra numa versão própria; o rebanho médio previsto sai da evolução do rebanho
+(`estoque-medio-mensal-planejamento`), regras em `app/etl/adapters/metryx/planejamento.py`.
 
 ### 5.4 Consumo, transferência e desmame
 

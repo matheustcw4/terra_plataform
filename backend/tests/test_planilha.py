@@ -15,7 +15,7 @@ from app.etl.adapters.metryx import credenciais
 from app.etl.adapters.planilha.adapter import AdapterPlanilha
 from app.etl.adapters.planilha.leitor import ler_planilha
 from app.etl.pipeline import MotorCarga
-from tests.sinteticos import CLIENTE, FAZENDA, gerar_planilha
+from tests.sinteticos import CLIENTE, FAZENDA, gerar_planilha, payloads_metryx, plano_metryx
 from tests.test_metryx import carregar as carregar_metryx
 
 HOJE, ATE = date(2025, 10, 1), date(2025, 9, 1)
@@ -227,13 +227,43 @@ def test_arquivo_em_dobro_avisa_quando_o_ignorado_tem_mais_dados(engine_etl, eng
     assert "ATENÇÃO" in mensagem and "mais linhas" in mensagem
 
 
+PREVISTO_NA_PLANILHA = {   # o mesmo planejamento de `plano_metryx()`
+    "fNascimentoPLANEJADO": [["NASCIMENTO", datetime(2025, 7, 1), "Bezerro Mamando", 100, "25/26", None]],
+    "fRebanhoMedioPLANEJADO": [["Bezerros", 110, None, datetime(2025, 7, 1)]],
+}
+
+
+def previsto_por_fazenda(engine_super) -> dict:
+    """Nascimentos previstos e rebanho médio previsto por grupo, em jul/2025, por fazenda (id externo)."""
+    with engine_super.connect() as c:
+        nascimentos = c.execute(text("""
+            SELECT v.id_externo, sum(m.qtd) FROM fato.mov_animal m
+            JOIN core.fonte_vinculo v ON v.entidade_id = m.fazenda_id AND v.entidade = 'fazenda'
+            WHERE m.cenario = 'planejado' AND m.tipo = 'NASCIMENTO' AND m.data = '2025-07-01'
+            GROUP BY 1""")).all()
+        rebanho = c.execute(text("""
+            SELECT v.id_externo, coalesce(r.grupo, b.grupo), sum(r.qtd_cab) FROM fato.rebanho_medio_mensal r
+            LEFT JOIN dim.categoria_map m ON m.id = r.categoria_map_id
+            LEFT JOIN dim.categoria_bi b ON b.id = m.categoria_bi_id
+            JOIN core.fonte_vinculo v ON v.entidade_id = r.fazenda_id AND v.entidade = 'fazenda'
+            WHERE r.cenario = 'planejado' AND r.competencia = '2025-07-01'
+            GROUP BY 1, 2""")).all()
+    resultado = {}
+    for fazenda, cabecas in nascimentos:
+        resultado[(fazenda, "nascimentos")] = float(cabecas)
+    for fazenda, grupo, cabecas in rebanho:
+        resultado[(fazenda, grupo)] = float(cabecas)
+    return resultado
+
+
 def test_equivalencia_planilha_e_metryx(engine_etl, engine_super, tmp_path):
-    """docs/01 §7: a mesma fazenda escrita como planilha e como JSON do Metryx gera o mesmo estoque e os mesmos fluxos."""
+    """docs/01 §7: a mesma fazenda escrita como planilha e como JSON do Metryx gera o mesmo estoque, os mesmos fluxos
+    e o mesmo previsto."""
     _ENGINE["etl"] = engine_etl
-    gerar_planilha(tmp_path)
+    gerar_planilha(tmp_path, linhas=PREVISTO_NA_PLANILHA)
     carregar(tmp_path)
     credenciais.registrar(engine_etl, CLIENTE, "token-teste", "Cliente Teste")
-    carregar_metryx(engine_etl)
+    carregar_metryx(engine_etl, payloads_metryx(**plano_metryx()))
     with engine_super.begin() as c:     # consultor confirma as sugestões de categoria do Metryx
         c.execute(text("UPDATE dim.categoria_map SET categoria_bi_id = categoria_bi_sugerida_id "
                        "WHERE categoria_bi_id IS NULL"))
@@ -249,6 +279,10 @@ def test_equivalencia_planilha_e_metryx(engine_etl, engine_super, tmp_path):
             JOIN core.fonte_vinculo v ON v.entidade_id = a.fazenda_id AND v.entidade = 'fazenda'
             WHERE a.cenario = 'realizado' AND a.competencia = '2025-07-01'""")).all()
     assert {externo: float(area) for externo, area in areas} == {"85|TESTE": 1000.0, f"{CLIENTE}|{FAZENDA}": 1000.0}
+    # o mesmo previsto: 100 nascimentos e 110 bezerros de rebanho médio em julho (Metryx: pela evolução do rebanho)
+    assert previsto_por_fazenda(engine_super) == {
+        ("85|TESTE", "nascimentos"): 100.0, ("85|TESTE", "BEZERROS"): 110.0,
+        (f"{CLIENTE}|{FAZENDA}", "nascimentos"): 100.0, (f"{CLIENTE}|{FAZENDA}", "BEZERROS"): 110.0}
 
 
 def test_data_tem_de_ser_o_texto_inteiro():

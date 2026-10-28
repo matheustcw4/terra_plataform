@@ -29,6 +29,8 @@ ENDPOINTS: dict[str, Endpoint] = {e.nome: e for e in (
     Endpoint("transferencia", "/api-metryx/transferencia-animal-pecuario"),
     Endpoint("venda", "/api-metryx/venda-pecuario"),
     Endpoint("compra", "/api-metryx/compra-pecuario"),
+    # vai para o bruto, mas o normalizador não usa: conta animais a mais (é o do BI); o rebanho médio sai do balanço,
+    # como no relatório do Metryx (rebanho.py)
     Endpoint("rebanho_medio", "/api-metryx/rebanho-medio-pecuario"),
     Endpoint("lancamento", "/api-metryx/lancamento-financeiro"),
     # vai para o bruto, mas o normalizador ainda não usa: o estoque segue o balanço (regra do BI); serve para conferir
@@ -36,7 +38,18 @@ ENDPOINTS: dict[str, Endpoint] = {e.nome: e for e in (
     Endpoint("saldo_inicial", "/api-metryx/saldo-inical-pecuario"),
     # área de pasto (lotação); o token precisa da permissão UTILIZACAO_PASTO: sem ela (403), a área fica como estava
     Endpoint("pasto", "/api-metryx/utilizacao-pasto"),
-    # TODO: previsao-financeiro e os *-mensal-planejamento (planejado)
+    # planejamento (cenário planejado): metas mensais por versão do plano (plVersionCode)
+    Endpoint("compra_plano", "/api-metryx/compra-mensal-planejamento"),
+    Endpoint("venda_plano", "/api-metryx/venda-mensal-planejamento"),
+    Endpoint("nascimento_plano", "/api-metryx/nascimento-mensal-planejamento"),
+    Endpoint("morte_plano", "/api-metryx/morte-mensal-planejamento"),
+    Endpoint("desmame_plano", "/api-metryx/desmame-mensal-planejamento"),
+    Endpoint("rebanho_plano", "/api-metryx/estoque-medio-mensal-planejamento"),
+    # DRE previsto por centro de custo e mês, sem versão (é o que o BI usa: stg_dreprevisto)
+    Endpoint("previsao_financeiro", "/api-metryx/previsao-financeiro"),
+    # vai para o bruto, mas o normalizador ainda não usa: orçamento de caixa POR VERSÃO, para conferir contra o
+    # previsao-financeiro e a tela de planejamento do Metryx antes de escolher a fonte do orçamento (D7)
+    Endpoint("fluxo_caixa_plano", "/api-metryx/previsao-fluxo-caixa-planejamento"),
 )}
 
 CAMINHOS_PERMITIDOS: frozenset[str] = frozenset(e.caminho for e in ENDPOINTS.values())

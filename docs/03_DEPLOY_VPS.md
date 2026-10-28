@@ -316,6 +316,33 @@ cd /srv/terra/app && git pull && terra up -d --build    # versão nova do códig
 terra down -v                                            # fim do teste: apaga tudo, inclusive o banco
 ```
 
+Quando a versão nova muda os números (uma regra de carga nova, um cliente recarregado), o banco também precisa da
+cópia nova. Gere o dump na máquina Windows, leve-o como na primeira vez e troque o banco inteiro:
+
+```powershell
+# na máquina Windows, na raiz do repositório
+docker exec terra_db pg_dump -U postgres --format=custom -f /tmp/terra_validacao.dump terra_validacao
+docker cp terra_db:/tmp/terra_validacao.dump backups/servidor_teste/terra_validacao.dump
+scp backups/servidor_teste/terra_validacao.dump usuario@IP-do-servidor:/tmp/
+```
+
+```bash
+# no servidor
+cd /srv/terra/app
+git pull
+terra down                    # para tudo; o volume do banco fica (sem -v)
+terra up -d db
+terra ps                      # espere o db ficar "healthy"
+terra exec db psql -U postgres -d postgres -c "DROP DATABASE terra WITH (FORCE)" -c "CREATE DATABASE terra OWNER app_owner"
+terra exec -T db pg_restore -U postgres -d terra --exit-on-error < /tmp/terra_validacao.dump
+terra exec db psql -U postgres -d terra -c "SELECT version_num FROM alembic_version"
+rm /tmp/terra_validacao.dump
+terra up -d --build
+terra ps                      # api "healthy" e web de pé
+```
+
+Os usuários, as senhas e os acessos vêm junto com a cópia: o que foi criado só no servidor se perde na troca.
+
 Sem planilhas nem Metryx no servidor, o botão **"Atualizar agora"** não traz nada novo: neste servidor ele não deve
 ser usado.
 

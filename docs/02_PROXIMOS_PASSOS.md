@@ -38,7 +38,7 @@ Adapters e motor (feito em 14/10, com testes):
 | Área de pasto do Metryx (16/10) | `utilizacao-pasto` na allow-list; área do mês = pastagens de uso Pecuária no último dia do mês (o período mais recente de cada uma), do primeiro período cadastrado até o último mês do rebanho médio (`adapters/metryx/pasto.py`). A área total vai para a lotação; a produtiva fica em coluna própria. A lotação cab/ha passa a sair para o Metryx; a UA não (relatório de validação §18). A lotação segue igual ao BI mesmo quando um mês com rebanho não tem área, o que a infla (Q13, decidido em 16/10); os casos estão em `docs/validacao/2026-10-16_lotacao_meses_sem_area.md` |
 
 Ainda falta nos adapters:
-- planejamento do Metryx (`*-mensal-planejamento`, `previsao-financeiro`) e versões de plano (D7);
+- ~~planejamento do Metryx~~ feito em 27/10/2026 (§3, "Previsto do Metryx"); a versão oficial do plano segue na D7;
 - `saldo-inical-pecuario` (já vem no bruto; o normalizador ainda não usa);
 - UA do Metryx: o usuário vai pedir aos desenvolvedores do Metryx que a API traga a UA (16/10/2026). Até lá o `weight`
   do rebanho médio fica de fora e os cartões "Rebanho Médio UA" e "Lotação UA" das fazendas Metryx mostram traço;
@@ -333,6 +333,66 @@ separa os parágrafos, a quebra simples continua dentro do parágrafo).
   metas; e GRUPO U6 (Metryx), ano civil até mai/2026, sem metas (o estoque bate com o Metryx: 7.593 cabeças, 12 mortes,
   2 de consumo/doação). 9 folhas em cerca de 15 segundos, todas dentro do A4.
 
+**Previsto do Metryx (27/10/2026), feito e carregado pela API real (Serra Dourada, U6 e Maister):** até aqui as
+telas das fazendas Metryx não tinham meta nenhuma; agora a carga traz o planejamento
+(`app/etl/adapters/metryx/planejamento.py`).
+- **Endpoints** (só GET, na allow-list): `compra-`, `venda-`, `nascimento-`, `morte-`, `desmame-` e
+  `estoque-medio-mensal-planejamento`, mais o `previsao-financeiro` (DRE previsto, o que o BI usa). O
+  `previsao-fluxo-caixa-planejamento` (orçamento de caixa por versão) vai só para o bruto, para comparar antes de
+  escolher a fonte do orçamento.
+- **Versão do plano (D7, provisório):** cada fazenda tem as suas versões (o número se repete entre fazendas, e uma
+  versão pode cobrir várias safras) e o Metryx guarda várias por fazenda e safra. O BI soma todas, o que dobra as
+  metas (Serra Dourada 25/26: versões 1 e 3). Entra só a **mais recente de cada fazenda e safra**, escolhida olhando
+  todos os endpoints juntos (as metas de uma safra vêm de um plano só); as outras aparecem no aviso
+  `PLAN_VERSION_CHOSEN`. No datalake, a regra escolhe versões que não parecem as certas: U6 BONITO 26/27 fica com a 4,
+  "26/27 - Bonito (erro)"; U6 BONITO 25/26 fica com a 2, que só tem julho; ADMINISTRATIVO (U6) 26/27 fica com a 6,
+  "Versao p/ financiament"; Maister 26/27 fica com a 4, "Global (24.06.26 teste)". Por isso a D7 continua aberta:
+  recomendação, a versão ativa escolhida pelo consultor numa tela de admin, e a mais recente só quando ninguém
+  escolheu.
+- **Categorias:** o planejamento tem catálogo próprio (idCategory 1 a 19, o mesmo para todos os clientes, com grupo,
+  idade e sexo). Entra como de-para à parte ("Metryx (plano)" na tela de categorias), com a sugestão de categoria BI.
+  Até alguém confirmar, as metas dessas categorias ficam fora do rebanho médio previsto, como no realizado (D6).
+- **Compra e venda:** `weight` é por cabeça e `totalValue` é o total; a carcaça do abate é weight × yield/100 por
+  cabeça (a coluna `pesomorto_total` do BI); venda de tipo "Abate" é abate, e as outras, venda em pé.
+- **Rebanho médio previsto:** o BI não tem (o `fMetasRebanhoMedio` lê o realizado). O endpoint traz a evolução do
+  rebanho: o saldo inicial da safra, sem data, e as entradas e saídas de cada mês. O rebanho médio do mês é a média
+  entre o saldo do começo e o do fim do mês, por categoria. A evolução não fecha por categoria, só no total da
+  fazenda: o plano desmama bezerros que o saldo inicial não tem e vende vaca de descarte antes de a vaca mudar de
+  categoria. A categoria negativa no mês conta zero, e o aviso `PLAN_NEGATIVE_STOCK` diz quanto ficou de fora (Serra
+  Dourada 25/26: 5.780 cab·mês no ano, uns 480 cab por mês, perto de 10%). **Conferir** essa conta contra a tela de
+  planejamento do Metryx; se o Metryx mostrar o total com os negativos, a troca é numa função só (`Evolucao.medias`).
+- **DRE previsto:** o `previsao-financeiro` não tem versão; entra numa versão própria ("previsao-financeiro"), com a
+  natureza pelo sinal do valor (no datalake, todo débito vem negativo e todo crédito positivo) e a mesma conta do
+  realizado (centro e subcentro do Metryx, de-para de contas). A soma fica igual à do BI (`fMetasDre`).
+- **Partições:** uma por endpoint do planejamento que veio, no cenário planejado e para todas as versões da fazenda:
+  quando a versão escolhida muda, as metas da anterior saem. Guarda de volume como no realizado.
+- **Ponte do datalake** (`validacao/ponte_metryx.py`): lê nascimentos, mortes, desmames, a evolução do rebanho e o DRE
+  previstos (os inteiros que o Pentaho gravou como "1,0" voltam a ser inteiros). Compras e vendas previstas ficam de
+  fora: a stg perdeu a versão do plano e as casas decimais do peso, do rendimento e dos valores (4800 no lugar de
+  480,0). Elas só vêm certas pela API.
+- **Testes:** `tests/test_metryx_planejamento.py` (versão por fazenda e safra, totais, evolução, DRE, partições e a
+  troca de versão no banco) e o teste de equivalência, que agora compara também nascimentos e rebanho médio
+  previstos.
+- **Carga pela API real** (27/10/2026): datas "M/AA", `yield` em % e `weight` por cabeça confirmados; banco de
+  validação recarregado. O `previsao-financeiro` da Serra Dourada vem vazio (no BI também): o orçamento dela só existe
+  no `previsao-fluxo-caixa-planejamento`.
+- **Falta:** conferir contra a tela de planejamento do Metryx o rebanho médio previsto; decidir se o fluxo de caixa do
+  plano entra quando o `previsao-financeiro` vem vazio (no U6 os dois não coincidem). O plano consolidado da fazenda
+  ADMINISTRATIVO (U6) soma com o das fazendas na visão GRUPO, como no BI; decidir se ela fica de fora.
+
+**Rebanho médio do Metryx pelo balanço (27/10/2026), feito:** o usuário comparou jul–set/2026 com os relatórios do
+Metryx e o rebanho médio estava alto (U6: 8.505 no painel e 7.705 no Metryx; Maister: 35.629 e 30.667). O endpoint
+`rebanho-medio-pecuario`, que o BI usa, conta animais a mais. Agora o rebanho médio do mês é a média do saldo de cada dia
+do balanço, por categoria (`app/etl/adapters/metryx/rebanho.py`), como o relatório do Metryx; o endpoint fica só no
+bruto. Defeito P18 do BI (relatório de validação §21).
+- A Maister passou a vir pela API real (token do usuário, cifrado nos bancos `terra` e `terra_validacao`): o datalake
+  parou em 06/10/2026 e faltavam 20 nascimentos e 2 mortes de jul–set. O token não tem a permissão do
+  `utilizacao-pasto` (401, A33).
+- Jul–set/2026 batem com o Metryx nos dois grupos: rebanho médio, nascimentos, mortes, compras e vendas.
+- Mudam junto, nas fazendas Metryx, a lotação, a mortalidade sobre o rebanho médio, o desembolso por cabeça e o
+  boletim analítico. Na primeira carga com a regra nova, a guarda de volume segura o rebanho médio (o endpoint
+  gravava linhas zeradas e meses futuros): conferir e aplicar com `--ignorar-guarda`.
+
 **Telas de admin (15/10/2026), feitas:** `Administração` (link no MENU e na barra das páginas, só para admin):
 - **De-para de categorias** (`/admin/categorias`): a categoria da fonte sem categoria BI (pendente, fora do estoque e do
   rebanho médio) é classificada num select; o histórico se reclassifica e o estoque das fazendas que a usam é
@@ -446,7 +506,7 @@ se os consultores estranharem, separar uma linha "Saldo de abertura" no balanço
 | D4 | Natalidade, desfrute, desmame | fórmulas da proposta §6.4, a validar |
 | D5 | UA sem informação | estimada = Σ(cab × peso_ref_categoria) ÷ 450, marcada como "estimada" |
 | D6 | Quem confirma o mapeamento de categorias Metryx | consultor responsável pela fazenda; mapeamento por cliente |
-| D7 | Versão oficial do plano Metryx | escolhida pelo consultor; senão, a mais recente |
+| D7 | Versão oficial do plano Metryx | escolhida pelo consultor; senão, a mais recente. **Provisório no código (27/10/2026):** a mais recente de cada fazenda e safra, com aviso (§3, "Previsto do Metryx") |
 | D8 | Onde roda / acesso ao Drive | **Decidido em parte (15/10/2026):** produção numa VPS Linux; por enquanto tudo é desenvolvido e testado no Windows. Acesso ao Drive: em aberto (proposta: Google Drive API com service account) |
 | D9 | Arquivos duplicados | vale o mais recente + override manual |
 | D10 | Clientes finais acessam? | **Adiado (15/10/2026):** por ora só os técnicos da Terra consultam; o permissionamento (papéis consultor/cliente) fica para o final. O RLS por usuário → fazendas já existe |
@@ -462,7 +522,9 @@ se os consultores estranharem, separar uma linha "Saldo de abertura" no balanço
    período mais recente no último dia do mês; entram as pastagens de uso Pecuária, de qualquer status (relatório §18).
 4. `balanco-pecuario`: já inclui transferências e saldo inicial? Qual a convenção de sinal de `amount`?
 5. Campos declarados `int64` no Swagger (`totalFaturamento`, `valueArroba`, `liveWeightAVG`…) vêm com decimais?
-6. Formato real de `date`, `month`, `birth`, `harvest`, `anoSafra` e de `MM/YY` no planejamento.
+6. Formato real de `date`, `month`, `birth`, `harvest`, `anoSafra` e de `MM/YY` no planejamento. No datalake, o
+   planejamento vem com `date` "M/AA" (ex.: "7/25"), `anoSafra` "25-26" e o saldo inicial da evolução sem data
+   (`month` 0); falta conferir no payload real.
 7. `GET /api-metryx/customers` (fora do Swagger): contrato e se é suportado.
 8. **Respondida (15/10/2026), com a primeira consulta real** (cliente da Serra Dourada; relatório de validação §17):
    - **DMG × balanço:** o DMG tinha 75 bezerros a menos porque o Metryx recebeu, depois de 13/10, mortes de
