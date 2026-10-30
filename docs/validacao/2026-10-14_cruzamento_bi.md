@@ -1000,3 +1000,35 @@ painel, 3.196 e 150 no Metryx).
 O rebanho médio das fazendas Metryx deixa de bater com o BI Metryx em todos os meses (cruzamento §12). Mudam junto os
 indicadores que dividem por ele: lotação cab/ha, mortalidade sobre o rebanho médio, desembolso e custeio por cabeça e
 o boletim analítico. As planilhas não mudam.
+
+## 22. Junho nas metas do planejamento do Metryx (30/10)
+
+- **P19: o ano de junho.** Os endpoints `*-mensal-planejamento` escrevem o mês 6 com o ano do início da safra: "6/25"
+  na 25-26, "6/26" na 26-27. Nos outros meses o ano está certo (7 a 12 no início, 1 a 5 no fim). É sistemático: vale
+  para todos os clientes com planejamento e todas as safras. A safra vai de julho a junho, então junho é o último mês
+  dela. O BI herda o erro: o passo "Data Corrigida" (`fMetasAbate` e as outras metas) só converte o texto em data.
+- **Como se sabe:**
+  - o `previsao-fluxo-caixa-planejamento`, que traz a data inteira, põe as mesmas vendas em jun/2026;
+  - com junho no começo da safra, o desmame de junho vinha antes dos nascimentos, e a evolução do rebanho ficava
+    negativa. Com junho no fim, a Serra Dourada 25/26 cai de 5.780 para 21 cab·mês negativos.
+- **Regra na plataforma:** o mês da meta sai do `month` e da safra (`mes_do_item` em `adapters/metryx/planejamento.py`).
+  O `date` só fica de reserva, para item sem `month` ou com safra em outro formato.
+- **Recarga do banco de validação:** clientes da API reprocessados do bruto, sem chamar a API; os outros pela ponte.
+  - metas de animais: os totais por cliente e tipo ficaram iguais, e só as de junho mudaram de ano;
+  - rebanho médio previsto: muda em todos os meses, porque a evolução passou a andar na ordem certa (Serra Dourada,
+    60.058 → 64.720 cab·mês; U6, 646.313 → 732.526; Maister, 2.039.642 → 2.075.126).
+
+**Conferência:** vendas planejadas × "Venda de Rebanho" do fluxo de caixa, por fazenda, versão e mês:
+
+| Cliente | Meses comparados | Iguais | Observação |
+|---|---|---|---|
+| Serra Dourada | 6 | 6 | R$ 6.828.353 nos dois lados, com o junho de R$ 3.588.335 em jun/2026 |
+| Maister | 25 | 25 | R$ 45.253.958 nos dois lados; os 3 junhos batem |
+| U6 | 82 | 52 | Os outros 30 meses não têm o outro lado para comparar (abaixo) |
+
+No U6, 25 desses meses são da safra 24/25, que tem meta e não tem fluxo de caixa. Os outros 5 são da U6 BONITO em
+25/26: a meta usa a versão 2 (a mais recente, só com julho) e o fluxo está na versão 1, a questão da D7. Onde os dois
+lados existem, os valores são iguais; a maior diferença é menos de R$ 1 de arredondamento (ADMINISTRATIVO, jan/2026).
+
+Na Serra Dourada, safra 25/26, as vendas planejadas ficam com as 1.724 cabeças do plano e as mortes passam de 130 para
+137; a safra 24/25 fica sem metas. Os meses de junho deixam de bater com o BI Metryx, que continua no ano errado.

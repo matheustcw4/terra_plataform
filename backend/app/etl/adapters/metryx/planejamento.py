@@ -6,6 +6,10 @@ Regras (27/10/2026; a escolha da versão é provisória até a D7):
   várias safras). O Metryx guarda várias por fazenda e safra (Serra Dourada 25/26 tem a 1 e a 3) e o BI soma todas,
   o que dobra as metas. Aqui entra só a mais recente (maior plVersionCode) de cada fazenda e safra, olhando todos os
   endpoints do planejamento juntos, para as metas de uma safra virem da mesma versão; as outras ficam num aviso;
+- mês das metas: sai do `month` (mês do calendário) e da safra, e não do `date`. A API escreve o mês 6 com o ano do
+  início da safra ("6/25" na 25-26), em todos os clientes e safras, mas a safra vai de julho a junho: o
+  `previsao-fluxo-caixa-planejamento` do mesmo plano põe as mesmas vendas em jun/2026, e a evolução do rebanho só
+  fecha assim (o desmame de junho vem depois dos nascimentos da safra);
 - categoria: o planejamento tem catálogo próprio (idCategory de 1 a 19, o mesmo para todos os clientes, com grupo,
   idade e sexo); entra como de-para à parte ('metryx_plano'), com a sugestão de categoria BI, como no realizado (D6);
 - peso e valor: `weight` é por cabeça e `totalValue` é o total; no abate, a carcaça é weight × yield/100 por cabeça
@@ -50,6 +54,7 @@ VERSAO_DO_FINANCEIRO = "previsao-financeiro"
 ENDPOINTS_COM_VERSAO = ("compra_plano", "venda_plano", "nascimento_plano", "morte_plano", "desmame_plano",
                         "rebanho_plano")
 ENDPOINT_DO_FLUXO = "fluxo_caixa_plano"
+PRIMEIRO_MES_DA_SAFRA = 7
 SUBCENTRO_GENERICO = "subcentro de custo"
 NATUREZA_DO_TIPO = {"crédito": "C", "credito": "C", "débito": "D", "debito": "D"}
 INVERSA = {"C": "D", "D": "C"}
@@ -85,6 +90,25 @@ def categorias_do_item(endpoint: str, item: dict) -> list[CategoriaDoPlano]:
 
 def safra_do_item(item: dict) -> str | None:
     return item.get("anoSafra") or item.get("harvest")
+
+
+def ano_de_inicio_da_safra(safra: Any) -> int | None:
+    """'25-26' ou '25/26' -> 2025; em outro formato, None."""
+    partes = str(safra or "").replace("/", "-").split("-")
+    if len(partes) != 2 or not all(parte.isdigit() and len(parte) == 2 for parte in partes):
+        return None
+    return 2000 + int(partes[0])
+
+
+def mes_do_item(item: dict) -> date | None:
+    """O mês de uma meta: o `month` dentro da safra do item (regra no topo do arquivo); sem os dois, o `date`."""
+    numero = para_decimal(item.get("month"))
+    inicio = ano_de_inicio_da_safra(safra_do_item(item))
+    if numero is None or inicio is None or not 1 <= numero <= 12:
+        return para_data(item.get("date"))
+    if numero >= PRIMEIRO_MES_DA_SAFRA:
+        return date(inicio, int(numero), 1)
+    return date(inicio + 1, int(numero), 1)
 
 
 def numero_da_versao(item: dict) -> int | None:
@@ -290,7 +314,7 @@ class MontagemDoPlano:
         if fazenda is None:
             self.metryx.rejeitar("mov_animal", item, ref, "FARM_UNRESOLVED", "fazenda fora deste cliente Metryx")
             return
-        mes = para_data(item.get("date"))
+        mes = mes_do_item(item)
         qtd = para_decimal(item.get("amount"))
         if numero_da_versao(item) is None or mes is None or qtd is None or categoria in (None, ""):
             self.metryx.rejeitar("mov_animal", item, ref, "REQUIRED_MISSING",
@@ -346,11 +370,11 @@ class MontagemDoPlano:
     def rebanho_medio(self) -> None:
         """A média entre o saldo do começo e o do fim de cada mês, por categoria.
 
-        A evolução do plano não fecha por categoria, só no total da fazenda: o plano desmama bezerros que o saldo
-        inicial não tem e vende vaca de descarte antes de a vaca mudar de categoria (Serra Dourada 25/26), e a
-        categoria fica negativa por uns meses. Categoria negativa no mês conta zero (cabeça negativa não existe), e o
-        aviso diz quanto ficou de fora; o total fica um pouco acima da conta do plano. Um mês que duas safras da mesma
-        fazenda cobrem entra uma vez só (a primeira safra)."""
+        Em algumas fazendas a evolução do plano não fecha por categoria, só no total: sai da categoria mais do que ela
+        tem naquele mês, e ela fica negativa por uns meses (os casos grandes são as fazendas ADMINISTRATIVO, do U6, e
+        Agropecuária Maister; na Serra Dourada 25/26 sobram 21 cab·mês). Categoria negativa no mês conta zero (cabeça
+        negativa não existe), e o aviso diz quanto ficou de fora; o total fica um pouco acima da conta do plano. Um mês
+        que duas safras da mesma fazenda cobrem entra uma vez só (a primeira safra)."""
         safra_do_mes: dict[tuple[str, date], str] = {}            # (fazenda, mês) -> safra que já o gravou
         repetidos = 0
         zerados: dict[str, Decimal] = defaultdict(Decimal)        # fazenda -> soma das médias negativas
@@ -403,7 +427,7 @@ class MontagemDoPlano:
 
     def somar_na_evolucao(self, evolucao: Evolucao, item: dict, ref: str, fazenda: str, qtd: Decimal) -> None:
         categoria = str(item["idCategory"])
-        mes = para_data(item.get("date"))
+        mes = mes_do_item(item)
         if eh_saldo_inicial(item):
             evolucao.somar_saldo_inicial(categoria, abs(qtd))
         elif mes is None:

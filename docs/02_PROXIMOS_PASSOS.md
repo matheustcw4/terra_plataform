@@ -359,7 +359,7 @@ telas das fazendas Metryx não tinham meta nenhuma; agora a carga traz o planeja
   entre o saldo do começo e o do fim do mês, por categoria. A evolução não fecha por categoria, só no total da
   fazenda: o plano desmama bezerros que o saldo inicial não tem e vende vaca de descarte antes de a vaca mudar de
   categoria. A categoria negativa no mês conta zero, e o aviso `PLAN_NEGATIVE_STOCK` diz quanto ficou de fora (Serra
-  Dourada 25/26: 5.780 cab·mês no ano, uns 480 cab por mês, perto de 10%). **Conferir** essa conta contra a tela de
+  Dourada 25/26: 21 cab·mês depois da correção de junho, abaixo). **Conferir** essa conta contra a tela de
   planejamento do Metryx; se o Metryx mostrar o total com os negativos, a troca é numa função só (`Evolucao.medias`).
 - **DRE previsto:** o `previsao-financeiro` não tem versão; entra numa versão própria ("previsao-financeiro"), com a
   natureza pelo sinal do valor (no datalake, todo débito vem negativo e todo crédito positivo) e a mesma conta do
@@ -376,11 +376,12 @@ telas das fazendas Metryx não tinham meta nenhuma; agora a carga traz o planeja
 - **Carga pela API real** (27/10/2026): datas "M/AA", `yield` em % e `weight` por cabeça confirmados; banco de
   validação recarregado. O `previsao-financeiro` da Serra Dourada vem vazio (no BI também): o orçamento dela só existe
   no `previsao-fluxo-caixa-planejamento`.
+- **Mês das metas (30/10/2026):** sai do `month` e da safra, e não do `date`: os endpoints `*-mensal-planejamento`
+  escrevem o mês 6 com o ano do início da safra ("6/25" na 25-26), em todos os clientes e safras, e o BI herda isso
+  (defeito P19, relatório de validação §22). Com junho no fim da safra, as vendas planejadas batem mês a mês com a
+  "Venda de Rebanho" do fluxo de caixa, e a evolução da Serra Dourada quase fecha (5.780 cab·mês negativos → 21).
 - **Falta:** conferir contra a tela de planejamento do Metryx o rebanho médio previsto. O plano consolidado da fazenda
-  ADMINISTRATIVO (U6) soma com o das fazendas na visão GRUPO, como no BI; decidir se ela fica de fora. Nos endpoints
-  `*-mensal-planejamento`, o mês 6 vem com o ano do início da safra ("6/25" na 25-26), mas o fluxo de caixa do mesmo
-  plano o põe em jun do ano seguinte (fim da safra): com junho no fim, a evolução da Serra Dourada quase fecha (5.780
-  cab·mês negativos → 21). Corrigir a data das metas pelo `month` e pela safra (ainda não feito).
+  ADMINISTRATIVO (U6) soma com o das fazendas na visão GRUPO, como no BI; decidir se ela fica de fora.
 
 **Planejado do financeiro: previsão financeira ou planejamento (29/10/2026), feito:** pedido do usuário. O fluxo de
 caixa do plano (`previsao-fluxo-caixa-planejamento`) entra como um segundo orçamento, por versão, e as páginas

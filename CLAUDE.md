@@ -169,14 +169,15 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     lotação cab/ha (16/10/2026, §18); a UA do Metryx fica de fora até a API trazê-la; e o **planejamento** (27/10/2026,
     `adapters/metryx/planejamento.py`): metas de compra, venda, nascimento, morte e desmame, rebanho médio previsto
     pela evolução do rebanho e DRE previsto, só da versão mais recente de cada fazenda e safra até a D7 (o BI soma
-    todas). A ponte do datalake traz o previsto menos compras e vendas (a stg perdeu a versão e as decimais). O
+    todas), com o mês pelo `month` e pela safra, porque o `date` da API erra o ano de junho (defeito P19, relatório
+    §22). A ponte do datalake traz o previsto menos compras e vendas (a stg perdeu a versão e as decimais). O
     **rebanho médio realizado** sai da média do saldo de cada dia do balanço, como o relatório do Metryx
     (`adapters/metryx/rebanho.py`, 27/10/2026); o endpoint `rebanho-medio-pecuario` do BI conta animais a mais e fica
     só no bruto (defeito P18, relatório de validação §21). O `previsao-fluxo-caixa-planejamento` entra como orçamento
     de tipo `planejamento`, com todas as versões (29/10/2026; migração 0018: `fato.orcamento_financeiro.tipo` e
     `dim.versao_plano.ordem`); o subcentro genérico "Subcentro de Custo" fica de fora da conta;
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 165 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas e o
+  - 169 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas e o
     boletim analítico) + 74 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,

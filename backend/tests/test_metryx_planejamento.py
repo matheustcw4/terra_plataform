@@ -9,7 +9,7 @@ from sqlalchemy import text
 from app.etl.adapters.metryx import credenciais
 from app.etl.adapters.metryx.adapter import AdapterMetryx
 from app.etl.adapters.metryx.normalizar import normalizar
-from app.etl.adapters.metryx.planejamento import Evolucao
+from app.etl.adapters.metryx.planejamento import Evolucao, mes_do_item
 from app.etl.pipeline import MotorCarga
 from tests.sinteticos import (
     CLIENTE,
@@ -127,8 +127,8 @@ def test_evolucao_media_entre_o_comeco_e_o_fim_do_mes_sem_pular_mes_parado():
 
 
 def test_rebanho_medio_previsto_pela_evolucao_e_categoria_negativa_conta_zero():
-    """Serra Dourada 25/26: o plano desmama bezerros que o saldo inicial não tem; a categoria fica negativa (o total
-    fecha) e conta zero no rebanho médio, com aviso. A saída pode vir com a quantidade negativa."""
+    """Plano que desmama bezerros que a evolução não tem (U6): a categoria fica negativa (o total fecha) e conta zero
+    no rebanho médio, com aviso. A saída pode vir com a quantidade negativa."""
     evolucao = [item_do_plano(None, 12, 100, type="Entrada", originMovement="Saldo Inicial"),
                 item_do_plano("7/25", 12, 20, type="Entrada", originMovement="Desmame Entrada"),
                 item_do_plano("7/25", 11, -20, type="Saída", originMovement="Desmame Saída"),
@@ -203,6 +203,48 @@ def test_carga_do_planejado_e_troca_de_versao(engine_etl, engine_super):
     carregar(engine_etl, payloads_metryx(**plano))
     assert previsto(engine_super) == {"nascimentos": 90, "versoes": [f"{FAZENDA_EXTERNA}|v2"], "rebanho": 205,
                                       "orcado": 1500}
+
+
+# --- o mês das metas ------------------------------------------------------------------------------------------------
+
+def test_mes_das_metas_sai_do_month_e_da_safra():
+    """A API escreve junho com o ano do início da safra ("6/25" na 25-26), mas junho é o último mês dela."""
+    assert mes_do_item(item_do_plano("7/25", 12, 1)) == date(2025, 7, 1)
+    assert mes_do_item(item_do_plano("12/25", 12, 1)) == date(2025, 12, 1)
+    assert mes_do_item(item_do_plano("1/26", 12, 1)) == date(2026, 1, 1)
+    assert mes_do_item(item_do_plano("5/26", 12, 1)) == date(2026, 5, 1)
+    assert mes_do_item(item_do_plano("6/25", 12, 1)) == date(2026, 6, 1)
+    assert mes_do_item(item_do_plano("6/26", 12, 1, safra="26-27")) == date(2027, 6, 1)
+
+
+def test_sem_month_ou_com_safra_estranha_fica_o_date():
+    sem_month = item_do_plano("6/25", 12, 1)
+    del sem_month["month"]
+    assert mes_do_item(sem_month) == date(2025, 6, 1)
+    outra_safra = item_do_plano("6/25", 12, 1, safra="2025")
+    outra_safra["harvest"] = "2025"
+    assert mes_do_item(outra_safra) == date(2025, 6, 1)
+    assert mes_do_item(item_do_plano(None, 12, 1)) is None      # saldo inicial: month 0, sem data
+
+
+def test_meta_de_junho_entra_no_fim_da_safra():
+    lote = lote_do_plano(nascimento_plano=[item_do_plano("6/25", 11, 40)])
+    assert [mov.data for mov in planejados(lote, "NASCIMENTO")] == [date(2026, 6, 1)]
+
+
+def test_evolucao_com_o_desmame_de_junho_depois_dos_nascimentos():
+    """Serra Dourada 25/26: nascem em julho e desmamam em junho. Com o junho da API ("6/25") no começo da safra, o
+    desmame vinha antes dos nascimentos e a categoria ficava negativa."""
+    evolucao = [item_do_plano(None, 12, 50, type="Entrada", originMovement="Saldo Inicial"),
+                item_do_plano("7/25", 11, 100, type="Entrada", originMovement="Nascimento"),
+                item_do_plano("6/25", 11, -100, type="Saída", originMovement="Desmame Saída"),
+                item_do_plano("6/25", 12, 100, type="Entrada", originMovement="Desmame Entrada")]
+    lote = lote_do_plano(rebanho_plano=evolucao)
+    medias = {(r.categoria.id_externo, r.competencia): r.qtd_cab for r in lote.rebanho_medio
+              if r.cenario == "planejado"}
+    assert medias[("11", date(2025, 7, 1))] == 50 and medias[("11", date(2026, 5, 1))] == 100
+    assert medias[("11", date(2026, 6, 1))] == 50 and medias[("12", date(2026, 6, 1))] == 100
+    assert avisos(lote, "PLAN_NEGATIVE_STOCK") == []
 
 
 # --- orçamento do planejamento (fluxo de caixa, por versão) ----------------------------------------------------------

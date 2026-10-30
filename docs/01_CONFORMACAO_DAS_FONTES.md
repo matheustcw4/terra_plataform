@@ -204,6 +204,9 @@ fazenda (cada fazenda tem a sua versão 1), então o código canônico é fazend
 versão e entra numa versão própria; o rebanho médio previsto sai da evolução do rebanho
 (`estoque-medio-mensal-planejamento`), regras em `app/etl/adapters/metryx/planejamento.py`.
 
+O mês das metas do Metryx sai do `month` e da safra (a safra vai de julho a junho), e não do `date`, que escreve o
+mês 6 com o ano do início da safra (defeito P19, relatório de validação §22).
+
 O orçamento tem um **tipo** (29/10/2026): `previsao` (o DRE previsto: `previsao-financeiro` do Metryx e a aba de DRE
 planejado da planilha) ou `planejamento` (o `previsao-fluxo-caixa-planejamento` do Metryx, com todas as versões). As
 páginas Previsto × Realizado e Financeiro escolhem o tipo e a versão (`app/kpis/previsto_financeiro.py`); numa fazenda
