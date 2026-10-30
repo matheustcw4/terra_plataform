@@ -15,6 +15,7 @@ from app.kpis.financeiro import financeiro
 from app.kpis.mortes import mortes
 from app.kpis.movimentacao import movimentacao
 from app.kpis.nascimentos import nascimentos
+from app.kpis.previsto_financeiro import PedidoDoPrevisto
 from app.kpis.previsto_realizado import previsto_realizado
 from app.kpis.transferencias import transferencias
 from app.kpis.vendas import vendas
@@ -36,6 +37,11 @@ Fazendas = Annotated[list[UUID], Query(min_length=1)]
 Mes = Annotated[str, Query(description="AAAA-MM")]
 Meses = Annotated[list[str] | None, Query(description="AAAA-MM, um por mês marcado no MENU (seleção múltipla); "
                                                       "sem nenhum, valem todos os meses de inicio a fim")]
+# o planejado do financeiro (Previsto × Realizado e Financeiro): o tipo do orçamento e a versão; sem eles, o padrão
+TipoDoPrevisto = Annotated[Literal["previsao", "planejamento"] | None,
+                           Query(description="orçamento do planejado: previsão financeira ou planejamento")]
+VersaoDoPrevisto = Annotated[UUID | None, Query(description="versão do plano; sem ela, a mais recente de cada "
+                                                            "fazenda e safra")]
 
 
 def filtro_do_pedido(s: SessaoDoUsuario, fazendas: Fazendas, inicio: Mes, fim: Mes, meses: Meses = None) -> Filtro:
@@ -86,13 +92,15 @@ def pagina_transferencias(s: SessaoDoUsuario, filtro: FiltroDoPedido) -> Transfe
 
 
 @router.get("/financeiro")
-def pagina_financeiro(s: SessaoDoUsuario, filtro: FiltroDoPedido) -> Financeiro:
-    return financeiro(s, filtro)
+def pagina_financeiro(s: SessaoDoUsuario, filtro: FiltroDoPedido, previsto: TipoDoPrevisto = None,
+                      versao: VersaoDoPrevisto = None) -> Financeiro:
+    return financeiro(s, filtro, PedidoDoPrevisto(previsto, versao))
 
 
 @router.get("/previsto_realizado")
-def pagina_previsto_realizado(s: SessaoDoUsuario, filtro: FiltroDoPedido) -> PrevistoRealizado:
-    return previsto_realizado(s, filtro)
+def pagina_previsto_realizado(s: SessaoDoUsuario, filtro: FiltroDoPedido, previsto: TipoDoPrevisto = None,
+                              versao: VersaoDoPrevisto = None) -> PrevistoRealizado:
+    return previsto_realizado(s, filtro, PedidoDoPrevisto(previsto, versao))
 
 
 @router.get("/analitico")

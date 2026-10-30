@@ -204,6 +204,11 @@ fazenda (cada fazenda tem a sua versão 1), então o código canônico é fazend
 versão e entra numa versão própria; o rebanho médio previsto sai da evolução do rebanho
 (`estoque-medio-mensal-planejamento`), regras em `app/etl/adapters/metryx/planejamento.py`.
 
+O orçamento tem um **tipo** (29/10/2026): `previsao` (o DRE previsto: `previsao-financeiro` do Metryx e a aba de DRE
+planejado da planilha) ou `planejamento` (o `previsao-fluxo-caixa-planejamento` do Metryx, com todas as versões). As
+páginas Previsto × Realizado e Financeiro escolhem o tipo e a versão (`app/kpis/previsto_financeiro.py`); numa fazenda
+e safra entra uma versão só, a mais recente (`dim.versao_plano.ordem`) se a tela não escolher outra.
+
 ### 5.4 Consumo, transferência e desmame
 
 Os três têm formas diferentes nas duas fontes e o mesmo significado de negócio:

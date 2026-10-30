@@ -686,6 +686,20 @@ export interface components {
             /** Valor */
             valor: number;
         };
+        /**
+         * EscolhaDoPrevisto
+         * @description De qual orçamento vem o planejado do financeiro (as páginas Previsto × Realizado e Financeiro escolhem).
+         */
+        EscolhaDoPrevisto: {
+            /** Tipos */
+            tipos: components["schemas"]["TipoDoPrevisto"][];
+            /** Tipo */
+            tipo: ("previsao" | "planejamento") | null;
+            /** Versoes */
+            versoes: components["schemas"]["VersaoDoPrevisto"][];
+            /** Versao */
+            versao: string | null;
+        };
         /** Escopo */
         Escopo: {
             usuario: components["schemas"]["UsuarioResumo"];
@@ -769,6 +783,7 @@ export interface components {
             desembolso_por_centro: components["schemas"]["DesembolsoDoCentro"][];
             /** Serie Mensal */
             serie_mensal: components["schemas"]["MesDoFinanceiro"][];
+            previsto: components["schemas"]["EscolhaDoPrevisto"];
         };
         /** Funcao */
         Funcao: {
@@ -1267,6 +1282,7 @@ export interface components {
             /** Grupos */
             grupos: components["schemas"]["GrupoDoPrevisto"][];
             resultado: components["schemas"]["LinhaDoPrevisto"];
+            previsto: components["schemas"]["EscolhaDoPrevisto"];
         };
         /** QuadroDoLote */
         QuadroDoLote: {
@@ -1421,6 +1437,16 @@ export interface components {
             agora: string;
             ultima: components["schemas"]["CargaRecente"] | null;
         };
+        /** TipoDoPrevisto */
+        TipoDoPrevisto: {
+            /**
+             * Codigo
+             * @enum {string}
+             */
+            codigo: "previsao" | "planejamento";
+            /** Rotulo */
+            rotulo: string;
+        };
         /** Transferencias */
         Transferencias: {
             periodo: components["schemas"]["Periodo"];
@@ -1508,6 +1534,16 @@ export interface components {
             quadro: components["schemas"]["QuadroDoLote"][];
             /** Serie Mensal */
             serie_mensal: components["schemas"]["MesDoLote"][];
+        };
+        /** VersaoDoPrevisto */
+        VersaoDoPrevisto: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Rotulo */
+            rotulo: string;
         };
     };
     responses: never;
@@ -1839,6 +1875,10 @@ export interface operations {
     pagina_financeiro_api_v1_dashboards_financeiro_get: {
         parameters: {
             query: {
+                /** @description orçamento do planejado: previsão financeira ou planejamento */
+                previsto?: ("previsao" | "planejamento") | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
                 fazendas: string[];
                 /** @description AAAA-MM */
                 inicio: string;
@@ -1876,6 +1916,10 @@ export interface operations {
     pagina_previsto_realizado_api_v1_dashboards_previsto_realizado_get: {
         parameters: {
             query: {
+                /** @description orçamento do planejado: previsão financeira ou planejamento */
+                previsto?: ("previsao" | "planejamento") | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
                 fazendas: string[];
                 /** @description AAAA-MM */
                 inicio: string;

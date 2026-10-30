@@ -376,9 +376,33 @@ telas das fazendas Metryx não tinham meta nenhuma; agora a carga traz o planeja
 - **Carga pela API real** (27/10/2026): datas "M/AA", `yield` em % e `weight` por cabeça confirmados; banco de
   validação recarregado. O `previsao-financeiro` da Serra Dourada vem vazio (no BI também): o orçamento dela só existe
   no `previsao-fluxo-caixa-planejamento`.
-- **Falta:** conferir contra a tela de planejamento do Metryx o rebanho médio previsto; decidir se o fluxo de caixa do
-  plano entra quando o `previsao-financeiro` vem vazio (no U6 os dois não coincidem). O plano consolidado da fazenda
-  ADMINISTRATIVO (U6) soma com o das fazendas na visão GRUPO, como no BI; decidir se ela fica de fora.
+- **Falta:** conferir contra a tela de planejamento do Metryx o rebanho médio previsto. O plano consolidado da fazenda
+  ADMINISTRATIVO (U6) soma com o das fazendas na visão GRUPO, como no BI; decidir se ela fica de fora. Nos endpoints
+  `*-mensal-planejamento`, o mês 6 vem com o ano do início da safra ("6/25" na 25-26), mas o fluxo de caixa do mesmo
+  plano o põe em jun do ano seguinte (fim da safra): com junho no fim, a evolução da Serra Dourada quase fecha (5.780
+  cab·mês negativos → 21). Corrigir a data das metas pelo `month` e pela safra (ainda não feito).
+
+**Planejado do financeiro: previsão financeira ou planejamento (29/10/2026), feito:** pedido do usuário. O fluxo de
+caixa do plano (`previsao-fluxo-caixa-planejamento`) entra como um segundo orçamento, por versão, e as páginas
+Previsto × Realizado e Financeiro escolhem qual comparar com o realizado.
+- **Canônico** (migração 0018): `fato.orcamento_financeiro.tipo` = `previsao` (o DRE previsto: o `previsao-financeiro`
+  do Metryx e o DRE planejado da planilha) ou `planejamento` (o fluxo de caixa do plano); `dim.versao_plano.ordem`
+  (maior = mais recente). As partições do orçamento são por tipo, e as duas cargas não se apagam.
+- **Adapter** (`planejamento.py`): o fluxo entra de todas as versões; natureza pelo `type`; valor negativo (a versão 1
+  da Serra Dourada tem R$ 417 mil assim em "Nutrição - Previsão de Compras") é estorno e inverte a natureza; o
+  subcentro genérico "Subcentro de Custo" (692 de 713 itens na Serra Dourada) fica de fora da conta, e o item cai no
+  centro de custo.
+- **Tela** (`app/kpis/previsto_financeiro.py`, `SeletorDoPrevisto`): "Planejado do financeiro" mostra só os tipos que
+  as fazendas do filtro têm (padrão: a previsão financeira, se houver, como o BI); "Versão do planejamento" aparece
+  quando alguma fazenda tem mais de uma versão no período (padrão: a mais recente de cada fazenda e safra; a escolhida
+  substitui a mais recente na fazenda e nas safras que cobre). Numa fazenda e safra entra uma versão só. A escolha
+  fica na URL, vale nas duas páginas e no PDF; o boletim analítico usa o padrão.
+- **Pendência de classificação:** no plano, a venda de gado vem com o subcentro "Venda de Rebanho" pendurado num centro
+  que não é de receita (Serra Dourada: "Corretivos, fertilizantes e adubos", R$ 6,83 mi na safra 25/26; U6:
+  "Comunicação e energia da fazenda", R$ 40,8 mi). O de-para não acha a conta e ela entra como "A classificar"; o
+  admin classifica em Administração → Contas (é a receita de venda de gado: os valores batem com as vendas planejadas).
+- **Testes:** `tests/test_previsto_financeiro.py` (padrão, tipo, versão escolhida e a mesma escolha no Financeiro) e
+  dois testes do fluxo em `tests/test_metryx_planejamento.py`; no front, `src/logic/previsto.test.ts`.
 
 **Rebanho médio do Metryx pelo balanço (27/10/2026), feito:** o usuário comparou jul–set/2026 com os relatórios do
 Metryx e o rebanho médio estava alto (U6: 8.505 no painel e 7.705 no Metryx; Maister: 35.629 e 30.667). O endpoint

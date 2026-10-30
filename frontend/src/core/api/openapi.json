@@ -720,6 +720,47 @@
         ],
         "parameters": [
           {
+            "name": "previsto",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "previsao",
+                    "planejamento"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "orçamento do planejado: previsão financeira ou planejamento",
+              "title": "Previsto"
+            },
+            "description": "orçamento do planejado: previsão financeira ou planejamento"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+          },
+          {
             "name": "fazendas",
             "in": "query",
             "required": true,
@@ -814,6 +855,47 @@
           }
         ],
         "parameters": [
+          {
+            "name": "previsto",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "previsao",
+                    "planejamento"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "orçamento do planejado: previsão financeira ou planejamento",
+              "title": "Previsto"
+            },
+            "description": "orçamento do planejado: previsão financeira ou planejamento"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+          },
           {
             "name": "fazendas",
             "in": "query",
@@ -2549,6 +2631,60 @@
         ],
         "title": "DesembolsoDoCentro"
       },
+      "EscolhaDoPrevisto": {
+        "properties": {
+          "tipos": {
+            "items": {
+              "$ref": "#/components/schemas/TipoDoPrevisto"
+            },
+            "type": "array",
+            "title": "Tipos"
+          },
+          "tipo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "previsao",
+                  "planejamento"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tipo"
+          },
+          "versoes": {
+            "items": {
+              "$ref": "#/components/schemas/VersaoDoPrevisto"
+            },
+            "type": "array",
+            "title": "Versoes"
+          },
+          "versao": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Versao"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tipos",
+          "tipo",
+          "versoes",
+          "versao"
+        ],
+        "title": "EscolhaDoPrevisto",
+        "description": "De qual orçamento vem o planejado do financeiro (as páginas Previsto × Realizado e Financeiro escolhem)."
+      },
       "Escopo": {
         "properties": {
           "usuario": {
@@ -2790,6 +2926,9 @@
             },
             "type": "array",
             "title": "Serie Mensal"
+          },
+          "previsto": {
+            "$ref": "#/components/schemas/EscolhaDoPrevisto"
           }
         },
         "type": "object",
@@ -2801,7 +2940,8 @@
           "custeio_por_cabeca_mes",
           "preco_arroba_venda",
           "desembolso_por_centro",
-          "serie_mensal"
+          "serie_mensal",
+          "previsto"
         ],
         "title": "Financeiro"
       },
@@ -4348,6 +4488,9 @@
           },
           "resultado": {
             "$ref": "#/components/schemas/LinhaDoPrevisto"
+          },
+          "previsto": {
+            "$ref": "#/components/schemas/EscolhaDoPrevisto"
           }
         },
         "type": "object",
@@ -4355,7 +4498,8 @@
           "periodo",
           "ultimo_mes",
           "grupos",
-          "resultado"
+          "resultado",
+          "previsto"
         ],
         "title": "PrevistoRealizado"
       },
@@ -4873,6 +5017,28 @@
         ],
         "title": "SituacaoDaAtualizacao"
       },
+      "TipoDoPrevisto": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "enum": [
+              "previsao",
+              "planejamento"
+            ],
+            "title": "Codigo"
+          },
+          "rotulo": {
+            "type": "string",
+            "title": "Rotulo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "rotulo"
+        ],
+        "title": "TipoDoPrevisto"
+      },
       "Transferencias": {
         "properties": {
           "periodo": {
@@ -5136,6 +5302,25 @@
           "serie_mensal"
         ],
         "title": "Vendas"
+      },
+      "VersaoDoPrevisto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "rotulo": {
+            "type": "string",
+            "title": "Rotulo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "rotulo"
+        ],
+        "title": "VersaoDoPrevisto"
       }
     },
     "securitySchemes": {

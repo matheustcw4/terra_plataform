@@ -48,6 +48,12 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   marcados (podem ser salteados), e o estoque final é o do último mês marcado (`app/kpis/filtro.py`). A fazenda
   também é de **seleção múltipla** (pedido do usuário, 16/10/2026): nenhuma ou todas marcadas = "GRUPO"; com algumas,
   o topo mostra os nomes separados por " | " (mais de 3: a quantidade) e a capa, todos os nomes.
+  **Exceção** (pedido do usuário, 29/10/2026): nas páginas **Previsto × Realizado** e **Financeiro**, o topo da página
+  escolhe de qual orçamento vem o planejado do financeiro: o **tipo** (previsão financeira, o `previsao-financeiro` do
+  Metryx e o DRE planejado da planilha; ou planejamento, o fluxo de caixa do plano do Metryx) e, quando alguma
+  fazenda tem mais de uma, a **versão do plano** (padrão: a mais recente de cada fazenda e safra). As opções vêm da
+  API (`previsto` na resposta; `app/kpis/previsto_financeiro.py`), sem lógica por fonte no front; a escolha fica na URL
+  (`previsto`, `versao`), vale nas duas páginas e vai junto no PDF.
 - "Cliente" no filtro = **proprietário** (planilha, coluna PROPRIETÁRIO) ou **customer** (Metryx); o adapter grava os
   dois em `core.fazenda.proprietario`.
 - RLS de verdade:
@@ -152,7 +158,7 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - usuários na tela de admin; o primeiro admin pelo `python -m app.comandos` (`criar-usuario`, `dar-acesso`); a
     equipe da consultoria pela planilha de levantamento (`importar-equipe`, `app/services/equipe.py`).
 - **Base de integração e adapters prontos** (ver `README.md` e o §0 de `docs/02_PROXIMOS_PASSOS.md`):
-  - Postgres no compose; migrações 0001–0017 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
+  - Postgres no compose; migrações 0001–0018 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
     login, pendências, recálculo do estoque pela API, série nova do estoque começa no início da fazenda, cadastro de
     funções e o RLS dele);
   - contrato canônico, motor (guarda de volume, arquivo em dobro, recorte `desde`), CLI `python -m app.etl`;
@@ -166,10 +172,12 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     todas). A ponte do datalake traz o previsto menos compras e vendas (a stg perdeu a versão e as decimais). O
     **rebanho médio realizado** sai da média do saldo de cada dia do balanço, como o relatório do Metryx
     (`adapters/metryx/rebanho.py`, 27/10/2026); o endpoint `rebanho-medio-pecuario` do BI conta animais a mais e fica
-    só no bruto (defeito P18, relatório de validação §21);
+    só no bruto (defeito P18, relatório de validação §21). O `previsao-fluxo-caixa-planejamento` entra como orçamento
+    de tipo `planejamento`, com todas as versões (29/10/2026; migração 0018: `fato.orcamento_financeiro.tipo` e
+    `dim.versao_plano.ordem`); o subcentro genérico "Subcentro de Custo" fica de fora da conta;
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 159 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas e o
-    boletim analítico) + 70 testes do front (Vitest);
+  - 165 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas e o
+    boletim analítico) + 74 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,
     `layout_do_bi`, `lotacao_sem_area`). A lotação fica igual ao BI mesmo quando um mês com rebanho não tem área, o
@@ -194,5 +202,6 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
 - Decisões D1–D10 (proposta §11): D8 em parte (VPS Linux em produção; desenvolvimento no Windows) e D10 adiada (só técnicos consultam por ora; permissionamento no final); as demais seguem pendentes. Até lá, use as recomendações da proposta como padrão provisório, marcado com `# TODO(D<n>)`.
 - Como rodar: `docker compose up -d db`; em `backend/`, `.venv/Scripts/python -m pytest` (Python 3.12 via `py -3.12`; host `127.0.0.1:55432`).
   Em `frontend/`: `npm test`, `npm run lint`, `npm run build`. API em dev na porta **8010** (a 8000 costuma estar
-  ocupada nesta máquina); o Vite repassa `/api` para ela. `.claude/launch.json` sobe os dois (`api-validacao`, `web`);
+  ocupada nesta máquina); o Vite repassa `/api` para ela (outra porta: `TERRA_API_PORTA`). `.claude/launch.json` sobe
+  os dois (`api-validacao`, `web`; com a 8010 ocupada, `api-validacao-8011` e `web-8011`, este na porta 5175);
   no PyCharm, as configurações da pasta `.run/` (guia no README, "Rodar e testar pelo PyCharm").

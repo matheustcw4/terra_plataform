@@ -24,10 +24,18 @@ from sqlalchemy.orm import Session
 
 from app.kpis.filtro import Filtro, periodo_do_filtro
 from app.kpis.lotes import dividir, numero
+from app.kpis.previsto_financeiro import (
+    ORCAMENTO_ESCOLHIDO,
+    PEDIDO_PADRAO,
+    PedidoDoPrevisto,
+    PrevistoEscolhido,
+    escolher_o_previsto,
+)
 from app.schemas.api import Comparacao, GrupoDoPrevisto, LinhaDoPrevisto, PrevistoRealizado
 
-# cenário -> view com a classificação da conta já resolvida (lista fechada: por isso pode entrar no SQL)
-VIEW_DO_CENARIO = {"realizado": "fato.v_lancamento_financeiro", "planejado": "fato.v_orcamento_financeiro"}
+# cenário -> view com a classificação da conta já resolvida (lista fechada: por isso pode entrar no SQL); no
+# planejado, o orçamento do tipo e da versão escolhidos na tela (previsto_financeiro.py)
+VIEW_DO_CENARIO = {"realizado": "fato.v_lancamento_financeiro", "planejado": ORCAMENTO_ESCOLHIDO}
 
 RECEITAS = "A - RECEITAS"
 DESEMBOLSO = "B - DESEMBOLSO"
@@ -41,7 +49,6 @@ ORDEM = [RECEITAS, DESEMBOLSO, INVESTIMENTOS, CUSTEIO, OUTROS_CREDITOS, OUTROS_D
 LADO = {RECEITAS: "credito", OUTROS_CREDITOS: "credito", INVESTIMENTOS: "debito", CUSTEIO: "debito",
         OUTROS_DEBITOS: "debito", DESEMBOLSO: "debito"}
 
-# TODO(D7): com mais de uma versão de plano por fazenda, o planejado terá de escolher a versão ativa.
 POR_CONTA = """
     SELECT v.competencia, v.classificacao, v.centro_custo,
            sum(v.valor) FILTER (WHERE v.natureza = 'C') AS creditos,
@@ -68,8 +75,10 @@ class Valores:
         self.planejado += sinal * outro.planejado
 
 
-def previsto_realizado(s: Session, filtro: Filtro) -> PrevistoRealizado:
-    contas = valores_por_conta(s, filtro)
+def previsto_realizado(s: Session, filtro: Filtro, pedido: PedidoDoPrevisto = PEDIDO_PADRAO
+                       ) -> PrevistoRealizado:
+    previsto = escolher_o_previsto(s, filtro, pedido)
+    contas = valores_por_conta(s, filtro, previsto)
     limiar = float(s.scalar(text(LIMIAR)))
     grupos = []
     for classificacao in ORDEM:
@@ -77,14 +86,16 @@ def previsto_realizado(s: Session, filtro: Filtro) -> PrevistoRealizado:
         if grupo is not None:
             grupos.append(grupo)
     return PrevistoRealizado(periodo=periodo_do_filtro(filtro), ultimo_mes=filtro.fim, grupos=grupos,
-                             resultado=linha("RESULTADO", resultado(contas), "credito", limiar))
+                             resultado=linha("RESULTADO", resultado(contas), "credito", limiar),
+                             previsto=previsto.opcoes)
 
 
-def valores_por_conta(s: Session, filtro: Filtro) -> dict[tuple[str, str], Valores]:
+def valores_por_conta(s: Session, filtro: Filtro, previsto: PrevistoEscolhido) -> dict[tuple[str, str], Valores]:
     """(classificação, conta) -> valores, já do lado da classificação."""
     contas: dict[tuple[str, str], Valores] = {}
+    parametros = filtro.parametros() | previsto.parametros()
     for cenario, view in VIEW_DO_CENARIO.items():
-        for registro in s.execute(text(POR_CONTA.format(view=view)), filtro.parametros()).mappings():
+        for registro in s.execute(text(POR_CONTA.format(view=view)), parametros).mappings():
             chave = (registro["classificacao"], registro["centro_custo"])
             if chave not in contas:
                 contas[chave] = Valores()

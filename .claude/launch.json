@@ -29,6 +29,42 @@
         "dev"
       ],
       "port": 5173
+    },
+    {
+      "name": "api-validacao-8011",
+      "runtimeExecutable": "backend/.venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "app.main:app",
+        "--app-dir",
+        "backend",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "8011",
+        "--env-file",
+        "backend/validacao/api_validacao.env"
+      ],
+      "port": 8011
+    },
+    {
+      "name": "web-8011",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "frontend",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5175",
+        "--strictPort"
+      ],
+      "env": {
+        "TERRA_API_PORTA": "8011"
+      },
+      "port": 5175
     }
   ]
 }

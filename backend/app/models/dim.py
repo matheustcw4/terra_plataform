@@ -131,4 +131,5 @@ class VersaoPlano(Base):
     codigo: Mapped[str] = mapped_column(Text)
     nome: Mapped[str | None] = mapped_column(Text)
     oficial: Mapped[bool] = mapped_column(server_default=text("false"))
+    ordem: Mapped[int | None]                       # maior = mais recente
     criado_em: Mapped[datetime] = mapped_column(**AGORA)

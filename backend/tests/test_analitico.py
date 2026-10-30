@@ -27,7 +27,7 @@ from app.kpis.analitico.textos import (
 )
 from app.kpis.analitico.ultimo_dado import frase_das_paradas
 from app.schemas.analitico import LinhaDoEstoque, MesDaMortalidade, MorteDoMes, ResumoDoEstoque
-from app.schemas.api import Comparacao, LinhaDoPrevisto, Periodo, PrevistoRealizado
+from app.schemas.api import Comparacao, EscolhaDoPrevisto, LinhaDoPrevisto, Periodo, PrevistoRealizado
 from tests.test_api import carregar_planilha, entrar, usuario_com_senha
 
 METAS = {"fNascimentoPLANEJADO": [["NASCIMENTO", datetime(2025, 7, 10), "Bezerro Mamando", 32, "25/26", 32]],
@@ -196,7 +196,8 @@ def test_sem_lancamento_financeiro_a_leitura_nao_fala_em_zero():
     zero = Comparacao(realizado=0, planejado=0, variacao=None, semaforo=None)
     caixa = PrevistoRealizado(periodo=Periodo(inicio=date(2025, 7, 1), fim=date(2025, 9, 1), meses=3),
                               ultimo_mes=date(2025, 9, 1), grupos=[],
-                              resultado=LinhaDoPrevisto(nome="RESULTADO", mensal=zero, acumulado=zero))
+                              resultado=LinhaDoPrevisto(nome="RESULTADO", mensal=zero, acumulado=zero),
+                              previsto=EscolhaDoPrevisto(tipos=[], tipo=None, versoes=[], versao=None))
     assert frase_do_resultado(recortes, caixa) == (
         "Não há lançamentos financeiros nem fluxo de caixa previsto no período (até setembro/2025).")
 

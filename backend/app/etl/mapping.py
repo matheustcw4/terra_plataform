@@ -145,9 +145,9 @@ def _versoes(s: Session, fonte: Fonte, lote: LoteCanonico, resolvido: Resolvido)
     for versao in lote.versoes:
         cliente_id = resolvido.clientes[versao.cliente]
         comando = pg_insert(VersaoPlano).values(cliente_id=cliente_id, fonte=fonte, codigo=versao.codigo,
-                                                nome=versao.nome, oficial=versao.oficial)
-        versao_id = s.scalar(comando.on_conflict_do_update(constraint="uq_versao_plano",
-                                                           set_={"nome": comando.excluded.nome})
+                                                nome=versao.nome, oficial=versao.oficial, ordem=versao.ordem)
+        atualizar = {"nome": comando.excluded.nome, "ordem": comando.excluded.ordem}
+        versao_id = s.scalar(comando.on_conflict_do_update(constraint="uq_versao_plano", set_=atualizar)
                              .returning(VersaoPlano.id))
         resolvido.versoes[(cliente_id, versao.codigo)] = versao_id
 

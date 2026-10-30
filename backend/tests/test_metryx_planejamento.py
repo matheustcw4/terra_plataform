@@ -15,6 +15,7 @@ from tests.sinteticos import (
     CLIENTE,
     FAZENDA,
     FAZENDA_2,
+    fluxo_de_caixa,
     item_do_plano,
     payloads_metryx,
     plano_metryx,
@@ -166,7 +167,7 @@ def test_particoes_do_planejado_so_dos_endpoints_que_vieram():
     for particao in lote.particoes:
         if particao.cenario == "planejado" and particao.fazenda == FAZENDA_EXTERNA:
             do_plano.add((particao.entidade, particao.tipos))
-    assert do_plano == {("mov_animal", ("NASCIMENTO",)), ("rebanho_medio", None), ("orcamento", None)}
+    assert do_plano == {("mov_animal", ("NASCIMENTO",)), ("rebanho_medio", None), ("orcamento", ("previsao",))}
     assert all(p.versao_plano is None for p in lote.particoes)    # vale para todas as versões da fazenda
 
 
@@ -202,3 +203,35 @@ def test_carga_do_planejado_e_troca_de_versao(engine_etl, engine_super):
     carregar(engine_etl, payloads_metryx(**plano))
     assert previsto(engine_super) == {"nascimentos": 90, "versoes": [f"{FAZENDA_EXTERNA}|v2"], "rebanho": 205,
                                       "orcado": 1500}
+
+
+# --- orçamento do planejamento (fluxo de caixa, por versão) ----------------------------------------------------------
+
+def test_fluxo_de_caixa_entra_com_todas_as_versoes():
+    """O orçamento do planejamento entra de todas as versões (a tela escolhe qual comparar), com a natureza do `type`
+    e no centro de custo quando o subcentro é o genérico; a previsão financeira continua como orçamento à parte."""
+    fluxo = [fluxo_de_caixa("2025-07-01", 1000, "Débito", versao=1),
+             fluxo_de_caixa("2025-07-01", 1200, "Débito", versao=3),
+             fluxo_de_caixa("2025-07-01", 5000, "Crédito", versao=3, centro="Rebanho", subcentro="Venda de Rebanho")]
+    lote = lote_do_plano(**plano_metryx(), fluxo_caixa_plano=fluxo)
+    assert lote.validar_contrato() == []
+    do_planejamento = set()
+    for orcamento in lote.orcamentos:
+        if orcamento.tipo == "planejamento":
+            do_planejamento.add((orcamento.versao_plano.split("|")[-1], orcamento.natureza, orcamento.conta.centro,
+                                 orcamento.conta.subcentro, orcamento.valor))
+    assert do_planejamento == {("v1", "D", "Pastagens", None, Decimal(1000)),
+                               ("v3", "D", "Pastagens", None, Decimal(1200)),
+                               ("v3", "C", "Rebanho", "Venda de Rebanho", Decimal(5000))}
+    assert [orcamento.valor for orcamento in lote.orcamentos if orcamento.tipo == "previsao"] == [Decimal(1500)]
+    versoes = {versao.codigo: (versao.oficial, versao.ordem) for versao in lote.versoes}
+    # a versão 1 é a das metas de animais (a mais recente delas); a 3 só tem orçamento
+    assert versoes[f"{FAZENDA_EXTERNA}|v1"] == (True, 1) and versoes[f"{FAZENDA_EXTERNA}|v3"] == (False, 3)
+    tipos = {particao.tipos for particao in lote.particoes if particao.entidade == "orcamento"}
+    assert tipos == {("previsao",), ("planejamento",)}
+
+
+def test_fluxo_de_caixa_sem_natureza_vai_para_a_quarentena():
+    lote = lote_do_plano(fluxo_caixa_plano=[fluxo_de_caixa("2025-07-01", 1000, "Transferência", versao=1)])
+    assert not [orcamento for orcamento in lote.orcamentos if orcamento.tipo == "planejamento"]
+    assert [rejeitada.codigo for rejeitada in lote.rejeitadas] == ["REQUIRED_MISSING"]

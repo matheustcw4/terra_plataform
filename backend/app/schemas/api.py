@@ -1,6 +1,7 @@
 """Formato das respostas da API (o front recebe tudo pronto: números já agregados, nada a calcular)."""
 
 from datetime import date, datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -228,6 +229,24 @@ class MesDoFinanceiro(BaseModel):
     desembolso_por_cabeca_planejado: float | None
 
 
+class TipoDoPrevisto(BaseModel):
+    codigo: Literal["previsao", "planejamento"]
+    rotulo: str
+
+
+class VersaoDoPrevisto(BaseModel):
+    id: UUID
+    rotulo: str                     # o nome da versão; com mais de uma fazenda, "fazenda · nome"
+
+
+class EscolhaDoPrevisto(BaseModel):
+    """De qual orçamento vem o planejado do financeiro (as páginas Previsto × Realizado e Financeiro escolhem)."""
+    tipos: list[TipoDoPrevisto]     # os que têm orçamento nas fazendas escolhidas
+    tipo: Literal["previsao", "planejamento"] | None    # o que entrou no planejado; None = nenhum orçamento
+    versoes: list[VersaoDoPrevisto]  # as do tipo em uso com orçamento no período
+    versao: UUID | None             # a escolhida; None = a mais recente de cada fazenda e safra
+
+
 class Financeiro(BaseModel):
     periodo: Periodo
     desembolso: float               # R$ que saíram nas contas de desembolso (DCM), já sem os estornos
@@ -237,6 +256,7 @@ class Financeiro(BaseModel):
     preco_arroba_venda: Velocimetro
     desembolso_por_centro: list[DesembolsoDoCentro]     # do maior para o menor
     serie_mensal: list[MesDoFinanceiro]
+    previsto: EscolhaDoPrevisto
 
 
 # --- página Previsto × Realizado (a matriz do DRE) -------------------------------------------------------------------
@@ -267,6 +287,7 @@ class PrevistoRealizado(BaseModel):
     ultimo_mes: date
     grupos: list[GrupoDoPrevisto]
     resultado: LinhaDoPrevisto      # receitas + outros créditos − (investimentos + custeio + outros débitos)
+    previsto: EscolhaDoPrevisto
 
 
 # --- pendências de lançamento (o que corrigir na origem) -------------------------------------------------------------

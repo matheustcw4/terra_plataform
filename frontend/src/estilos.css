@@ -767,6 +767,19 @@ input[type="radio"] {
   opacity: 0.55;
 }
 
+/* o orçamento do planejado (Previsto × Realizado e Financeiro): a única escolha fora do MENU */
+.seletor-do-previsto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: var(--espaco);
+}
+
+.seletor-do-previsto .campo {
+  flex: 0 1 300px;
+  min-width: 220px;
+}
+
 .paineis-4,
 .paineis-3,
 .paineis-2 {

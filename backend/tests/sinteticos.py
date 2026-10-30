@@ -204,6 +204,18 @@ def previsao_financeira(data: str, valor: float, tipo: str, centro: str = "Pasta
             "valorPrevisto": valor, "valorRealizado": 0}
 
 
+def fluxo_de_caixa(data: str, valor: float, tipo: str, *, versao: int, centro: str = "Pastagens",
+                   subcentro: str = "Subcentro de Custo") -> dict:
+    """Um item do `previsao-fluxo-caixa-planejamento` (o orçamento do plano, por versão; o valor vem sempre positivo e
+    quase todo item traz o subcentro genérico "Subcentro de Custo")."""
+    return {"idCustomer": CLIENTE, "customerName": "Cliente Teste", "idFarm": FAZENDA, "farmName": "Fazenda Metryx",
+            "idCurrency": 5, "currencyName": "Real", "plVersionCode": versao, "plVersionName": f"Versão {versao}",
+            "typeActivity": "Pecuária", "yearType": "Ano Safra", "type": tipo, "subCenterName": subcentro,
+            "subCenterCode": "1", "costCenterName": centro, "costCenterCode": "2", "className": "Suporte à produção",
+            "date": data, "harvest": "25/26", "anoSafra": "25-26", "value": valor,
+            "classificationAnalyticDescription": "Custeio", "classificationAnalyticDisbursement": True}
+
+
 def plano_metryx() -> dict[str, list[dict]]:
     """O planejamento da mesma fazenda, na versão 1 da safra 25-26: 100 nascimentos previstos em jul/2025, a evolução
     do rebanho (100 bezerros no saldo inicial e +20 em julho: rebanho médio previsto de 110 em julho) e R$ 1.500 de

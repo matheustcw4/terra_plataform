@@ -14,7 +14,7 @@ import hashlib
 import json
 from datetime import date
 from decimal import Decimal
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -26,6 +26,10 @@ TipoMov = Literal[
     "DESMAME", "MUDANCA_CATEGORIA",
 ]
 TIPOS_COM_DESTINO: frozenset[str] = frozenset({"DESMAME", "MUDANCA_CATEGORIA"})
+# De qual orçamento vem o planejado do financeiro (a tela escolhe, pedido do usuário em 29/10/2026): a previsão
+# financeira (o DRE previsto: o `previsao-financeiro` do Metryx, a aba de DRE planejado da planilha) ou o planejamento
+# (o fluxo de caixa do plano do Metryx, por versão).
+TipoOrcamento = Literal["previsao", "planejamento"]
 Grupo = Literal["BEZERROS", "JOVENS", "ADULTOS"]
 FonteMapaCategoria = Literal["planilha", "metryx_realizado", "metryx_plano"]
 SistemaProdutivo = Literal["CRIA", "RECRIA E ENGORDA", "CICLO COMPLETO"]
@@ -85,6 +89,7 @@ class RefVersaoPlano(_Modelo):
     codigo: str
     nome: str | None = None
     oficial: bool = False
+    ordem: int | None = None      # maior = mais recente (a escolha padrão de versão nas telas)
 
 
 class ContaOrigem(_Modelo):
@@ -194,6 +199,7 @@ class LancamentoFinanceiro(_Linha):
 class OrcamentoFinanceiro(_Linha):
     fazenda: str
     versao_plano: str
+    tipo: TipoOrcamento = "previsao"
     conta: ContaOrigem
     natureza: Literal["C", "D"]
     competencia: date
@@ -209,6 +215,9 @@ class OrcamentoFinanceiro(_Linha):
 # --- partições, ocorrências e o lote ----------------------------------------------------------------------------
 
 CENARIO_FIXO: dict[str, str] = {"inventario": "realizado", "lancamento": "realizado", "orcamento": "planejado"}
+# entidade -> os tipos pelos quais uma partição dela pode se limitar
+TIPOS_DA_ENTIDADE: dict[str, set[str]] = {"mov_animal": set(get_args(TipoMov)),
+                                          "orcamento": set(get_args(TipoOrcamento))}
 # data que posiciona a linha no tempo (recorte `desde`/`ate` da partição)
 CAMPO_DATA: dict[str, str] = {"mov_animal": "data", "inventario": "data", "rebanho_medio": "competencia",
                               "area": "competencia", "lancamento": "data_pagamento", "orcamento": "competencia"}
@@ -234,7 +243,7 @@ class Particao(_Modelo):
     fazenda: str
     cenario: Cenario
     estrategia: Estrategia
-    tipos: tuple[TipoMov, ...] | None = None      # só mov_animal; None = todos os tipos
+    tipos: tuple[TipoMov | TipoOrcamento, ...] | None = None    # mov_animal e orçamento; None = todos os tipos
     versao_plano: str | None = None               # None = todas as versões desta fonte
     # Guarda de volume (snapshots completos, ex.: Metryx): se o lote trouxer menos que esta fração do que já existe no
     # recorte, a partição é RETIDA (nada é apagado) e vira aviso. Protege contra resposta vazia/parcial da fonte.
@@ -247,8 +256,8 @@ class Particao(_Modelo):
         fixo = CENARIO_FIXO.get(self.entidade)
         if fixo and self.cenario != fixo:
             raise ValueError(f"{self.entidade} só existe no cenário {fixo}")
-        if self.tipos is not None and self.entidade != "mov_animal":
-            raise ValueError("tipos só se aplica a mov_animal")
+        if self.tipos is not None and not set(self.tipos) <= TIPOS_DA_ENTIDADE.get(self.entidade, set()):
+            raise ValueError(f"tipos {self.tipos} não se aplicam a {self.entidade}")
         if self.versao_plano is not None and self.cenario != "planejado":
             raise ValueError("versao_plano só se aplica ao planejado")
         if self.estrategia == "mesclar" and self.entidade not in ("inventario", "rebanho_medio", "area"):

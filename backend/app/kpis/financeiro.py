@@ -27,13 +27,20 @@ from sqlalchemy.orm import Session
 from app.kpis.compras import preco_da_arroba_vendida
 from app.kpis.filtro import Filtro, meses_do_filtro, periodo_do_filtro
 from app.kpis.lotes import dividir, numero
+from app.kpis.previsto_financeiro import (
+    ORCAMENTO_ESCOLHIDO,
+    PEDIDO_PADRAO,
+    PedidoDoPrevisto,
+    PrevistoEscolhido,
+    escolher_o_previsto,
+)
 from app.schemas.api import DesembolsoDoCentro, Financeiro, MesDoFinanceiro, Velocimetro
 
-# cenário -> view com a classificação da conta já resolvida (lista fechada: por isso pode entrar no SQL)
-VIEW_DO_CENARIO = {"realizado": "fato.v_lancamento_financeiro", "planejado": "fato.v_orcamento_financeiro"}
+# cenário -> view com a classificação da conta já resolvida (lista fechada: por isso pode entrar no SQL); no
+# planejado, o orçamento do tipo e da versão escolhidos na tela (previsto_financeiro.py)
+VIEW_DO_CENARIO = {"realizado": "fato.v_lancamento_financeiro", "planejado": ORCAMENTO_ESCOLHIDO}
 
 # TODO(D3): as marcas de desembolso e custeio de cada centro estão em dim.centro_custo, à espera da decisão D3.
-# TODO(D7): com mais de uma versão de plano por fazenda, o planejado terá de escolher a versão ativa.
 TOTAIS_POR_MES = """
     SELECT v.competencia,
            sum(v.valor) FILTER (WHERE v.natureza = 'C' AND v.tipo_custeio IN ('RECEITA_PEC', 'RECEITA_AGR'))
@@ -87,9 +94,10 @@ class Valores:
         self.cabecas += outro.cabecas
 
 
-def financeiro(s: Session, filtro: Filtro) -> Financeiro:
+def financeiro(s: Session, filtro: Filtro, pedido: PedidoDoPrevisto = PEDIDO_PADRAO) -> Financeiro:
+    previsto = escolher_o_previsto(s, filtro, pedido)
     realizado = valores_por_mes(s, filtro, "realizado")
-    planejado = valores_por_mes(s, filtro, "planejado")
+    planejado = valores_por_mes(s, filtro, "planejado", previsto)
     no_periodo = somar_meses(realizado)
     meta = somar_meses(planejado)
     fator_de_custo = fator(s, "multiplicador_gauge_desembolso")
@@ -103,14 +111,21 @@ def financeiro(s: Session, filtro: Filtro) -> Financeiro:
         custeio_por_cabeca_mes=velocimetro(dividir(no_periodo.custeio, no_periodo.cabecas),
                                            dividir(meta.custeio, meta.cabecas), fator_de_custo, maior_e_melhor=False),
         preco_arroba_venda=preco, desembolso_por_centro=desembolso_por_centro(s, filtro),
-        serie_mensal=serie_mensal(filtro, realizado, planejado))
+        serie_mensal=serie_mensal(filtro, realizado, planejado), previsto=previsto.opcoes)
 
 
-def valores_por_mes(s: Session, filtro: Filtro, cenario: str) -> dict[date, Valores]:
-    """Mês -> totais do cenário: o dinheiro (lançamentos ou orçamento) e o rebanho médio."""
+def valores_por_mes(s: Session, filtro: Filtro, cenario: str, previsto: PrevistoEscolhido | None = None
+                    ) -> dict[date, Valores]:
+    """Mês -> totais do cenário: o dinheiro (lançamentos ou orçamento) e o rebanho médio. No planejado sem
+    escolha, vale a escolha padrão do orçamento."""
+    if cenario == "planejado" and previsto is None:
+        previsto = escolher_o_previsto(s, filtro, PEDIDO_PADRAO)
+    parametros = filtro.parametros()
+    if previsto is not None:
+        parametros = parametros | previsto.parametros()
     valores: dict[date, Valores] = {}
     sql = TOTAIS_POR_MES.format(view=VIEW_DO_CENARIO[cenario])
-    for linha in s.execute(text(sql), filtro.parametros()).mappings():
+    for linha in s.execute(text(sql), parametros).mappings():
         valores[linha["competencia"]] = Valores(
             receitas=numero(linha, "receitas"), outras_receitas=numero(linha, "outras_receitas"),
             despesas=numero(linha, "despesas"), desembolso=numero(linha, "desembolso"),

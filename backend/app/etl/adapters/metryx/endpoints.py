@@ -47,8 +47,8 @@ ENDPOINTS: dict[str, Endpoint] = {e.nome: e for e in (
     Endpoint("rebanho_plano", "/api-metryx/estoque-medio-mensal-planejamento"),
     # DRE previsto por centro de custo e mês, sem versão (é o que o BI usa: stg_dreprevisto)
     Endpoint("previsao_financeiro", "/api-metryx/previsao-financeiro"),
-    # vai para o bruto, mas o normalizador ainda não usa: orçamento de caixa POR VERSÃO, para conferir contra o
-    # previsao-financeiro e a tela de planejamento do Metryx antes de escolher a fonte do orçamento (D7)
+    # orçamento do planejamento, POR VERSÃO (orçamento de tipo 'planejamento'): as telas escolhem entre ele e o
+    # previsao-financeiro, e a versão (29/10/2026)
     Endpoint("fluxo_caixa_plano", "/api-metryx/previsao-fluxo-caixa-planejamento"),
 )}
 

@@ -1,24 +1,30 @@
+import { useSearchParams } from "react-router";
 import type { Financeiro } from "../../core/api/tipos";
 import { useArea } from "../../core/auth/AreaAutenticada";
 import { Aviso } from "../../core/ui/Aviso";
 import { GraficoDeBarras } from "../../core/ui/GraficoDeBarras";
 import { Moldura } from "../../core/ui/Moldura";
 import { Linha, Painel } from "../../core/ui/Painel";
+import { SeletorDoPrevisto } from "../../core/ui/SeletorDoPrevisto";
 import { Velocimetro } from "../../core/ui/Velocimetro";
 import { dinheiro, dinheiroCompacto } from "../../logic/formatar";
+import { pedidoDaUrl } from "../../logic/previsto";
 import { useFinanceiro } from "./api";
 import { GraficoDeFluxoDeCaixa } from "./GraficoDeFluxoDeCaixa";
 import { GraficoMensalDoFinanceiro } from "./GraficoMensalDoFinanceiro";
 
 // A página "Financeiro" do BI: velocímetros de desembolso e custeio por cabeça por mês e do preço da @ vendida, o
-// desembolso e as receitas do período, o desembolso por centro de custo e os gráficos mês a mês.
+// desembolso e as receitas do período, o desembolso por centro de custo e os gráficos mês a mês. O planejado vem do
+// orçamento escolhido no topo da página (tipo e versão).
 export function FinanceiroPagina() {
   const { consulta } = useArea();
-  const pagina = useFinanceiro(consulta);
+  const [parametros] = useSearchParams();
+  const pagina = useFinanceiro(consulta, pedidoDaUrl(parametros));
   return (
     <Moldura caminho="/financeiro">
       {pagina.isPending && <Aviso>Carregando…</Aviso>}
       {pagina.isError && <Aviso tipo="erro">Não foi possível carregar a página: {pagina.error.message}</Aviso>}
+      {pagina.data && <SeletorDoPrevisto escolha={pagina.data.previsto} />}
       {pagina.data && (
         <div className={pagina.isPlaceholderData ? "pagina atualizando" : "pagina"}>
           <Conteudo dados={pagina.data} />
