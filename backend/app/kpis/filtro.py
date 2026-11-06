@@ -3,6 +3,9 @@
 Os meses podem vir salteados: no MENU o mês é de seleção múltipla, como no BI (jul e set, sem ago). Regra das
 medidas do BI, que usam o calendário filtrado: o que é soma (cabeças, R$, rebanho médio) usa só os meses escolhidos;
 o que é saldo (estoque final) é o do último mês escolhido (`MAX(dCalendar[Data])`).
+
+A versão do planejamento escolhida na tela também vem no recorte: vale para as metas de todas as páginas
+(versao_do_plano.py); sem ela, a mais recente de cada fazenda e safra.
 """
 
 from dataclasses import dataclass
@@ -18,10 +21,14 @@ class Filtro:
     inicio: date              # 1º dia do primeiro mês
     fim: date                 # 1º dia do último mês (inclusive)
     meses_escolhidos: tuple[date, ...] = ()   # vazio = todos os meses de `inicio` a `fim`
+    versao_do_plano: UUID | None = None      # vazio = a mais recente de cada fazenda e safra
 
     def parametros(self) -> dict:
+        versao = None
+        if self.versao_do_plano is not None:
+            versao = str(self.versao_do_plano)
         return {"fazendas": [str(fazenda) for fazenda in self.fazendas], "inicio": self.inicio, "fim": self.fim,
-                "meses": meses_do_filtro(self)}
+                "meses": meses_do_filtro(self), "versao_do_plano": versao}
 
 
 def proximo_mes(mes: date) -> date:

@@ -41,15 +41,18 @@ def avisos(lote, codigo: str) -> list[str]:
 
 # --- versão do plano -------------------------------------------------------------------------------------------------
 
-def test_metas_vem_so_da_versao_mais_recente_da_fazenda_e_safra():
-    """O BI soma todas as versões (as metas dobram); aqui entra só a mais recente, e as outras ficam no aviso."""
+def test_metas_entram_de_todas_as_versoes_com_numero_e_nome():
+    """As telas escolhem a versão (o BI soma todas, e as metas dobram): a carga guarda cada uma com o número, que dá a
+    ordem, e o nome; oficial marca a mais recente, que vale quando ninguém escolhe outra."""
     nascimentos = [item_do_plano("7/25", 11, 100, versao=1), item_do_plano("7/25", 11, 80, versao=3)]
     lote = lote_do_plano(nascimento_plano=nascimentos)
-    assert [(mov.qtd, mov.versao_plano) for mov in planejados(lote, "NASCIMENTO")] == [(80, f"{FAZENDA_EXTERNA}|v3")]
-    assert [(versao.codigo, versao.nome) for versao in lote.versoes] == [(f"{FAZENDA_EXTERNA}|v3", "Versão 3")]
+    metas = sorted((mov.versao_plano, mov.qtd) for mov in planejados(lote, "NASCIMENTO"))
+    assert metas == [(f"{FAZENDA_EXTERNA}|v1", 100), (f"{FAZENDA_EXTERNA}|v3", 80)]
+    versoes = [(versao.codigo, versao.nome, versao.ordem, versao.oficial) for versao in lote.versoes]
+    assert versoes == [(f"{FAZENDA_EXTERNA}|v1", "Versão 1", 1, False), (f"{FAZENDA_EXTERNA}|v3", "Versão 3", 3, True)]
     assert avisos(lote, "PLAN_VERSION_CHOSEN") == [
-        "plano com mais de uma versão na safra, entrou a mais recente: Fazenda Metryx 25-26: versão 3 (Versão 3) "
-        "(ficou de fora: versão 1 (Versão 1))"]
+        "plano com mais de uma versão na safra; todas entram, e sem escolha na tela vale a mais recente: "
+        "Fazenda Metryx 25-26: versão 3 (Versão 3) (outras: versão 1 (Versão 1))"]
 
 
 def test_versao_e_escolhida_por_fazenda_e_safra():
@@ -65,12 +68,13 @@ def test_versao_e_escolhida_por_fazenda_e_safra():
     assert avisos(lote, "PLAN_VERSION_CHOSEN") == []
 
 
-def test_a_versao_escolhida_vale_para_todos_os_endpoints_da_safra():
-    """Uma versão nova só com nascimentos tira da safra as mortes da versão antiga: as metas vêm de um plano só."""
+def test_versao_antiga_de_outro_endpoint_tambem_entra():
+    """A versão nova só com nascimentos não apaga as mortes da antiga: quem escolhe a versão é a tela (com a mais
+    recente, a safra fica sem meta de mortes, porque as metas vêm de um plano só; tests/test_versao_do_plano.py)."""
     lote = lote_do_plano(nascimento_plano=[item_do_plano("7/25", 11, 80, versao=2)],
                          morte_plano=[item_do_plano("7/25", 11, 3, versao=1)])
-    assert len(planejados(lote, "NASCIMENTO")) == 1
-    assert planejados(lote, "MORTE") == []
+    assert [mov.versao_plano for mov in planejados(lote, "NASCIMENTO")] == [f"{FAZENDA_EXTERNA}|v2"]
+    assert [mov.versao_plano for mov in planejados(lote, "MORTE")] == [f"{FAZENDA_EXTERNA}|v1"]
 
 
 # --- metas de animais ------------------------------------------------------------------------------------------------
@@ -189,8 +193,9 @@ def previsto(engine_super) -> dict:
         }
 
 
-def test_carga_do_planejado_e_troca_de_versao(engine_etl, engine_super):
-    """Quando sai uma versão nova, as metas da anterior saem do banco (a partição vale para todas as versões)."""
+def test_carga_do_planejado_com_versao_nova_e_versao_apagada(engine_etl, engine_super):
+    """A versão nova entra ao lado da anterior (a tela escolhe). A partição vale para todas as versões: a versão que
+    o Metryx deixou de mostrar sai do banco na carga seguinte."""
     credenciais.registrar(engine_etl, CLIENTE, "token-teste", "Cliente Teste")
     r = carregar(engine_etl, payloads_metryx(**plano_metryx()))
     assert r.unidades[0].status.startswith("carregada"), r.unidades[0].erro
@@ -201,6 +206,12 @@ def test_carga_do_planejado_e_troca_de_versao(engine_etl, engine_super):
     plano["rebanho_plano"] += [item_do_plano(None, 11, 200, versao=2, type="Entrada", originMovement="Saldo Inicial"),
                                item_do_plano("7/25", 11, 10, versao=2, type="Entrada", originMovement="nascimento")]
     carregar(engine_etl, payloads_metryx(**plano))
+    assert previsto(engine_super) == {"nascimentos": 190, "versoes": [f"{FAZENDA_EXTERNA}|v1", f"{FAZENDA_EXTERNA}|v2"],
+                                      "rebanho": 315, "orcado": 1500}
+    so_a_versao_2 = plano_metryx()
+    so_a_versao_2["nascimento_plano"] = [item_do_plano("7/25", 11, 90, versao=2)]
+    so_a_versao_2["rebanho_plano"] = plano["rebanho_plano"][2:]
+    carregar(engine_etl, payloads_metryx(**so_a_versao_2))
     assert previsto(engine_super) == {"nascimentos": 90, "versoes": [f"{FAZENDA_EXTERNA}|v2"], "rebanho": 205,
                                       "orcado": 1500}
 

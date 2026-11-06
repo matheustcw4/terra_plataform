@@ -197,7 +197,7 @@ def test_sem_lancamento_financeiro_a_leitura_nao_fala_em_zero():
     caixa = PrevistoRealizado(periodo=Periodo(inicio=date(2025, 7, 1), fim=date(2025, 9, 1), meses=3),
                               ultimo_mes=date(2025, 9, 1), grupos=[],
                               resultado=LinhaDoPrevisto(nome="RESULTADO", mensal=zero, acumulado=zero),
-                              previsto=EscolhaDoPrevisto(tipos=[], tipo=None, versoes=[], versao=None))
+                              previsto=EscolhaDoPrevisto(tipos=[], tipo=None, versoes=[], versao=None, em_uso=[]))
     assert frase_do_resultado(recortes, caixa) == (
         "Não há lançamentos financeiros nem fluxo de caixa previsto no período (até setembro/2025).")
 

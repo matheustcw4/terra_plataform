@@ -19,6 +19,7 @@ from app.kpis.analitico import textos
 from app.kpis.analitico.comparar import dividir
 from app.kpis.analitico.recortes import Recortes
 from app.kpis.movimentacao import estoque_final, rebanho_e_area
+from app.kpis.versao_do_plano import so_a_versao_que_vale
 from app.schemas.analitico import (
     FatiaDoRebanho,
     LinhaDoEstoque,
@@ -60,12 +61,13 @@ ESTOQUE_NO_INICIO = """
           GROUP BY fazenda_id) p ON p.fazenda_id = e.fazenda_id AND p.primeiro = e.competencia
     WHERE e.cenario = 'realizado'
 """
-REBANHO_POR_MES = """
+REBANHO_POR_MES = f"""
     SELECT r.competencia, r.cenario, sum(r.qtd_cab) AS cabecas, sum(r.qtd_ua_informada) AS ua
     FROM fato.rebanho_medio_mensal r
     LEFT JOIN dim.categoria_map m ON m.id = r.categoria_map_id
     WHERE r.fazenda_id = ANY (CAST(:fazendas AS uuid[])) AND r.competencia BETWEEN :inicio AND :fim
       AND (r.categoria_map_id IS NULL OR m.categoria_bi_id IS NOT NULL)    -- categoria pendente fica fora
+      AND {so_a_versao_que_vale('r')}
     GROUP BY r.competencia, r.cenario
 """
 AREA_POR_MES = """

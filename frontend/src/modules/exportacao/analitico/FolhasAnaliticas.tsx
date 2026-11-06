@@ -2,7 +2,6 @@ import type { BoletimAnalitico } from "../../../core/api/tipos";
 import { useArea } from "../../../core/auth/AreaAutenticada";
 import { CAPA } from "../../../core/ui/paginasDoBoletim";
 import { cabecalhoDoBoletim, mesDeReferencia } from "../../../logic/analitico";
-import { consultaDoFiltro } from "../../../logic/filtro";
 import { mesCurto } from "../../../logic/meses";
 import { type ParteDoAssunto, TODAS_AS_PARTES } from "../../../logic/personalizado";
 import { Capa } from "../Capa";
@@ -26,17 +25,16 @@ type Props = {
 // personalizado, as notas e os blocos escolhidos encaixados em folhas. Se a API falhar, deixa a mensagem num
 // `data-erro` para a exportação parar e mostrar.
 export function FolhasAnaliticas({ personalizado, paginas, partes, cidade, notaInicial, notaFinal }: Props) {
-  const { escopo, filtro } = useArea();
-  const consulta = consultaDoFiltro(filtro, escopo.fazendas);
+  const { escopo, filtro, consulta } = useArea();
   const mes = mesDeReferencia(filtro, escopo.fazendas);
-  const boletim = useBoletimAnalitico(consulta.fazendas, mes, filtro.visao);
+  const boletim = useBoletimAnalitico(consulta.fazendas, mes, filtro.visao, consulta.versao);
   if (boletim.isError) {
     return <p className="exportacao-falha" data-erro={boletim.error.message}>{boletim.error.message}</p>;
   }
   if (boletim.data === undefined) {
     return null;
   }
-  const cabecalho = cabecalhoDoBoletim(filtro, escopo.fazendas);
+  const cabecalho = { ...cabecalhoDoBoletim(filtro, escopo.fazendas), planejamento: boletim.data.plano.em_uso.join("; ") };
   const rotulos: Rotulos = {
     mes: mesCurto(mes),
     inicio: mesCurto(boletim.data.inicio_do_periodo),

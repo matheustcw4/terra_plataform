@@ -19,6 +19,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.kpis.filtro import Filtro, meses_do_filtro
+from app.kpis.versao_do_plano import so_a_versao_que_vale
 from app.schemas.api import IndicadoresDoLote, MesDaContagem, MesDoLote, QuadroDoLote
 
 
@@ -39,24 +40,23 @@ TRANSF_SAIDA = TipoDeLote(tipo_no_fato="TRANSF_SAIDA", kg_por_arroba=30, arroba_
 RECORTES = {"sexo": ["GERAL", "MACHO", "FÊMEA"], "grupo": ["GERAL", "BEZERROS", "JOVENS", "ADULTOS"]}
 CENARIOS = ["realizado", "planejado"]
 
-# TODO(D7): com mais de uma versão de plano por fazenda, o planejado terá de escolher a versão ativa. Hoje cada
-# fazenda tem uma só (a da planilha).
-TOTAIS_POR_RECORTE = """
-    SELECT m.cenario, b.{coluna} AS recorte, sum(m.qtd) AS cabecas, sum(m.valor_total) AS valor,
+# do planejado, só a versão que vale em cada fazenda e safra (versao_do_plano.py)
+TOTAIS_POR_RECORTE = f"""
+    SELECT m.cenario, b.{{coluna}} AS recorte, sum(m.qtd) AS cabecas, sum(m.valor_total) AS valor,
            sum(m.peso_vivo_total_kg) AS kg_vivo, sum(m.peso_carcaca_total_kg) AS kg_carcaca
     FROM fato.mov_animal m
     LEFT JOIN dim.categoria_map c ON c.id = m.categoria_map_id
     LEFT JOIN dim.categoria_bi b ON b.id = c.categoria_bi_id
     WHERE m.tipo = :tipo AND m.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
-      AND m.competencia = ANY (CAST(:meses AS date[]))
-    GROUP BY m.cenario, b.{coluna}
+      AND m.competencia = ANY (CAST(:meses AS date[])) AND {so_a_versao_que_vale('m')}
+    GROUP BY m.cenario, b.{{coluna}}
 """
-TOTAIS_POR_MES = """
+TOTAIS_POR_MES = f"""
     SELECT m.competencia, m.cenario, sum(m.qtd) AS cabecas, sum(m.valor_total) AS valor,
            sum(m.peso_vivo_total_kg) AS kg_vivo, sum(m.peso_carcaca_total_kg) AS kg_carcaca
     FROM fato.mov_animal m
     WHERE m.tipo = :tipo AND m.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
-      AND m.competencia = ANY (CAST(:meses AS date[]))
+      AND m.competencia = ANY (CAST(:meses AS date[])) AND {so_a_versao_que_vale('m')}
     GROUP BY m.competencia, m.cenario
 """
 

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.kpis import lotes
 from app.kpis.filtro import Filtro, periodo_do_filtro
+from app.kpis.versao_do_plano import escolha_da_versao
 from app.schemas.api import Nascimentos, NascimentosDoSexo
 
 TIPO = "NASCIMENTO"
@@ -26,4 +27,4 @@ def nascimentos(s: Session, filtro: Filtro) -> Nascimentos:
                                         percentual_da_meta=lotes.dividir(realizado, planejado),
                                         participacao_no_total=lotes.dividir(realizado, total)))
     return Nascimentos(periodo=periodo_do_filtro(filtro), quadro=quadro,
-                       serie_mensal=lotes.serie_de_contagem(s, filtro, TIPO))
+                       serie_mensal=lotes.serie_de_contagem(s, filtro, TIPO), plano=escolha_da_versao(s, filtro))

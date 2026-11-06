@@ -7,7 +7,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from app.schemas.api import PrevistoRealizado
+from app.schemas.api import EscolhaDaVersao, PrevistoRealizado
 
 
 class Comparado(BaseModel):
@@ -224,3 +224,4 @@ class BoletimAnalitico(BaseModel):
     mortes: SecaoMortes
     financeiro: SecaoFinanceiro
     caixa: SecaoCaixa
+    plano: EscolhaDaVersao                  # a versão do planejamento das metas do boletim

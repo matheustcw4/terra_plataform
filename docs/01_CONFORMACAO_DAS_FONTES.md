@@ -199,7 +199,8 @@ A planilha planeja lançamento a lançamento; o Metryx planeja por mês e por ve
 planejado usa grão menor que o mês, os dois entram em `fato.mov_animal` com `cenario='planejado'` e são sempre agregados
 por `competencia`. A versão é obrigatória: na planilha é uma única versão "PLANILHA" marcada como oficial; no Metryx, a
 versão oficial é escolhida pelo consultor (decisão D7). Isso acaba com a soma de todas as versões que existe hoje.
-Até a D7, entra a versão mais recente de cada fazenda e safra (27/10/2026). O número da versão só é único dentro da
+Entram todas as versões (04/11/2026), e as telas escolhem: numa fazenda e safra vale a escolhida ou, sem escolha, a
+mais recente (`app.versoes_do_planejado`). O número da versão só é único dentro da
 fazenda (cada fazenda tem a sua versão 1), então o código canônico é fazenda + número. O `previsao-financeiro` não tem
 versão e entra numa versão própria; o rebanho médio previsto sai da evolução do rebanho
 (`estoque-medio-mensal-planejamento`), regras em `app/etl/adapters/metryx/planejamento.py`.

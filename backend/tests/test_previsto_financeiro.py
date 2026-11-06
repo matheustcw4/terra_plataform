@@ -100,3 +100,12 @@ def test_financeiro_segue_a_mesma_escolha(pedir):
     assert desembolso_planejado(planejamento) == [1200, 0, 0]
     versao_1 = planejamento["previsto"]["versoes"][1]["id"]
     assert desembolso_planejado(pedir("financeiro", previsto="planejamento", versao=versao_1)) == [1000, 300, 0]
+
+
+def test_a_tela_diz_qual_versao_do_orcamento_esta_valendo(pedir):
+    assert pedir("previsto_realizado")["previsto"]["em_uso"] == ["Previsão financeira do Metryx (sem versão)"]
+    planejamento = pedir("previsto_realizado", previsto="planejamento")["previsto"]
+    assert planejamento["em_uso"] == ["Versão 3"]
+    versao_1 = planejamento["versoes"][1]["id"]
+    escolhida = pedir("previsto_realizado", previsto="planejamento", versao=versao_1)["previsto"]
+    assert escolhida["em_uso"] == ["Versão 1"]

@@ -5,6 +5,7 @@ import type { Vendas } from "../../core/api/tipos";
 import { useArea } from "../../core/auth/AreaAutenticada";
 import { Aviso } from "../../core/ui/Aviso";
 import { Moldura } from "../../core/ui/Moldura";
+import { SeletorDaVersao } from "../../core/ui/SeletorDaVersao";
 import { Linha, Painel } from "../../core/ui/Painel";
 import { dinheiro, numero } from "../../logic/formatar";
 import { useVendas, type TipoDeVenda } from "./api";
@@ -18,6 +19,7 @@ export function VendasPagina({ tipo }: { tipo: TipoDeVenda }) {
     <Moldura caminho={`/vendas/${tipo}`}>
       {pagina.isPending && <Aviso>Carregando…</Aviso>}
       {pagina.isError && <Aviso tipo="erro">Não foi possível carregar a página: {pagina.error.message}</Aviso>}
+      {pagina.data && <SeletorDaVersao escolha={pagina.data.plano} />}
       {pagina.data && (
         <div className={pagina.isPlaceholderData ? "pagina atualizando" : "pagina"}>
           <Conteudo dados={pagina.data} tipo={tipo} />

@@ -32,6 +32,7 @@ export type ValoresDoVelocimetro = Schemas["Velocimetro"];
 export type MesDoFinanceiro = Schemas["MesDoFinanceiro"];
 export type PrevistoRealizado = Schemas["PrevistoRealizado"];
 export type EscolhaDoPrevisto = Schemas["EscolhaDoPrevisto"];
+export type EscolhaDaVersao = Schemas["EscolhaDaVersao"];
 export type GrupoDoPrevisto = Schemas["GrupoDoPrevisto"];
 export type LinhaDoPrevisto = Schemas["LinhaDoPrevisto"];
 export type Comparacao = Schemas["Comparacao"];

@@ -30,6 +30,7 @@ export type Consulta = {
   inicio: string; // "AAAA-MM"
   fim: string; // "AAAA-MM"
   meses: string[]; // os meses marcados; vazio = todos de inicio a fim
+  versao: string | null; // a versão do planejamento escolhida numa página (vale nas metas de todas); vazio = a mais recente
 };
 
 // Fazenda sem origem conhecida aparece nas duas.
@@ -204,10 +205,11 @@ export function consultaDoFiltro(filtro: Filtro, fazendas: FazendaDoEscopo[], ho
     inicio: meses[0] ?? primeiroDoPeriodo,
     fim: meses[meses.length - 1] ?? primeiroDoPeriodo,
     meses: filtro.meses,
+    versao: null,
   };
 }
 
-// ?fazendas=..&fazendas=..&inicio=AAAA-MM&fim=AAAA-MM[&meses=AAAA-MM..]
+// ?fazendas=..&fazendas=..&inicio=AAAA-MM&fim=AAAA-MM[&meses=AAAA-MM..][&versao=..]
 export function parametrosDaConsulta(consulta: Consulta): URLSearchParams {
   const parametros = new URLSearchParams({ inicio: consulta.inicio, fim: consulta.fim });
   for (const fazenda of consulta.fazendas) {
@@ -215,6 +217,9 @@ export function parametrosDaConsulta(consulta: Consulta): URLSearchParams {
   }
   for (const mes of consulta.meses) {
     parametros.append("meses", mes);
+  }
+  if (consulta.versao) {
+    parametros.set("versao", consulta.versao);
   }
   return parametros;
 }

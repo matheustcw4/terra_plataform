@@ -72,7 +72,8 @@ function Area({ escopo }: { escopo: Escopo }) {
   const contexto: ContextoDaArea = {
     escopo,
     filtro,
-    consulta: consultaDoFiltro(filtro, escopo.fazendas),
+    // a versão do planejamento fica na URL, fora do filtro do MENU: escolhida numa página, vale em todas
+    consulta: { ...consultaDoFiltro(filtro, escopo.fazendas), versao: parametros.get("versao") },
     trocarFiltro,
   };
   return <Outlet context={contexto} />;

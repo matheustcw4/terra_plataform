@@ -82,6 +82,7 @@ describe("filtro do menu", () => {
       inicio: "2025-07",
       fim: "2026-06",
       meses: [],
+      versao: null,
     });
   });
 
@@ -96,7 +97,7 @@ describe("filtro do menu", () => {
     expect(nomeDaSelecao(filtro, FAZENDAS)).toBe("FAZENDA a2");
     expect(rotuloDoFiltro(filtro)).toBe("2025 · ago/25");
     expect(consultaDoFiltro(filtro, FAZENDAS, HOJE)).toEqual({ fazendas: ["a2"], inicio: "2025-08", fim: "2025-08",
-      meses: ["2025-08"] });
+      meses: ["2025-08"], versao: null });
   });
 
   test("fazenda de outro cliente, ano sem dado e mês fora do período voltam ao padrão", () => {
@@ -136,8 +137,10 @@ describe("meses de seleção múltipla, como no BI", () => {
     expect(rotuloDoFiltro(filtro)).toBe("Safra 25/26 · jul/25, set/25");
     const consulta = consultaDoFiltro(filtro, FAZENDAS, HOJE);
     expect(consulta).toEqual({ fazendas: ["a1", "a2"], inicio: "2025-07", fim: "2025-09",
-      meses: ["2025-07", "2025-09"] });
+      meses: ["2025-07", "2025-09"], versao: null });
     expect(parametrosDaConsulta(consulta).getAll("meses")).toEqual(["2025-07", "2025-09"]);
+    expect(parametrosDaConsulta(consulta).has("versao")).toBe(false);
+    expect(parametrosDaConsulta({ ...consulta, versao: "v3" }).get("versao")).toBe("v3");
   });
 
   test("mês fora do período sai; marcar todos é o mesmo que Todos", () => {

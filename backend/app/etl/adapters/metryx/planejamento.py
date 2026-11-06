@@ -1,11 +1,12 @@
 """Planejamento do Metryx -> cenário planejado do canônico: as metas mensais de compra, venda, nascimento, morte e
 desmame, o rebanho médio previsto e o DRE previsto.
 
-Regras (27/10/2026; a escolha da versão é provisória até a D7):
+Regras (27/10/2026):
 - versão: cada fazenda tem as suas versões do plano (o número se repete entre fazendas, e uma versão pode cobrir
   várias safras). O Metryx guarda várias por fazenda e safra (Serra Dourada 25/26 tem a 1 e a 3) e o BI soma todas,
-  o que dobra as metas. Aqui entra só a mais recente (maior plVersionCode) de cada fazenda e safra, olhando todos os
-  endpoints do planejamento juntos, para as metas de uma safra virem da mesma versão; as outras ficam num aviso;
+  o que dobra as metas. Entram todas, com o número (`plVersionCode`, a ordem) e o nome (`plVersionName`); as telas
+  escolhem a versão (pedido do usuário, 04/11/2026), e sem escolha vale a mais recente de cada fazenda e safra
+  (app/kpis/versao_do_plano.py). `oficial` marca a mais recente; o aviso lista as safras com mais de uma;
 - mês das metas: sai do `month` (mês do calendário) e da safra, e não do `date`. A API escreve o mês 6 com o ano do
   início da safra ("6/25" na 25-26), em todos os clientes e safras, mas a safra vai de julho a junho: o
   `previsao-fluxo-caixa-planejamento` do mesmo plano põe as mesmas vendas em jun/2026, e a evolução do rebanho só
@@ -228,7 +229,7 @@ class MontagemDoPlano:
     # -- versão --
 
     def versoes(self) -> None:
-        """A versão mais recente de cada fazenda e safra. TODO(D7): a versão ativa (a API não diz qual é)."""
+        """A versão mais recente de cada fazenda e safra (a padrão das telas; a API não diz qual é a ativa)."""
         encontradas = self.versoes_encontradas()
         deixadas = {}
         for chave, numeros in encontradas.items():
@@ -257,9 +258,9 @@ class MontagemDoPlano:
         for (fazenda, safra), numeros in sorted(deixadas.items()):
             escolhida = self.rotulo_da_versao(fazenda, self.versao_da_safra[(fazenda, safra)])
             outras = ", ".join(self.rotulo_da_versao(fazenda, numero) for numero in numeros)
-            trechos.append(f"{nomes_das_fazendas.get(fazenda, fazenda)} {safra}: {escolhida} (ficou de fora: {outras})")
-        self.metryx.aviso("PLAN_VERSION_CHOSEN", "plano com mais de uma versão na safra, entrou a mais recente: "
-                          + "; ".join(trechos))
+            trechos.append(f"{nomes_das_fazendas.get(fazenda, fazenda)} {safra}: {escolhida} (outras: {outras})")
+        self.metryx.aviso("PLAN_VERSION_CHOSEN", "plano com mais de uma versão na safra; todas entram, e sem escolha "
+                          "na tela vale a mais recente: " + "; ".join(trechos))
 
     def rotulo_da_versao(self, fazenda: str, numero: int) -> str:
         nome = limpar_nome(self.nome_da_versao.get((fazenda, numero)))
@@ -268,9 +269,9 @@ class MontagemDoPlano:
         return f"versão {numero}"
 
     def versao_do_item(self, item: dict, fazenda: str) -> str | None:
-        """O código da versão do item, se ela for a escolhida para a fazenda e a safra dele; senão, None."""
+        """O código da versão do item (todas as versões entram); sem número de versão, None."""
         numero = numero_da_versao(item)
-        if numero is None or numero != self.versao_da_safra.get((fazenda, safra_do_item(item))):
+        if numero is None:
             return None
         self.versoes_usadas.add((fazenda, numero))
         return codigo_da_versao(fazenda, numero)
@@ -308,7 +309,7 @@ class MontagemDoPlano:
     # -- metas de animais --
 
     def lancar(self, ref: str, item: dict, tipo: str, categoria: Any, campos: dict[str, Any]) -> None:
-        """Uma meta mensal de animais, só da versão escolhida para a fazenda e a safra. Sem fazenda do cliente, sem
+        """Uma meta mensal de animais, de qualquer versão do plano (a tela escolhe). Sem fazenda do cliente, sem
         versão, mês, quantidade ou categoria -> quarentena."""
         fazenda = self.metryx.fazenda_pelo_id(item)
         if fazenda is None:
@@ -321,8 +322,6 @@ class MontagemDoPlano:
                                  "sem versão, mês, quantidade ou categoria", fazenda)
             return
         versao = self.versao_do_item(item, fazenda)
-        if versao is None:
-            return                                    # outra versão do plano (está no aviso PLAN_VERSION_CHOSEN)
         try:
             mov = MovAnimal(fazenda=fazenda, cenario="planejado", versao_plano=versao, tipo=tipo, data=mes,
                             categoria=self.categoria(categoria), qtd=qtd, origem_linha=ref, **sem_vazios(campos))
@@ -374,13 +373,13 @@ class MontagemDoPlano:
         tem naquele mês, e ela fica negativa por uns meses (os casos grandes são as fazendas ADMINISTRATIVO, do U6, e
         Agropecuária Maister; na Serra Dourada 25/26 sobram 21 cab·mês). Categoria negativa no mês conta zero (cabeça
         negativa não existe), e o aviso diz quanto ficou de fora; o total fica um pouco acima da conta do plano. Um mês
-        que duas safras da mesma fazenda cobrem entra uma vez só (a primeira safra)."""
-        safra_do_mes: dict[tuple[str, date], str] = {}            # (fazenda, mês) -> safra que já o gravou
+        que duas safras da mesma versão e fazenda cobrem entra uma vez só (a primeira safra)."""
+        safra_do_mes: dict[tuple[str, str, date], str] = {}       # (fazenda, versão, mês) -> safra que o gravou
         repetidos = 0
         zerados: dict[str, Decimal] = defaultdict(Decimal)        # fazenda -> soma das médias negativas
         for (fazenda, safra, versao), evolucao in sorted(self.evolucoes().items()):
             for (mes, categoria), media in evolucao.medias().items():
-                ja_gravado = safra_do_mes.setdefault((fazenda, mes), safra)
+                ja_gravado = safra_do_mes.setdefault((fazenda, versao, mes), safra)
                 if ja_gravado != safra:
                     repetidos += 1
                 elif media < 0:

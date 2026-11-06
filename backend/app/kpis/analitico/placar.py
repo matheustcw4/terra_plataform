@@ -22,16 +22,17 @@ from app.kpis.movimentacao import rebanho_e_area
 from app.kpis.nascimentos import nascimentos
 from app.kpis.transferencias import transferencias
 from app.kpis.vendas import vendas
+from app.kpis.versao_do_plano import so_a_versao_que_vale
 from app.schemas.analitico import LinhaDoPlacar, SecaoPlacar
 from app.schemas.api import ContagemDoRecorte, MortesDoGrupo, NascimentosDoSexo, QuadroDoLote
 
-REBANHO_PREVISTO = """
+REBANHO_PREVISTO = f"""
     SELECT r.competencia, sum(r.qtd_cab) AS cabecas
     FROM fato.rebanho_medio_mensal r
     LEFT JOIN dim.categoria_map m ON m.id = r.categoria_map_id
     WHERE r.cenario = 'planejado' AND r.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
       AND r.competencia = ANY (CAST(:meses AS date[]))
-      AND (r.categoria_map_id IS NULL OR m.categoria_bi_id IS NOT NULL)
+      AND (r.categoria_map_id IS NULL OR m.categoria_bi_id IS NOT NULL) AND {so_a_versao_que_vale('r')}
     GROUP BY r.competencia
 """
 AREA_PREVISTA = """

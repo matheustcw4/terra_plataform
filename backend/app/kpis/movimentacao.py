@@ -16,6 +16,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.kpis.filtro import Filtro, periodo_do_filtro
+from app.kpis.versao_do_plano import escolha_da_versao, so_a_versao_que_vale
 from app.schemas.api import ComMeta, EstoqueDaCategoria, EstoqueDoMes, Movimentacao
 
 # cartão da página -> tipos de movimentação somados nele
@@ -37,7 +38,8 @@ def movimentacao(s: Session, filtro: Filtro) -> Movimentacao:
         rebanho_medio_ua=rebanho["rebanho_medio_ua"], lotacao_cab_ha=rebanho["lotacao_cab_ha"],
         lotacao_ua_ha=rebanho["lotacao_ua_ha"], nascimentos=contagens["nascimentos"], mortes=contagens["mortes"],
         indice_mortalidade=indice_mortalidade, compras=contagens["compras"], vendas=contagens["vendas"],
-        estoque_mensal=estoque_mensal(s, filtro), estoque_por_categoria=estoque_por_categoria(s, filtro))
+        estoque_mensal=estoque_mensal(s, filtro), estoque_por_categoria=estoque_por_categoria(s, filtro),
+        plano=escolha_da_versao(s, filtro))
 
 
 # --- estoque -------------------------------------------------------------------------------------------------------
@@ -89,13 +91,12 @@ def estoque_mensal(s: Session, filtro: Filtro) -> list[EstoqueDoMes]:
 
 # --- nascimentos, mortes, compras e vendas -------------------------------------------------------------------------
 
-# TODO(D7): com mais de uma versão de plano por fazenda, o planejado terá de escolher a versão ativa. Hoje cada
-# fazenda tem uma só (a da planilha).
-CABECAS_POR_TIPO = """
+# do planejado, só a versão que vale em cada fazenda e safra (versao_do_plano.py)
+CABECAS_POR_TIPO = f"""
     SELECT m.tipo, m.cenario, sum(m.qtd) AS cabecas
     FROM fato.mov_animal m
     WHERE m.fazenda_id = ANY (CAST(:fazendas AS uuid[])) AND m.competencia = ANY (CAST(:meses AS date[]))
-      AND m.tipo IN ('NASCIMENTO', 'MORTE', 'COMPRA', 'ABATE', 'VENDA_EM_PE')
+      AND m.tipo IN ('NASCIMENTO', 'MORTE', 'COMPRA', 'ABATE', 'VENDA_EM_PE') AND {so_a_versao_que_vale('m')}
     GROUP BY m.tipo, m.cenario
 """
 

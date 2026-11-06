@@ -37,17 +37,20 @@ Fazendas = Annotated[list[UUID], Query(min_length=1)]
 Mes = Annotated[str, Query(description="AAAA-MM")]
 Meses = Annotated[list[str] | None, Query(description="AAAA-MM, um por mês marcado no MENU (seleção múltipla); "
                                                       "sem nenhum, valem todos os meses de inicio a fim")]
-# o planejado do financeiro (Previsto × Realizado e Financeiro): o tipo do orçamento e a versão; sem eles, o padrão
+# a versão do planejamento (as metas de todas as páginas e o orçamento do planejamento); sem ela, a mais recente
+VersaoDoPlano = Annotated[UUID | None, Query(description="versão do plano; sem ela, a mais recente de cada "
+                                                         "fazenda e safra")]
+# o planejado do financeiro (Previsto × Realizado e Financeiro): o tipo do orçamento; sem ele, o padrão
 TipoDoPrevisto = Annotated[Literal["previsao", "planejamento"] | None,
                            Query(description="orçamento do planejado: previsão financeira ou planejamento")]
-VersaoDoPrevisto = Annotated[UUID | None, Query(description="versão do plano; sem ela, a mais recente de cada "
-                                                            "fazenda e safra")]
 
 
-def filtro_do_pedido(s: SessaoDoUsuario, fazendas: Fazendas, inicio: Mes, fim: Mes, meses: Meses = None) -> Filtro:
+def filtro_do_pedido(s: SessaoDoUsuario, fazendas: Fazendas, inicio: Mes, fim: Mes, meses: Meses = None,
+                     versao: VersaoDoPlano = None) -> Filtro:
     """Confere o pedido de qualquer página: meses válidos, início antes do fim, meses marcados dentro do período e
     só fazendas que o usuário vê."""
-    filtro = Filtro(fazendas=fazendas, inicio=mes(inicio), fim=mes(fim), meses_escolhidos=meses_escolhidos(meses))
+    filtro = Filtro(fazendas=fazendas, inicio=mes(inicio), fim=mes(fim), meses_escolhidos=meses_escolhidos(meses),
+                    versao_do_plano=versao)
     if filtro.inicio > filtro.fim:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "o início do período é depois do fim")
     for escolhido in filtro.meses_escolhidos:
@@ -92,24 +95,24 @@ def pagina_transferencias(s: SessaoDoUsuario, filtro: FiltroDoPedido) -> Transfe
 
 
 @router.get("/financeiro")
-def pagina_financeiro(s: SessaoDoUsuario, filtro: FiltroDoPedido, previsto: TipoDoPrevisto = None,
-                      versao: VersaoDoPrevisto = None) -> Financeiro:
-    return financeiro(s, filtro, PedidoDoPrevisto(previsto, versao))
+def pagina_financeiro(s: SessaoDoUsuario, filtro: FiltroDoPedido, previsto: TipoDoPrevisto = None) -> Financeiro:
+    return financeiro(s, filtro, PedidoDoPrevisto(previsto))
 
 
 @router.get("/previsto_realizado")
-def pagina_previsto_realizado(s: SessaoDoUsuario, filtro: FiltroDoPedido, previsto: TipoDoPrevisto = None,
-                              versao: VersaoDoPrevisto = None) -> PrevistoRealizado:
-    return previsto_realizado(s, filtro, PedidoDoPrevisto(previsto, versao))
+def pagina_previsto_realizado(s: SessaoDoUsuario, filtro: FiltroDoPedido,
+                              previsto: TipoDoPrevisto = None) -> PrevistoRealizado:
+    return previsto_realizado(s, filtro, PedidoDoPrevisto(previsto))
 
 
 @router.get("/analitico")
 def boletim_do_mes(s: SessaoDoUsuario, fazendas: Fazendas, mes_referencia: Mes,
-                   visao: Annotated[Literal["safra", "civil"], Query()] = "safra") -> BoletimAnalitico:
+                   visao: Annotated[Literal["safra", "civil"], Query()] = "safra",
+                   versao: VersaoDoPlano = None) -> BoletimAnalitico:
     """O "Exportar PDF" no modo Analítico: o mês de referência, o acumulado do período (safra ou ano) até ele e a meta
     do período inteiro, com as frases que explicam os números."""
     conferir_acesso(s, fazendas)
-    return boletim_analitico(s, fazendas, mes(mes_referencia), visao)
+    return boletim_analitico(s, fazendas, mes(mes_referencia), visao, versao)
 
 
 def meses_escolhidos(textos: list[str] | None) -> tuple[date, ...]:

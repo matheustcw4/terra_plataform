@@ -5,6 +5,7 @@ import { useArea } from "../../core/auth/AreaAutenticada";
 import { Aviso } from "../../core/ui/Aviso";
 import { GraficoDeColunas } from "../../core/ui/GraficoDeColunas";
 import { Moldura } from "../../core/ui/Moldura";
+import { SeletorDaVersao } from "../../core/ui/SeletorDaVersao";
 import { Linha, Painel } from "../../core/ui/Painel";
 import { numero, percentual } from "../../logic/formatar";
 import { mesCurto } from "../../logic/meses";
@@ -19,6 +20,7 @@ export function MovimentacaoPagina() {
     <Moldura caminho="/rebanho/movimentacao">
       {pagina.isPending && <Aviso>Carregando…</Aviso>}
       {pagina.isError && <Aviso tipo="erro">Não foi possível carregar a página: {pagina.error.message}</Aviso>}
+      {pagina.data && <SeletorDaVersao escolha={pagina.data.plano} />}
       {pagina.data && (
         <div className={pagina.isPlaceholderData ? "pagina atualizando" : "pagina"}>
           <Conteudo dados={pagina.data} />

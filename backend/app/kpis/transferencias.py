@@ -9,13 +9,14 @@ from sqlalchemy.orm import Session
 
 from app.kpis import lotes
 from app.kpis.filtro import Filtro, meses_do_filtro, periodo_do_filtro
+from app.kpis.versao_do_plano import escolha_da_versao
 from app.schemas.api import MesDeTransferencia, Transferencias
 
 
 def transferencias(s: Session, filtro: Filtro) -> Transferencias:
     return Transferencias(periodo=periodo_do_filtro(filtro), entrada=lotes.quadro(s, filtro, lotes.TRANSF_ENTRADA),
                           saida=lotes.quadro(s, filtro, lotes.TRANSF_SAIDA),
-                          serie_mensal=serie_de_transferencias(s, filtro))
+                          serie_mensal=serie_de_transferencias(s, filtro), plano=escolha_da_versao(s, filtro))
 
 
 def serie_de_transferencias(s: Session, filtro: Filtro) -> list[MesDeTransferencia]:

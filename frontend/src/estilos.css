@@ -780,6 +780,22 @@ input[type="radio"] {
   min-width: 220px;
 }
 
+/* a versão do planejamento que vale no período, ao lado dos seletores */
+.versao-em-uso {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 5px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.versao-em-uso > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cor-texto-apagado);
+}
+
 .paineis-4,
 .paineis-3,
 .paineis-2 {

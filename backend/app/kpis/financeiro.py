@@ -34,6 +34,7 @@ from app.kpis.previsto_financeiro import (
     PrevistoEscolhido,
     escolher_o_previsto,
 )
+from app.kpis.versao_do_plano import so_a_versao_que_vale
 from app.schemas.api import DesembolsoDoCentro, Financeiro, MesDoFinanceiro, Velocimetro
 
 # cenário -> view com a classificação da conta já resolvida (lista fechada: por isso pode entrar no SQL); no
@@ -55,12 +56,13 @@ TOTAIS_POR_MES = """
     WHERE v.fazenda_id = ANY (CAST(:fazendas AS uuid[])) AND v.competencia = ANY (CAST(:meses AS date[]))
     GROUP BY v.competencia
 """
-REBANHO_POR_MES = """
+REBANHO_POR_MES = f"""
     SELECT r.competencia, r.cenario, sum(r.qtd_cab) AS cabecas
     FROM fato.rebanho_medio_mensal r
     LEFT JOIN dim.categoria_map m ON m.id = r.categoria_map_id
     WHERE r.fazenda_id = ANY (CAST(:fazendas AS uuid[])) AND r.competencia = ANY (CAST(:meses AS date[]))
       AND (r.categoria_map_id IS NULL OR m.categoria_bi_id IS NOT NULL)    -- categoria pendente fica fora
+      AND {so_a_versao_que_vale('r')}
     GROUP BY r.competencia, r.cenario
 """
 DESEMBOLSO_POR_CENTRO = """

@@ -80,6 +80,21 @@ class EstoqueDaCategoria(BaseModel):
     estoque_final: float
 
 
+# --- versão do planejamento (todas as páginas com meta) ---------------------------------------------------------
+
+
+class VersaoDoPrevisto(BaseModel):
+    id: UUID
+    rotulo: str                     # o nome da versão; com mais de uma fazenda, "fazenda · nome"
+
+
+class EscolhaDaVersao(BaseModel):
+    """A versão do planejamento das metas de animais e do rebanho médio previsto (todas as páginas com meta)."""
+    versoes: list[VersaoDoPrevisto]  # as que têm meta no período, quando alguma fazenda tem mais de uma
+    versao: UUID | None             # a escolhida; None = a mais recente de cada fazenda e safra
+    em_uso: list[str]               # as versões que valem no período
+
+
 class Movimentacao(BaseModel):
     periodo: Periodo
     estoque_final: float
@@ -94,6 +109,7 @@ class Movimentacao(BaseModel):
     vendas: ComMeta                       # abate + em pé
     estoque_mensal: list[EstoqueDoMes]
     estoque_por_categoria: list[EstoqueDaCategoria]
+    plano: EscolhaDaVersao
 
 
 # --- páginas Vendas, Compras e Transferências (lotes de gado) ---------------------------------------------------
@@ -131,6 +147,7 @@ class Vendas(BaseModel):
     tipo: str                       # abate | em_pe
     quadro: list[QuadroDoLote]
     serie_mensal: list[MesDoLote]
+    plano: EscolhaDaVersao
 
 
 class Compras(BaseModel):
@@ -140,6 +157,7 @@ class Compras(BaseModel):
     preco_arroba_venda: float | None    # abate e em pé juntos, a base do ágio
     agio: float | None                  # (compra − venda) ÷ venda
     serie_mensal: list[MesDoLote]
+    plano: EscolhaDaVersao
 
 
 class MesDeTransferencia(BaseModel):
@@ -153,6 +171,7 @@ class Transferencias(BaseModel):
     entrada: list[QuadroDoLote]
     saida: list[QuadroDoLote]
     serie_mensal: list[MesDeTransferencia]
+    plano: EscolhaDaVersao
 
 
 # --- páginas Nascimentos e Mortes (contagens de cabeças) -----------------------------------------------------------
@@ -187,6 +206,7 @@ class Nascimentos(BaseModel):
     periodo: Periodo
     quadro: list[NascimentosDoSexo]         # GERAL, MACHO, FÊMEA
     serie_mensal: list[MesDaContagem]
+    plano: EscolhaDaVersao
 
 
 class CausaDeMorte(BaseModel):
@@ -199,6 +219,7 @@ class Mortes(BaseModel):
     quadro: list[MortesDoGrupo]             # GERAL, BEZERROS, JOVENS, ADULTOS
     causas: list[CausaDeMorte]              # do realizado, da maior para a menor
     serie_mensal: list[MesDaContagem]
+    plano: EscolhaDaVersao
 
 
 # --- página Financeiro --------------------------------------------------------------------------------------------
@@ -234,17 +255,13 @@ class TipoDoPrevisto(BaseModel):
     rotulo: str
 
 
-class VersaoDoPrevisto(BaseModel):
-    id: UUID
-    rotulo: str                     # o nome da versão; com mais de uma fazenda, "fazenda · nome"
-
-
 class EscolhaDoPrevisto(BaseModel):
     """De qual orçamento vem o planejado do financeiro (as páginas Previsto × Realizado e Financeiro escolhem)."""
     tipos: list[TipoDoPrevisto]     # os que têm orçamento nas fazendas escolhidas
     tipo: Literal["previsao", "planejamento"] | None    # o que entrou no planejado; None = nenhum orçamento
-    versoes: list[VersaoDoPrevisto]  # as do tipo em uso com orçamento no período
+    versoes: list[VersaoDoPrevisto]  # as do tipo em uso com orçamento no período, quando há o que escolher
     versao: UUID | None             # a escolhida; None = a mais recente de cada fazenda e safra
+    em_uso: list[str]               # as versões que entraram no planejado do período
 
 
 class Financeiro(BaseModel):

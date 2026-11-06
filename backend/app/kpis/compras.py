@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.kpis import lotes
 from app.kpis.filtro import Filtro, periodo_do_filtro
+from app.kpis.versao_do_plano import escolha_da_versao
 from app.schemas.api import Compras, QuadroDoLote
 
 
@@ -23,7 +24,7 @@ def compras(s: Session, filtro: Filtro) -> Compras:
         agio = (preco_de_compra - preco_de_venda) / preco_de_venda
     return Compras(periodo=periodo_do_filtro(filtro), quadro=quadros, preco_arroba_compra=preco_de_compra,
                    preco_arroba_venda=preco_de_venda, agio=agio,
-                   serie_mensal=lotes.serie_mensal(s, filtro, lotes.COMPRA))
+                   serie_mensal=lotes.serie_mensal(s, filtro, lotes.COMPRA), plano=escolha_da_versao(s, filtro))
 
 
 def quadro_geral(quadros: list[QuadroDoLote]) -> QuadroDoLote:

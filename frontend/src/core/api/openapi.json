@@ -192,6 +192,25 @@
               "title": "Meses"
             },
             "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
           }
         ],
         "responses": {
@@ -300,6 +319,25 @@
               "title": "Meses"
             },
             "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
           }
         ],
         "responses": {
@@ -395,6 +433,25 @@
               "title": "Meses"
             },
             "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
           }
         ],
         "responses": {
@@ -490,6 +547,25 @@
               "title": "Meses"
             },
             "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
           }
         ],
         "responses": {
@@ -585,6 +661,25 @@
               "title": "Meses"
             },
             "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
           }
         ],
         "responses": {
@@ -680,6 +775,25 @@
               "title": "Meses"
             },
             "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
           }
         ],
         "responses": {
@@ -742,25 +856,6 @@
             "description": "orçamento do planejado: previsão financeira ou planejamento"
           },
           {
-            "name": "versao",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
-              "title": "Versao"
-            },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
-          },
-          {
             "name": "fazendas",
             "in": "query",
             "required": true,
@@ -816,6 +911,25 @@
               "title": "Meses"
             },
             "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
           }
         ],
         "responses": {
@@ -878,25 +992,6 @@
             "description": "orçamento do planejado: previsão financeira ou planejamento"
           },
           {
-            "name": "versao",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "format": "uuid"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
-              "title": "Versao"
-            },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
-          },
-          {
             "name": "fazendas",
             "in": "query",
             "required": true,
@@ -952,6 +1047,25 @@
               "title": "Meses"
             },
             "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
           }
         ],
         "responses": {
@@ -1030,6 +1144,25 @@
               "default": "safra",
               "title": "Visao"
             }
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "title": "Versao"
+            },
+            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
           }
         ],
         "responses": {
@@ -1950,6 +2083,9 @@
           },
           "caixa": {
             "$ref": "#/components/schemas/SecaoCaixa"
+          },
+          "plano": {
+            "$ref": "#/components/schemas/EscolhaDaVersao"
           }
         },
         "type": "object",
@@ -1967,7 +2103,8 @@
           "transferencias",
           "mortes",
           "financeiro",
-          "caixa"
+          "caixa",
+          "plano"
         ],
         "title": "BoletimAnalitico"
       },
@@ -2477,6 +2614,9 @@
             },
             "type": "array",
             "title": "Serie Mensal"
+          },
+          "plano": {
+            "$ref": "#/components/schemas/EscolhaDaVersao"
           }
         },
         "type": "object",
@@ -2486,7 +2626,8 @@
           "preco_arroba_compra",
           "preco_arroba_venda",
           "agio",
-          "serie_mensal"
+          "serie_mensal",
+          "plano"
         ],
         "title": "Compras"
       },
@@ -2631,6 +2772,44 @@
         ],
         "title": "DesembolsoDoCentro"
       },
+      "EscolhaDaVersao": {
+        "properties": {
+          "versoes": {
+            "items": {
+              "$ref": "#/components/schemas/VersaoDoPrevisto"
+            },
+            "type": "array",
+            "title": "Versoes"
+          },
+          "versao": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Versao"
+          },
+          "em_uso": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Em Uso"
+          }
+        },
+        "type": "object",
+        "required": [
+          "versoes",
+          "versao",
+          "em_uso"
+        ],
+        "title": "EscolhaDaVersao",
+        "description": "A versão do planejamento das metas de animais e do rebanho médio previsto (todas as páginas com meta)."
+      },
       "EscolhaDoPrevisto": {
         "properties": {
           "tipos": {
@@ -2673,6 +2852,13 @@
               }
             ],
             "title": "Versao"
+          },
+          "em_uso": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Em Uso"
           }
         },
         "type": "object",
@@ -2680,7 +2866,8 @@
           "tipos",
           "tipo",
           "versoes",
-          "versao"
+          "versao",
+          "em_uso"
         ],
         "title": "EscolhaDoPrevisto",
         "description": "De qual orçamento vem o planejado do financeiro (as páginas Previsto × Realizado e Financeiro escolhem)."
@@ -3879,6 +4066,9 @@
             },
             "type": "array",
             "title": "Serie Mensal"
+          },
+          "plano": {
+            "$ref": "#/components/schemas/EscolhaDaVersao"
           }
         },
         "type": "object",
@@ -3886,7 +4076,8 @@
           "periodo",
           "quadro",
           "causas",
-          "serie_mensal"
+          "serie_mensal",
+          "plano"
         ],
         "title": "Mortes"
       },
@@ -4038,6 +4229,9 @@
             },
             "type": "array",
             "title": "Estoque Por Categoria"
+          },
+          "plano": {
+            "$ref": "#/components/schemas/EscolhaDaVersao"
           }
         },
         "type": "object",
@@ -4054,7 +4248,8 @@
           "compras",
           "vendas",
           "estoque_mensal",
-          "estoque_por_categoria"
+          "estoque_por_categoria",
+          "plano"
         ],
         "title": "Movimentacao"
       },
@@ -4076,13 +4271,17 @@
             },
             "type": "array",
             "title": "Serie Mensal"
+          },
+          "plano": {
+            "$ref": "#/components/schemas/EscolhaDaVersao"
           }
         },
         "type": "object",
         "required": [
           "periodo",
           "quadro",
-          "serie_mensal"
+          "serie_mensal",
+          "plano"
         ],
         "title": "Nascimentos"
       },
@@ -5064,6 +5263,9 @@
             },
             "type": "array",
             "title": "Serie Mensal"
+          },
+          "plano": {
+            "$ref": "#/components/schemas/EscolhaDaVersao"
           }
         },
         "type": "object",
@@ -5071,7 +5273,8 @@
           "periodo",
           "entrada",
           "saida",
-          "serie_mensal"
+          "serie_mensal",
+          "plano"
         ],
         "title": "Transferencias"
       },
@@ -5292,6 +5495,9 @@
             },
             "type": "array",
             "title": "Serie Mensal"
+          },
+          "plano": {
+            "$ref": "#/components/schemas/EscolhaDaVersao"
           }
         },
         "type": "object",
@@ -5299,7 +5505,8 @@
           "periodo",
           "tipo",
           "quadro",
-          "serie_mensal"
+          "serie_mensal",
+          "plano"
         ],
         "title": "Vendas"
       },

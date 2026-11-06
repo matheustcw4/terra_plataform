@@ -152,8 +152,8 @@ mostram só o resultado. O visual tem a base do AgTechLab nas cores da Terra: me
 no celular vira gaveta), topo com o filtro em uso e o "Trocar" (volta ao MENU), cartões de borda fina e gráficos com
 um estilo comum (`src/core/ui/estiloDosGraficos.ts`). Na folha do PDF o cabeçalho leva o logo, a seleção e o título.
 O filtro fica na URL, para o link poder ser compartilhado, e o navegador lembra o último. A única escolha fora do
-MENU é a do planejado do financeiro, no topo das páginas Previsto × Realizado e Financeiro: o orçamento (previsão
-financeira ou planejamento) e a versão do plano.
+MENU é a do planejado: no topo das páginas com meta, a versão do plano (com a versão em uso ao lado) e, no
+Previsto × Realizado e no Financeiro, também o orçamento (previsão financeira ou planejamento).
 O botão **Exportar PDF** (em todas as páginas e no MENU) gera o boletim em PDF com a capa e as páginas escolhidas
 (`src/modules/exportacao/`), em três modos: **Padrão** (as páginas do painel, como na tela), **Analítico** (folhas A4
 do mês de referência, o último mês do filtro: o mês e o acumulado contra o previsto, a meta do período e uma "Leitura

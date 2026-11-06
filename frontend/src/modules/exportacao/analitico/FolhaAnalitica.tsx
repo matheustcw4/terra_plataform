@@ -14,7 +14,8 @@ type Props = {
   children: ReactNode;
 };
 
-// Uma folha A4 do boletim analítico (o "Exportar PDF" no modo Analítico): título, fazenda, mês e período, o logo,
+// Uma folha A4 do boletim analítico (o "Exportar PDF" no modo Analítico): título, fazenda, mês, período e a versão do
+// planejamento, o logo,
 // a "Leitura do mês" que explica os números e os quadros da folha.
 export function FolhaAnalitica({ titulo, cabecalho, leitura, children }: Props) {
   return (
@@ -29,6 +30,12 @@ export function FolhaAnalitica({ titulo, cabecalho, leitura, children }: Props) 
             <dd>{cabecalho.mesDeReferencia}</dd>
             <dt>Período</dt>
             <dd>{cabecalho.periodo}</dd>
+            {cabecalho.planejamento && (
+              <>
+                <dt>Planejamento</dt>
+                <dd>{cabecalho.planejamento}</dd>
+              </>
+            )}
           </dl>
         </div>
         <img src={logo} alt="Terra Desenvolvimento Agropecuário" />

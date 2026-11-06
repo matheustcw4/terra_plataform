@@ -7,6 +7,7 @@ import type { MesDeTransferencia, QuadroDoLote, Transferencias } from "../../cor
 import { useArea } from "../../core/auth/AreaAutenticada";
 import { Aviso } from "../../core/ui/Aviso";
 import { Moldura } from "../../core/ui/Moldura";
+import { SeletorDaVersao } from "../../core/ui/SeletorDaVersao";
 import { Painel } from "../../core/ui/Painel";
 import { numero, rotuloDeColuna } from "../../logic/formatar";
 import { mesCurto } from "../../logic/meses";
@@ -29,6 +30,7 @@ export function TransferenciasPagina() {
     <Moldura caminho="/transferencias">
       {pagina.isPending && <Aviso>Carregando…</Aviso>}
       {pagina.isError && <Aviso tipo="erro">Não foi possível carregar a página: {pagina.error.message}</Aviso>}
+      {pagina.data && <SeletorDaVersao escolha={pagina.data.plano} />}
       {pagina.data && (
         <div className={pagina.isPlaceholderData ? "pagina atualizando" : "pagina"}>
           <Conteudo dados={pagina.data} />

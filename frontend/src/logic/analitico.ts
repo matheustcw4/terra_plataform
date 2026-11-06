@@ -12,6 +12,7 @@ export type Cabecalho = {
   mesDeReferencia: string; // "setembro de 2026"
   periodo: string; // "Safra 26/27"
   rotuloDaMeta: string; // "Meta da safra" ou "Meta do ano"
+  planejamento: string; // a versão do planejamento das metas (vazio = sem planejamento, ou fora do analítico)
 };
 
 export function cabecalhoDoBoletim(filtro: Filtro, fazendas: FazendaDoEscopo[]): Cabecalho {
@@ -20,6 +21,7 @@ export function cabecalhoDoBoletim(filtro: Filtro, fazendas: FazendaDoEscopo[]):
     mesDeReferencia: rotuloDoMesDeReferencia(mesDeReferencia(filtro, fazendas)),
     periodo: rotuloDoPeriodo(filtro.ano, filtro.visao),
     rotuloDaMeta: rotuloDaMeta(filtro.visao),
+    planejamento: "",
   };
 }
 

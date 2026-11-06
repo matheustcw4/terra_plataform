@@ -16,11 +16,13 @@ from app.kpis.analitico.recortes import recortes_do_boletim
 from app.kpis.analitico.transferencias import secao_transferencias
 from app.kpis.analitico.ultimo_dado import aviso_do_ultimo_dado
 from app.kpis.analitico.vendas import secoes_de_vendas
+from app.kpis.versao_do_plano import escolha_da_versao
 from app.schemas.analitico import BoletimAnalitico
 
 
-def boletim_analitico(s: Session, fazendas: list[UUID], mes_referencia: date, visao: str) -> BoletimAnalitico:
-    recortes = recortes_do_boletim(fazendas, mes_referencia, visao)
+def boletim_analitico(s: Session, fazendas: list[UUID], mes_referencia: date, visao: str,
+                      versao_do_plano: UUID | None = None) -> BoletimAnalitico:
+    recortes = recortes_do_boletim(fazendas, mes_referencia, visao, versao_do_plano)
     limiar = limiar_do_semaforo(s)
     aviso = aviso_do_ultimo_dado(s, recortes)
     estoque = secao_estoque(s, recortes, sem_lancamento_no_mes=aviso.todas_paradas)
@@ -32,7 +34,8 @@ def boletim_analitico(s: Session, fazendas: list[UUID], mes_referencia: date, vi
         nascimentos=secao_nascimentos(s, recortes, valores, limiar),
         compras=secao_compras(s, recortes, valores, limiar), vendas=secoes_de_vendas(s, recortes, valores, limiar),
         transferencias=secao_transferencias(s, recortes, valores, limiar), mortes=secao_mortes(s, recortes),
-        financeiro=secao_financeiro(s, recortes, limiar), caixa=secao_caixa(s, recortes))
+        financeiro=secao_financeiro(s, recortes, limiar), caixa=secao_caixa(s, recortes),
+        plano=escolha_da_versao(s, recortes.periodo))
     abrir_com_o_aviso(boletim, aviso.frase)
     return boletim
 

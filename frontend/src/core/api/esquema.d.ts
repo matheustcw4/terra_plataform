@@ -485,6 +485,7 @@ export interface components {
             mortes: components["schemas"]["SecaoMortes"];
             financeiro: components["schemas"]["SecaoFinanceiro"];
             caixa: components["schemas"]["SecaoCaixa"];
+            plano: components["schemas"]["EscolhaDaVersao"];
         };
         /**
          * Capacidades
@@ -638,6 +639,7 @@ export interface components {
             agio: number | null;
             /** Serie Mensal */
             serie_mensal: components["schemas"]["MesDoLote"][];
+            plano: components["schemas"]["EscolhaDaVersao"];
         };
         /**
          * ContaDeOrigem
@@ -687,6 +689,18 @@ export interface components {
             valor: number;
         };
         /**
+         * EscolhaDaVersao
+         * @description A versão do planejamento das metas de animais e do rebanho médio previsto (todas as páginas com meta).
+         */
+        EscolhaDaVersao: {
+            /** Versoes */
+            versoes: components["schemas"]["VersaoDoPrevisto"][];
+            /** Versao */
+            versao: string | null;
+            /** Em Uso */
+            em_uso: string[];
+        };
+        /**
          * EscolhaDoPrevisto
          * @description De qual orçamento vem o planejado do financeiro (as páginas Previsto × Realizado e Financeiro escolhem).
          */
@@ -699,6 +713,8 @@ export interface components {
             versoes: components["schemas"]["VersaoDoPrevisto"][];
             /** Versao */
             versao: string | null;
+            /** Em Uso */
+            em_uso: string[];
         };
         /** Escopo */
         Escopo: {
@@ -1086,6 +1102,7 @@ export interface components {
             causas: components["schemas"]["CausaDeMorte"][];
             /** Serie Mensal */
             serie_mensal: components["schemas"]["MesDaContagem"][];
+            plano: components["schemas"]["EscolhaDaVersao"];
         };
         /** MortesDoGrupo */
         MortesDoGrupo: {
@@ -1125,6 +1142,7 @@ export interface components {
             estoque_mensal: components["schemas"]["EstoqueDoMes"][];
             /** Estoque Por Categoria */
             estoque_por_categoria: components["schemas"]["EstoqueDaCategoria"][];
+            plano: components["schemas"]["EscolhaDaVersao"];
         };
         /** Nascimentos */
         Nascimentos: {
@@ -1133,6 +1151,7 @@ export interface components {
             quadro: components["schemas"]["NascimentosDoSexo"][];
             /** Serie Mensal */
             serie_mensal: components["schemas"]["MesDaContagem"][];
+            plano: components["schemas"]["EscolhaDaVersao"];
         };
         /** NascimentosDoSexo */
         NascimentosDoSexo: {
@@ -1456,6 +1475,7 @@ export interface components {
             saida: components["schemas"]["QuadroDoLote"][];
             /** Serie Mensal */
             serie_mensal: components["schemas"]["MesDeTransferencia"][];
+            plano: components["schemas"]["EscolhaDaVersao"];
         };
         /** UsuarioDoAdmin */
         UsuarioDoAdmin: {
@@ -1534,6 +1554,7 @@ export interface components {
             quadro: components["schemas"]["QuadroDoLote"][];
             /** Serie Mensal */
             serie_mensal: components["schemas"]["MesDoLote"][];
+            plano: components["schemas"]["EscolhaDaVersao"];
         };
         /** VersaoDoPrevisto */
         VersaoDoPrevisto: {
@@ -1659,6 +1680,8 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
             };
             header?: never;
             path?: never;
@@ -1697,6 +1720,8 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
             };
             header?: never;
             path?: never;
@@ -1734,6 +1759,8 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
             };
             header?: never;
             path?: never;
@@ -1771,6 +1798,8 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
             };
             header?: never;
             path?: never;
@@ -1808,6 +1837,8 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
             };
             header?: never;
             path?: never;
@@ -1845,6 +1876,8 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
             };
             header?: never;
             path?: never;
@@ -1877,8 +1910,6 @@ export interface operations {
             query: {
                 /** @description orçamento do planejado: previsão financeira ou planejamento */
                 previsto?: ("previsao" | "planejamento") | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
                 fazendas: string[];
                 /** @description AAAA-MM */
                 inicio: string;
@@ -1886,6 +1917,8 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
             };
             header?: never;
             path?: never;
@@ -1918,8 +1951,6 @@ export interface operations {
             query: {
                 /** @description orçamento do planejado: previsão financeira ou planejamento */
                 previsto?: ("previsao" | "planejamento") | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
                 fazendas: string[];
                 /** @description AAAA-MM */
                 inicio: string;
@@ -1927,6 +1958,8 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
             };
             header?: never;
             path?: never;
@@ -1961,6 +1994,8 @@ export interface operations {
                 /** @description AAAA-MM */
                 mes_referencia: string;
                 visao?: "safra" | "civil";
+                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
+                versao?: string | null;
             };
             header?: never;
             path?: never;

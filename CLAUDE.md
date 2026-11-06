@@ -53,7 +53,11 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   Metryx e o DRE planejado da planilha; ou planejamento, o fluxo de caixa do plano do Metryx) e, quando alguma
   fazenda tem mais de uma, a **versão do plano** (padrão: a mais recente de cada fazenda e safra). As opções vêm da
   API (`previsto` na resposta; `app/kpis/previsto_financeiro.py`), sem lógica por fonte no front; a escolha fica na URL
-  (`previsto`, `versao`), vale nas duas páginas e vai junto no PDF.
+  (`previsto`, `versao`), vale nas duas páginas e vai junto no PDF. **E a versão do planejamento** (pedido do usuário,
+  04/11/2026): toda página com meta (Movimentação, Vendas, Compras, Nascimentos, Mortes, Transferências, além das
+  duas acima) mostra a versão em uso e, quando alguma fazenda tem mais de uma, deixa escolher (`SeletorDaVersao`;
+  `plano` na resposta, `app/kpis/versao_do_plano.py`). O parâmetro `versao` vem no recorte de todas as páginas e no
+  PDF analítico, que mostra a versão no cabeçalho das folhas.
 - "Cliente" no filtro = **proprietário** (planilha, coluna PROPRIETÁRIO) ou **customer** (Metryx); o adapter grava os
   dois em `core.fazenda.proprietario`.
 - RLS de verdade:
@@ -158,7 +162,7 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - usuários na tela de admin; o primeiro admin pelo `python -m app.comandos` (`criar-usuario`, `dar-acesso`); a
     equipe da consultoria pela planilha de levantamento (`importar-equipe`, `app/services/equipe.py`).
 - **Base de integração e adapters prontos** (ver `README.md` e o §0 de `docs/02_PROXIMOS_PASSOS.md`):
-  - Postgres no compose; migrações 0001–0018 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
+  - Postgres no compose; migrações 0001–0019 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
     login, pendências, recálculo do estoque pela API, série nova do estoque começa no início da fazenda, cadastro de
     funções e o RLS dele);
   - contrato canônico, motor (guarda de volume, arquivo em dobro, recorte `desde`), CLI `python -m app.etl`;
@@ -168,8 +172,9 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     ajustado ao payload real (A29–A32 do relatório de validação §17), com a área de pasto do `utilizacao-pasto` para a
     lotação cab/ha (16/10/2026, §18); a UA do Metryx fica de fora até a API trazê-la; e o **planejamento** (27/10/2026,
     `adapters/metryx/planejamento.py`): metas de compra, venda, nascimento, morte e desmame, rebanho médio previsto
-    pela evolução do rebanho e DRE previsto, só da versão mais recente de cada fazenda e safra até a D7 (o BI soma
-    todas), com o mês pelo `month` e pela safra, porque o `date` da API erra o ano de junho (defeito P19, relatório
+    pela evolução do rebanho e DRE previsto, com todas as versões (`plVersionCode` dá a ordem, `plVersionName` o
+    nome; o BI soma todas): numa fazenda e safra vale a versão escolhida na tela ou, sem escolha, a mais recente
+    (`app.versoes_do_planejado`, migração 0019; 04/11/2026), com o mês pelo `month` e pela safra, porque o `date` da API erra o ano de junho (defeito P19, relatório
     §22). A ponte do datalake traz o previsto menos compras e vendas (a stg perdeu a versão e as decimais). O
     **rebanho médio realizado** sai da média do saldo de cada dia do balanço, como o relatório do Metryx
     (`adapters/metryx/rebanho.py`, 27/10/2026); o endpoint `rebanho-medio-pecuario` do BI conta animais a mais e fica
@@ -177,7 +182,7 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     de tipo `planejamento`, com todas as versões (29/10/2026; migração 0018: `fato.orcamento_financeiro.tipo` e
     `dim.versao_plano.ordem`); o subcentro genérico "Subcentro de Custo" fica de fora da conta;
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 169 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas e o
+  - 174 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas e o
     boletim analítico) + 74 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,

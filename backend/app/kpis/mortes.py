@@ -20,19 +20,20 @@ from sqlalchemy.orm import Session
 
 from app.kpis import lotes
 from app.kpis.filtro import Filtro, periodo_do_filtro
+from app.kpis.versao_do_plano import escolha_da_versao, so_a_versao_que_vale
 from app.schemas.api import CausaDeMorte, Mortes, MortesDoGrupo
 
 TIPO = "MORTE"
 
 # Planilha informa o grupo; Metryx informa a categoria, e o grupo vem da dimensão. Categoria pendente fica fora.
-REBANHO_POR_GRUPO = """
+REBANHO_POR_GRUPO = f"""
     SELECT r.competencia, coalesce(r.grupo, b.grupo) AS grupo, sum(r.qtd_cab) AS cabecas
     FROM fato.rebanho_medio_mensal r
     LEFT JOIN dim.categoria_map m ON m.id = r.categoria_map_id
     LEFT JOIN dim.categoria_bi b ON b.id = m.categoria_bi_id
     WHERE r.cenario = :cenario AND r.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
       AND r.competencia = ANY (CAST(:meses AS date[]))
-      AND (r.categoria_map_id IS NULL OR m.categoria_bi_id IS NOT NULL)
+      AND (r.categoria_map_id IS NULL OR m.categoria_bi_id IS NOT NULL) AND {so_a_versao_que_vale('r')}
     GROUP BY r.competencia, coalesce(r.grupo, b.grupo)
 """
 MORTES_POR_CAUSA = """
@@ -62,7 +63,7 @@ def mortes(s: Session, filtro: Filtro) -> Mortes:
                                     sobre_rebanho_medio=lotes.dividir(realizado, rebanho_medio[recorte]),
                                     sobre_nascimentos=sobre_nascimentos))
     return Mortes(periodo=periodo_do_filtro(filtro), quadro=quadro, causas=mortes_por_causa(s, filtro),
-                  serie_mensal=lotes.serie_de_contagem(s, filtro, TIPO))
+                  serie_mensal=lotes.serie_de_contagem(s, filtro, TIPO), plano=escolha_da_versao(s, filtro))
 
 
 def rebanho_medio_por_grupo(s: Session, filtro: Filtro, cenario: str = "realizado") -> dict[str, float | None]:

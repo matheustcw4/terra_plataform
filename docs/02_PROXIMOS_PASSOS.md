@@ -340,11 +340,11 @@ telas das fazendas Metryx não tinham meta nenhuma; agora a carga traz o planeja
   `estoque-medio-mensal-planejamento`, mais o `previsao-financeiro` (DRE previsto, o que o BI usa). O
   `previsao-fluxo-caixa-planejamento` (orçamento de caixa por versão) vai só para o bruto, para comparar antes de
   escolher a fonte do orçamento.
-- **Versão do plano (D7, provisório):** cada fazenda tem as suas versões (o número se repete entre fazendas, e uma
-  versão pode cobrir várias safras) e o Metryx guarda várias por fazenda e safra. O BI soma todas, o que dobra as
-  metas (Serra Dourada 25/26: versões 1 e 3). Entra só a **mais recente de cada fazenda e safra**, escolhida olhando
-  todos os endpoints juntos (as metas de uma safra vêm de um plano só); as outras aparecem no aviso
-  `PLAN_VERSION_CHOSEN`. No datalake, a regra escolhe versões que não parecem as certas: U6 BONITO 26/27 fica com a 4,
+- **Versão do plano:** cada fazenda tem as suas versões (o número se repete entre fazendas, e uma versão pode cobrir
+  várias safras) e o Metryx guarda várias por fazenda e safra. O BI soma todas, o que dobra as metas (Serra Dourada
+  25/26: versões 1 e 3). Desde 04/11/2026 entram todas, e as telas escolhem (seção "Versão do planejamento em todas
+  as telas", abaixo); sem escolha, vale a **mais recente de cada fazenda e safra**, olhando metas e rebanho previsto
+  juntos (as metas de uma safra vêm de um plano só). Na regra padrão, as versões que não parecem as certas: U6 BONITO 26/27 fica com a 4,
   "26/27 - Bonito (erro)"; U6 BONITO 25/26 fica com a 2, que só tem julho; ADMINISTRATIVO (U6) 26/27 fica com a 6,
   "Versao p/ financiament"; Maister 26/27 fica com a 4, "Global (24.06.26 teste)". Por isso a D7 continua aberta:
   recomendação, a versão ativa escolhida pelo consultor numa tela de admin, e a mais recente só quando ninguém
@@ -404,6 +404,26 @@ Previsto × Realizado e Financeiro escolhem qual comparar com o realizado.
   admin classifica em Administração → Contas (é a receita de venda de gado: os valores batem com as vendas planejadas).
 - **Testes:** `tests/test_previsto_financeiro.py` (padrão, tipo, versão escolhida e a mesma escolha no Financeiro) e
   dois testes do fluxo em `tests/test_metryx_planejamento.py`; no front, `src/logic/previsto.test.ts`.
+
+**Versão do planejamento em todas as telas (04/11/2026), feito:** pedido do usuário: "traga as versões do
+planejamento (`plVersionCode` e `plVersionName`) em todos os endpoints de previsão e ajuste todos os fronts". O
+`previsao-financeiro` não tem esses campos (entra numa versão própria); os outros sete têm.
+- **Carga:** as metas de animais e o rebanho médio previsto passam a guardar todas as versões, como o fluxo de caixa
+  (antes, só a mais recente). `dim.versao_plano` tem o número (`ordem`) e o nome; `oficial` marca a mais recente da
+  safra. O aviso `PLAN_VERSION_CHOSEN` lista as safras com mais de uma versão.
+- **Regra** (`app.versoes_do_planejado`, migração 0019): em cada fazenda e safra vale uma versão só, a escolhida na
+  tela se ela tem planejado ali, senão a mais recente. Todas as consultas do planejado (metas em `lotes.py` e na
+  Movimentação, rebanho previsto em Mortes, Financeiro e no PDF analítico) filtram por ela
+  (`so_a_versao_que_vale` em `app/kpis/versao_do_plano.py`). Sem escolha, os números são os de antes: no banco de
+  validação, as 459 linhas de metas e rebanho previsto por cliente, tipo e mês ficaram iguais.
+- **Tela:** `versao` vai na consulta de todas as páginas (`Consulta.versao`, lida da URL pela `AreaAutenticada`).
+  Cada página com meta mostra "Planejamento em uso" e, quando alguma fazenda do filtro tem mais de uma versão no
+  período, o seletor "Versão do planejamento" com as versões dessas fazendas. No Previsto × Realizado e no
+  Financeiro, a mesma versão vale para o orçamento do planejamento. O PDF analítico recebe a versão e a mostra no
+  cabeçalho das folhas. Exemplo: U6, safra 25/26, "U6 BONITO · Versão 1" traz de volta os 1.472 nascimentos
+  planejados que a versão 2 (só julho) deixava de fora (5.542 → 7.014).
+- **Testes:** `tests/test_versao_do_plano.py` (padrão, versão escolhida em várias páginas, a função do banco e a
+  fazenda com uma versão só) e os de versão em `tests/test_metryx_planejamento.py`.
 
 **Rebanho médio do Metryx pelo balanço (27/10/2026), feito:** o usuário comparou jul–set/2026 com os relatórios do
 Metryx e o rebanho médio estava alto (U6: 8.505 no painel e 7.705 no Metryx; Maister: 35.629 e 30.667). O endpoint
