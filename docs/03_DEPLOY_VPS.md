@@ -16,7 +16,6 @@
 | `beat` | terra-backend | dispara as cargas nos horários de `AGENDA_*` | — |
 | `web` | terra-web (Caddy) | o painel (build do front) e `/api` no mesmo endereço, com HTTPS automático | — |
 | `backup` | postgres:16 | `pg_dump` diário em `BACKUP_HOST_DIR`, guarda `DIAS_DE_BACKUP` dias | superusuário |
-| `planilhas` (opcional, perfil `drive`) | rclone | traz as planilhas do Google Drive para `PLANILHAS_HOST_DIR` a cada 10 min | conta do Drive (só leitura) |
 
 Só o `web` fica exposto na internet (portas 80 e 443). A documentação da API (`/docs`) não sai pelo Caddy.
 
@@ -24,17 +23,17 @@ Só o `web` fica exposto na internet (portas 80 e 443). A documentação da API 
 
 | Carga | Agenda padrão | O que faz |
 |---|---|---|
-| Planilhas (`cargas.planilhas`) | `0 */2 * * *`: a cada 2 horas | lê a pasta; arquivo sem mudança é pulado; arquivo salvo há menos de 1 min fica para a próxima |
+| Importações (`cargas.importacoes`) | `*/5 * * * *`: a cada 5 minutos | carrega as planilhas enviadas pela tela que ainda estão na fila (a API já avisa o worker a cada envio; a agenda é a rede de segurança) |
 | Metryx (`cargas.metryx`) | vazia: **desligada** | sincroniza os clientes com credencial ativa; liga só com a autorização das chamadas à API real |
 | Estoque (`cargas.estoque`) | `30 0 1 * *`: dia 1, 00:30 | estende o estoque de todas as fazendas até o mês novo (a carga só recalcula as fazendas que mudaram) |
 
 As agendas são no formato do cron (minuto hora dia mês dia-da-semana), no horário de Cuiabá. Uma carga por vez:
-se outra estiver rodando, a de planilhas e a do Metryx são puladas (a agenda tenta de novo depois); a do estoque
+se outra estiver rodando, a das importações e a do Metryx são puladas (a agenda tenta de novo depois); a do estoque
 espera. O resultado de cada carga fica em `ingest.job` e os avisos aparecem na aba Pendências.
 
 Fora da agenda, o admin pode pedir a carga pelo painel: o botão **"Atualizar agora"** (o ↻ no topo) põe
-`cargas.atualizar_agora` na fila (planilhas e, com `AGENDA_METRYX` ligada, o Metryx). Por isso a API também recebe o
-`REDIS_URL` e o worker, o `AGENDA_METRYX` (já no `docker-compose.prod.yml`). As tarefas usam a fila `terra`; ao
+`cargas.atualizar_agora` na fila (com `AGENDA_METRYX` ligada, o Metryx; na VPS não há pasta de planilhas). Por isso a
+API também recebe o `REDIS_URL` e o worker, o `AGENDA_METRYX` (já no `docker-compose.prod.yml`). As tarefas usam a fila `terra`; ao
 atualizar uma instalação antiga, suba o beat e o worker juntos (os dois passam a usar a fila nova).
 
 ## 2. Requisitos
@@ -48,8 +47,8 @@ atualizar uma instalação antiga, suba o beat e o worker juntos (os dois passam
 ## 3. Primeira instalação
 
 ```bash
-# 1. pastas da VPS (fora do repositório): planilhas, backups e config do rclone
-sudo mkdir -p /srv/terra/{app,planilhas,backups,rclone}
+# 1. pastas da VPS (fora do repositório): o código e os backups
+sudo mkdir -p /srv/terra/{app,backups}
 sudo chown -R $USER /srv/terra
 
 # 2. o código (repositório privado)
@@ -99,25 +98,18 @@ terra run --rm -v /caminho/da/planilha:/dados/equipe:ro migracao \
 
 ### As planilhas
 
-O worker lê `PLANILHAS_HOST_DIR` (montada só leitura). As planilhas chegam lá de um destes jeitos (**decisão
-pendente**, ver `docs/02_PROXIMOS_PASSOS.md`, D8):
+As planilhas chegam pela tela **Importar planilhas** do painel (menu Dados; decisão D8, 09/11/2026), no lugar da
+pasta sincronizada com o Google Drive. A pessoa envia o `RELATÓRIO - código - fazenda.xlsm`; a API guarda o arquivo
+em `ingest.importacao` e avisa o worker, que carrega um por vez, pelo mesmo motor de antes (o nome do arquivo continua
+sendo a chave dele: enviar de novo com o mesmo nome é uma versão nova). Cada técnico só importa as fazendas a que tem
+acesso; a primeira planilha de uma fazenda nova é com o admin, que depois dá o acesso aos técnicos. O resultado de
+cada envio aparece na própria tela, e os avisos, em Pendências. O arquivo sai do banco depois de carregado (o que foi
+lido fica em `raw.payload`).
 
-- **Google Drive pelo rclone** (perfil `drive` do compose, recomendado): configure o remoto uma vez, com escopo só
-  leitura, e suba o serviço `planilhas`:
-
-  ```bash
-  docker run --rm -it -v /srv/terra/rclone:/config/rclone rclone/rclone:1 config
-  # n (novo remoto) -> nome: drive -> tipo: drive -> scope: drive.readonly
-  # -> service_account_file: /config/rclone/service-account.json (a service account da D8, com a pasta do Drive
-  #    compartilhada com o e-mail dela) ou, sem service account, siga a autorização pelo navegador
-  terra --profile drive up -d planilhas
-  terra logs -f planilhas
-  ```
-
-  `RCLONE_ORIGEM` (ex.: `drive:Relatórios`) é a pasta no Drive; o rclone traz só os `RELATÓRIO*.xlsm/.xlsx` e preserva
-  a data de modificação (o worker usa essa data para saber o que mudou).
-- **Outro sincronizador** (ex.: Syncthing a partir da máquina que já tem o Drive): basta que os arquivos caiam em
-  `PLANILHAS_HOST_DIR` com a data de modificação preservada.
+Para a primeira carga, com as 230 planilhas, há dois caminhos: restaurar o dump do banco de validação (seção 10) ou o
+admin enviar todas pela tela (pode marcar várias de uma vez; o worker leva um ou dois minutos por planilha). Uma pasta
+inteira também carrega pela linha de comando, por um túnel SSH, como o histórico abaixo:
+`python -m app.etl planilhas --pasta <pasta>`.
 
 ### O histórico das planilhas (carga única, Q6)
 
@@ -164,13 +156,16 @@ terra logs -f worker                       # as cargas (resumo de cada uma)
 terra logs --since 24h beat                # quando cada carga foi disparada
 
 # rodar uma carga agora (pela fila: respeita a trava de uma carga por vez)
-terra exec worker celery -A app.tasks.fila call cargas.planilhas
+terra exec worker celery -A app.tasks.fila call cargas.importacoes   # a fila da tela de importação
 terra exec worker celery -A app.tasks.fila call cargas.estoque
 
 # as últimas cargas, pelo banco
 terra exec db psql -U postgres -d terra -c \
   "SELECT fonte, status, iniciado_em, finalizado_em, unidades_total, unidades_carregadas, unidades_com_erro
    FROM ingest.job ORDER BY criado_em DESC LIMIT 10"
+
+# as últimas planilhas enviadas pela tela
+terra exec db psql -U postgres -d terra -c   "SELECT arquivo, enviado_por, enviado_em, status, mensagem FROM ingest.importacao ORDER BY enviado_em DESC LIMIT 10"
 ```
 
 O que a carga deixou de fora ou marcou para conferir aparece na aba **Pendências** do painel; categorias e contas sem
@@ -208,8 +203,8 @@ subida do volume do banco (`docker/postgres/init`), com as senhas do `.env.produ
 - o Postgres não sai da VPS (só `127.0.0.1`); acesso de manutenção por túnel SSH;
 - SSH só com chave (`PasswordAuthentication no`) e o `ufw` liberando 22, 80 e 443;
 - a API conecta como `app_user` (RLS de verdade) e o worker como `app_etl`; o superusuário só na migração e no backup;
-- as planilhas (dados de clientes) ficam em `/srv/terra/planilhas`, fora do repositório, montadas só leitura no worker;
-- o rclone com escopo `drive.readonly`;
+- as planilhas (dados de clientes) chegam pela tela, de quem está logado, e só para as fazendas a que a pessoa tem
+  acesso (o worker confere com a mesma regra do RLS); o arquivo sai do banco depois de carregado;
 - os backups copiados para fora da VPS, com acesso restrito.
 
 ## 8. Problemas comuns
@@ -217,8 +212,8 @@ subida do volume do banco (`docker/postgres/init`), com as senhas do `.env.produ
 | Sintoma | Causa provável | O que fazer |
 |---|---|---|
 | o painel não abre em HTTPS | DNS ainda não aponta para a VPS, ou a porta 80 está fechada | `dig painel...`; `terra logs web` mostra a tentativa do certificado |
-| a carga de planilhas devolve `sem_pasta` | `PLANILHAS_DIR` não configurado | o compose já monta em `/dados/planilhas`; confira `PLANILHAS_HOST_DIR` |
-| planilha nova não entra | salva há menos de 1 min, ou ainda sincronizando | entra na próxima passada; `terra logs worker` |
+| a planilha enviada fica "Na fila" | o worker está parado, ou outra carga está rodando | `terra ps` e `terra logs worker`; com o worker de pé, a agenda das importações pega em até 5 min |
+| a planilha enviada "Não carregou" | a mensagem diz o motivo (sem acesso à fazenda, fazenda nova, planilha com erro) | corrija e envie de novo; acesso, em Administração → Usuários e acesso |
 | a carga devolve `ocupada` | outra carga estava rodando | normal: a próxima passada pega |
 | a API não sobe | a migração falhou | `terra logs migracao` |
 
@@ -226,8 +221,8 @@ subida do volume do banco (`docker/postgres/init`), com as senhas do `.env.produ
 
 O mesmo compose sobe no Docker Desktop, num projeto separado (não mexe no banco de desenvolvimento), sem domínio e
 sem HTTPS. Num arquivo de ambiente de teste, use `DOMINIO=:80`, `PORTA_HTTP=8088`, `PORTA_HTTPS=8443`,
-`POSTGRES_PORTA_LOCAL=55499`, pastas de planilhas e backups temporárias e, para ver o beat disparar logo,
-`AGENDA_PLANILHAS=* * * * *`:
+`POSTGRES_PORTA_LOCAL=55499`, uma pasta de backups temporária e, para ver o beat disparar logo,
+`AGENDA_IMPORTACOES=* * * * *`:
 
 ```bash
 docker compose -f docker-compose.prod.yml -p terra_prod_teste --env-file teste.env up -d --build
@@ -264,7 +259,7 @@ dependências do Python e do Node são baixadas para montar as imagens).
 
 ```bash
 # 1. pastas e o código (repositório privado: chave de deploy só leitura, abaixo)
-sudo mkdir -p /srv/terra/{planilhas,backups} && sudo chown -R $USER /srv/terra
+sudo mkdir -p /srv/terra/backups && sudo chown -R $USER /srv/terra
 git clone git@github.com:<organizacao>/<repositorio>.git /srv/terra/app
 cd /srv/terra/app
 mv /tmp/.env.producao .env.producao && chmod 600 .env.producao
@@ -343,6 +338,7 @@ terra ps                      # api "healthy" e web de pé
 
 Os usuários, as senhas e os acessos vêm junto com a cópia: o que foi criado só no servidor se perde na troca.
 
-Sem planilhas nem Metryx no servidor, o botão **"Atualizar agora"** não traz nada novo: neste servidor ele não deve
-ser usado.
+Sem pasta de planilhas nem Metryx no servidor, o botão **"Atualizar agora"** não traz nada novo: neste servidor ele
+não deve ser usado. A tela **Importar planilhas** funciona aqui (o worker sobe com o resto), o que serve para a equipe
+testá-la; o que for importado no servidor também se perde na próxima troca do banco.
 

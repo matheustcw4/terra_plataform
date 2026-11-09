@@ -32,6 +32,8 @@
   --cor-aviso: #c9733d;
   --cor-aviso-texto: #9a521f;
   --cor-aviso-fundo: #fbf1ea;
+  --cor-ok: #00695c; /* selo de "entrou" (importação carregada) */
+  --cor-ok-fundo: #e5f3f0;
   --cor-meta-ok: #008d7d; /* velocímetro dentro da meta (as cores do BI) */
   --cor-meta-fora: #870000;
 
@@ -1331,6 +1333,149 @@ input[type="radio"] {
   border-color: transparent;
   background: var(--cor-aviso-fundo);
   color: var(--cor-aviso-texto);
+}
+
+.selo-ok {
+  border-color: transparent;
+  background: var(--cor-ok-fundo);
+  color: var(--cor-ok);
+}
+
+.selo-andamento {
+  border-color: transparent;
+  background: var(--cor-azul-suave);
+  color: var(--cor-azul);
+}
+
+h2 .selo {
+  margin: 0 0 0 10px;
+  vertical-align: middle;
+}
+
+/* importação de planilhas: a área onde se soltam os arquivos e o que foi enviado nesta visita */
+.area-de-envio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 28px 16px;
+  border: 1.5px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-medio);
+  background: var(--cor-superficie-2);
+  color: var(--cor-texto-apagado);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color var(--mov-rapida) var(--mov-padrao),
+    background var(--mov-rapida) var(--mov-padrao);
+}
+
+.area-de-envio:hover,
+.area-de-envio.arrastando {
+  border-color: var(--cor-azul);
+  background: var(--cor-azul-suave);
+}
+
+.area-de-envio strong {
+  color: var(--cor-texto);
+  font-size: 15px;
+}
+
+.area-de-envio svg {
+  color: var(--cor-azul);
+}
+
+.area-de-envio input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.area-de-envio:focus-within {
+  outline: 2px solid var(--cor-azul);
+  outline-offset: 2px;
+}
+
+.area-de-envio .link {
+  color: var(--cor-azul);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.envios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.envio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  font-size: 13px;
+}
+
+.envio-nome {
+  flex: 1 1 260px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--cor-texto);
+  font-weight: 600;
+}
+
+.envio-tamanho {
+  color: var(--cor-texto-terciario);
+}
+
+.envio-situacao {
+  font-weight: 600;
+  color: var(--cor-azul);
+}
+
+.envio-recusado {
+  border-color: transparent;
+  background: var(--cor-erro-fundo);
+}
+
+.envio-recusado .envio-situacao,
+.envio-mensagem {
+  color: var(--cor-erro);
+}
+
+.envio-mensagem {
+  flex-basis: 100%;
+}
+
+.tabela-admin.tabela-importacoes {
+  min-width: 720px;
+}
+
+.tabela-importacoes td:first-child {
+  width: 26%;
+}
+
+.tabela-importacoes td:last-child {
+  width: 30%;
+}
+
+.tabela-importacoes .importacao-arquivo {
+  display: block;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.tabela-importacoes .importacao-mensagem {
+  color: var(--cor-erro);
 }
 
 /* abas segmentadas (Safra | Cívil no MENU, o que mostrar nas pendências) */

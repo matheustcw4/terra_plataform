@@ -23,15 +23,18 @@ class Settings(BaseSettings):
     app_etl_password: str = ""
 
     # Fontes
-    planilhas_dir: str | None = None          # pasta dos RELATÓRIO*.xlsm (ex.: G:\Meu Drive\Relatórios)
+    # pasta dos RELATÓRIO*.xlsm, só para a carga em massa (`python -m app.etl planilhas`): no dia a dia, as planilhas
+    # chegam pela tela de importação
+    planilhas_dir: str | None = None
     metryx_base_url: str = "https://web-srv.metryx.app:8444/mtxserver"
     metryx_chave_cifra: str | None = None     # chave Fernet que cifra os tokens Metryx no banco (nunca no git)
     datalake_plan_url: str | None = None      # conninfo do datalake do BI de planilhas (só leitura; carga do histórico)
 
     # Cargas agendadas (Celery + Redis). Agenda no formato do cron, "minuto hora dia mês dia-da-semana", no fuso
     # America/Cuiaba; vazia desliga a carga.
-    redis_url: str = "redis://127.0.0.1:6379/0"
-    agenda_planilhas: str = "0 */2 * * *"         # a cada 2 horas: o consultor salva a planilha a qualquer hora
+    redis_url: str = "redis://127.0.0.1:56379/0"     # o Redis do docker-compose de desenvolvimento (terra_redis)
+    agenda_importacoes: str = "*/5 * * * *"       # a rede de segurança da fila da tela (a API já avisa a cada envio)
+    agenda_planilhas: str = ""                    # desligada: a pasta do Drive deu lugar à tela de importação
     agenda_metryx: str = ""                       # desligada: chamar a API real do Metryx depende de autorização
     agenda_estoque: str = "30 0 1 * *"            # dia 1, 00:30: estende o estoque de todas as fazendas ao mês novo
 

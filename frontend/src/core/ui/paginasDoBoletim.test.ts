@@ -7,12 +7,12 @@ function caminhos(ehAdmin: boolean, titulo: string): string[] {
 }
 
 describe("gruposDoBoletim", () => {
-  test("o boletim tem as páginas do PDF, na ordem do BI; pendências ficam à parte", () => {
+  test("o boletim tem as páginas do PDF, na ordem do BI; importar planilhas e pendências ficam à parte", () => {
     const boletim = caminhos(false, "Boletim");
     expect(boletim[0]).toBe("/previsto_realizado");
     expect(boletim).toContain("/transferencias");
     expect(boletim).not.toContain("/pendencias");
-    expect(caminhos(false, "Qualidade")).toEqual(["/pendencias"]);
+    expect(caminhos(false, "Dados")).toEqual(["/importacao", "/pendencias"]);   // todos importam (nas suas fazendas)
   });
 
   test("só o admin vê a administração; todos veem o MENU", () => {

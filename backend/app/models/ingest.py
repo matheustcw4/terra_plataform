@@ -3,7 +3,8 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import BigInteger, ForeignKey, Integer, LargeBinary, Text, text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -94,6 +95,30 @@ class LinhaQuarentena(Base):
     motivo: Mapped[str] = mapped_column(Text)
     dados: Mapped[dict[str, Any]] = mapped_column(JSONB)
     criado_em: Mapped[datetime] = mapped_column(**AGORA)
+
+
+class Importacao(Base):
+    """Planilha enviada pela tela: espera o worker na fila e, depois, fica como histórico (sem o arquivo)."""
+    __tablename__ = "importacao"
+    __table_args__ = {"schema": "ingest"}
+
+    id: Mapped[UUID] = mapped_column(**UUID_PK)
+    usuario_id: Mapped[UUID | None] = mapped_column(ForeignKey("core.usuario.id", ondelete="SET NULL"))
+    enviado_por: Mapped[str] = mapped_column(Text)
+    arquivo: Mapped[str] = mapped_column(Text)
+    sha256: Mapped[str] = mapped_column(Text)
+    tamanho_bytes: Mapped[int] = mapped_column(BigInteger)
+    conteudo: Mapped[bytes | None] = mapped_column(LargeBinary)
+    status: Mapped[str] = mapped_column(Text, server_default=text("'na_fila'"))
+    mensagem: Mapped[str | None] = mapped_column(Text)
+    avisos: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    quarentena: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    fazendas: Mapped[list[UUID]] = mapped_column(ARRAY(PG_UUID(as_uuid=True)), server_default=text("'{}'"))
+    job_id: Mapped[UUID | None] = mapped_column(ForeignKey("ingest.job.id", ondelete="SET NULL"))
+    versao_origem_id: Mapped[UUID | None] = mapped_column(ForeignKey("ingest.versao_origem.id", ondelete="SET NULL"))
+    enviado_em: Mapped[datetime] = mapped_column(**AGORA)
+    iniciado_em: Mapped[datetime | None]
+    finalizado_em: Mapped[datetime | None]
 
 
 class Payload(Base):

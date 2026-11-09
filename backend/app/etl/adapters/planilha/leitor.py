@@ -10,7 +10,7 @@ import math
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
-from python_calamine import CalamineWorkbook
+from python_calamine import CalamineError, CalamineWorkbook
 
 from app.etl.adapters.planilha.template import ABAS_LANCAMENTO, Aba, norm
 
@@ -19,8 +19,17 @@ APELIDOS_COM_AVISO = {"ILP", "SILAGEM"}
 CAMPOS_DA_UNIDADE = ("projeto", "proprietario", "fazenda", "codigo", "sistema", "retiro", "ano")   # fUnidade A2:G2
 
 
+class ErroDeLeitura(Exception):
+    """O arquivo não abre como planilha do Excel (corrompido, ou outro arquivo com o nome de planilha)."""
+
+
 def ler_planilha(dados: bytes) -> dict[str, Any]:
-    planilha = CalamineWorkbook.from_filelike(io.BytesIO(dados))
+    try:
+        planilha = CalamineWorkbook.from_filelike(io.BytesIO(dados))
+    except CalamineError as erro:
+        # a mensagem vai para a tela de importação: em português, com o detalhe da biblioteca entre parênteses
+        raise ErroDeLeitura(f"o arquivo não abre como planilha do Excel: está corrompido ou não é .xlsm/.xlsx "
+                            f"({erro})") from erro
     nomes = {norm(nome): nome for nome in planilha.sheet_names}        # nome normalizado -> nome real da aba
     avisos: list[dict] = []
     return {

@@ -23,5 +23,19 @@ services:
       timeout: 3s
       retries: 20
 
+  # a fila das cargas no desenvolvimento (worker e "Atualizar agora"); porta própria: a 6379 desta máquina é de outro
+  # projeto. Nada em disco: o resultado de cada carga fica no banco.
+  redis:
+    image: redis:7-alpine
+    container_name: terra_redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:${REDIS_PORTA:-56379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
 volumes:
   pgdata:

@@ -67,3 +67,5 @@ export type SecaoTransferencias = Schemas["SecaoTransferencias"];
 export type SecaoMortes = Schemas["SecaoMortes"];
 export type SecaoFinanceiro = Schemas["SecaoFinanceiro"];
 export type SecaoCaixa = Schemas["SecaoCaixa"];
+export type Importacao = Schemas["Importacao"];
+export type SituacaoDaImportacao = Importacao["status"];

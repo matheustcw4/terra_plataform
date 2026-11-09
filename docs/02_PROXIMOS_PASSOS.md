@@ -509,12 +509,27 @@ valor); depois, operação (agendamento das cargas e deploy na VPS).
   Caddy, beat disparando, worker carregando (e pulando o arquivo sem mudança na passada seguinte), primeiro admin pelo
   comando, login de ponta a ponta e backup restaurado num banco novo com RLS e políticas.
 
-**Decisão pendente (D8, parte que falta):** como as planilhas chegam à VPS. Hoje elas estão no Google Drive, lidas
-pelo Drive para desktop do Windows (`G:\Meu Drive\Relatórios`). A proposta (D8) recomenda a API do Google Drive com
-uma service account. Recomendação: **rclone no próprio compose com essa service account** (perfil `drive`, já pronto:
-sincroniza a cada 10 minutos, escopo só leitura, preserva a data de modificação); é a mesma credencial da D8, sem
-escrever um adapter novo para o Drive. Alternativa: Syncthing a partir de uma máquina que já tem o Drive. Também falta
-escolher a VPS e o domínio do painel.
+**Importação de planilhas pela tela (09/11/2026; decide a D8):** as planilhas deixaram de vir da pasta sincronizada
+com o Google Drive. A tela **Importar planilhas** (menu Dados, para todo usuário logado) recebe os `RELATÓRIO*.xlsm`:
+- a API confere só o básico (o nome no padrão `RELATÓRIO - código - fazenda.xlsm`, que é um arquivo do Excel, até
+  50 MB), guarda o arquivo em `ingest.importacao` (migrações 0020 e 0021: o usuário grava só em nome próprio e só na
+  fila; lê as que enviou e as das fazendas que vê) e avisa o worker (`cargas.importacoes`; a agenda
+  `AGENDA_IMPORTACOES`, a cada 5 min, é a rede de segurança se o aviso se perder);
+- o worker carrega um por vez, pelo **mesmo motor e normalizador da pasta** (`adapters/planilha/enviada.py`): o nome
+  do arquivo continua sendo a chave da unidade, então o histórico de versões segue de onde a pasta parou, e a data do
+  envio faz o papel da data de modificação (no arquivo em dobro, vale o último enviado);
+- antes de gravar, o motor confere se quem enviou pode alimentar a fazenda da planilha (`MotorCarga.conferir_lote`,
+  com `app.eh_admin` e `app.fazendas_visiveis` no contexto de quem enviou, a mesma regra do RLS; decisão do usuário):
+  o técnico só nas fazendas a que tem acesso; a primeira planilha de uma fazenda nova, só o admin. Recusa vira
+  `PERMISSION_DENIED` e nada muda;
+- a tela lista as importações com a situação (na fila, carregando, carregada, com avisos, sem mudança, não entrou, não
+  carregou), as fazendas alimentadas e o motivo; o detalhe dos avisos fica em Pendências. O arquivo sai do banco
+  depois de carregado (o bruto lido fica em `raw.payload`);
+- a carga da pasta continua como **carga em massa** pela linha de comando (`python -m app.etl planilhas --pasta`),
+  com a agenda `AGENDA_PLANILHAS` desligada; o serviço do rclone (perfil `drive`) saiu do compose de produção. No
+  desenvolvimento, sem worker, a fila anda com `python -m app.etl importacoes`.
+
+Também falta escolher a VPS e o domínio do painel.
 
 Próximo passo sugerido: o primeiro deploy, seguindo `docs/03_DEPLOY_VPS.md`.
 
@@ -552,7 +567,7 @@ se os consultores estranharem, separar uma linha "Saldo de abertura" no balanço
 | D5 | UA sem informação | estimada = Σ(cab × peso_ref_categoria) ÷ 450, marcada como "estimada" |
 | D6 | Quem confirma o mapeamento de categorias Metryx | consultor responsável pela fazenda; mapeamento por cliente |
 | D7 | Versão oficial do plano Metryx | escolhida pelo consultor; senão, a mais recente. **Provisório no código (27/10/2026):** a mais recente de cada fazenda e safra, com aviso (§3, "Previsto do Metryx") |
-| D8 | Onde roda / acesso ao Drive | **Decidido em parte (15/10/2026):** produção numa VPS Linux; por enquanto tudo é desenvolvido e testado no Windows. Acesso ao Drive: em aberto (proposta: Google Drive API com service account) |
+| D8 | Onde roda / acesso ao Drive | **Decidido (15/10 e 09/11/2026):** produção numa VPS Linux (o desenvolvimento segue no Windows); as planilhas chegam pela tela de importação do painel, sem Drive (§3, "Importação de planilhas pela tela") |
 | D9 | Arquivos duplicados | vale o mais recente + override manual |
 | D10 | Clientes finais acessam? | **Adiado (15/10/2026):** por ora só os técnicos da Terra consultam; o permissionamento (papéis consultor/cliente) fica para o final. O RLS por usuário → fazendas já existe |
 

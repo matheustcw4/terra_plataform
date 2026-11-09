@@ -123,7 +123,8 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
 - **Páginas prontas, no desenho do BI:** MENU (filtros), Previsto × Realizado, Financeiro, Movimentação do Gado,
   Vendas (abate e em pé), Compras, Nascimentos, Mortes e Transferências, com paridade contra o BI (relatório
   §12–§16), e
-  Pendências de lançamento (quarentena + avisos da última carga, por fazenda, sob RLS: `app.pendencias_de_carga`).
+  Pendências de lançamento (quarentena + avisos da última carga, por fazenda, sob RLS: `app.pendencias_de_carga`) e
+  Importar planilhas (menu Dados: o envio dos `.xlsm`, a fila do worker e o resultado de cada arquivo).
 - **Capa e exportação em PDF:** botão "Exportar PDF" em todas as páginas e no MENU, com seleção múltipla das páginas
   e a cidade da capa (não é gravada em lugar nenhum); a capa usa a arte da consultoria
   (`frontend/src/assets/bi/capa-fundo.png`); o PDF sai de `frontend/src/modules/exportacao/` (`html-to-image` + `jsPDF`,
@@ -162,11 +163,14 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - usuários na tela de admin; o primeiro admin pelo `python -m app.comandos` (`criar-usuario`, `dar-acesso`); a
     equipe da consultoria pela planilha de levantamento (`importar-equipe`, `app/services/equipe.py`).
 - **Base de integração e adapters prontos** (ver `README.md` e o §0 de `docs/02_PROXIMOS_PASSOS.md`):
-  - Postgres no compose; migrações 0001–0019 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
+  - Postgres no compose; migrações 0001–0021 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
     login, pendências, recálculo do estoque pela API, série nova do estoque começa no início da fazenda, cadastro de
-    funções e o RLS dele);
+    funções e o RLS dele, tipo do orçamento, versões do planejado, fila da importação de planilhas e o RLS dela);
   - contrato canônico, motor (guarda de volume, arquivo em dobro, recorte `desde`), CLI `python -m app.etl`;
-  - **adapter de planilhas** (lê `PLANILHAS_DIR` = `G:\Meu Drive\Relatórios`, somente leitura), validado nos 230
+  - **adapter de planilhas**: as planilhas chegam pela tela **Importar planilhas** (09/11/2026, D8; todo usuário,
+    só nas fazendas a que tem acesso, e fazenda nova só o admin; `ingest.importacao`, `app/etl/importacao.py`,
+    `adapters/planilha/enviada.py`, migrações 0020–0021); a pasta (`PLANILHAS_DIR` = `G:\Meu Drive\Relatórios`,
+    somente leitura) ficou para a carga em massa pela linha de comando. O adapter foi validado nos 230
     `.xlsm` reais;
   - **adapter Metryx** (cliente HTTP com allow-list, token cifrado, normalizador com a regra de saldo do BI),
     ajustado ao payload real (A29–A32 do relatório de validação §17), com a área de pasto do `utilizacao-pasto` para a
@@ -182,8 +186,8 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     de tipo `planejamento`, com todas as versões (29/10/2026; migração 0018: `fato.orcamento_financeiro.tipo` e
     `dim.versao_plano.ordem`); o subcentro genérico "Subcentro de Custo" fica de fora da conta;
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 174 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas e o
-    boletim analítico) + 74 testes do front (Vitest);
+  - 184 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
+    boletim analítico e a importação pela tela) + 80 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,
     `layout_do_bi`, `lotacao_sem_area`). A lotação fica igual ao BI mesmo quando um mês com rebanho não tem área, o
@@ -203,9 +207,10 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   recarregada pela API no banco de validação e bate 100% com o DMG do Metryx; em 16/10 foi recarregada de novo com o
   `utilizacao-pasto` (lotação cab/ha 1,26 na safra 25/26 e 0,93 na 26/27, relatório §18). Outros clientes e a agenda do Metryx
   continuam dependendo de autorização explícita (`python -m app.etl metryx-credencial`).
-- Próximos passos: decidir como as planilhas chegam à VPS (D8) e fazer o primeiro deploy; classificar os pendentes nas
+- Próximos passos: o primeiro deploy (as planilhas chegam pela tela de importação: D8 decidida); classificar os pendentes nas
   telas de admin (roadmap A–F em `docs/02_PROXIMOS_PASSOS.md` §3).
-- Decisões D1–D10 (proposta §11): D8 em parte (VPS Linux em produção; desenvolvimento no Windows) e D10 adiada (só técnicos consultam por ora; permissionamento no final); as demais seguem pendentes. Até lá, use as recomendações da proposta como padrão provisório, marcado com `# TODO(D<n>)`.
+- Decisões D1–D10 (proposta §11): D8 decidida (VPS Linux em produção, desenvolvimento no Windows, planilhas pela tela
+  de importação) e D10 adiada (só técnicos consultam por ora; permissionamento no final); as demais seguem pendentes. Até lá, use as recomendações da proposta como padrão provisório, marcado com `# TODO(D<n>)`.
 - Como rodar: `docker compose up -d db`; em `backend/`, `.venv/Scripts/python -m pytest` (Python 3.12 via `py -3.12`; host `127.0.0.1:55432`).
   Em `frontend/`: `npm test`, `npm run lint`, `npm run build`. API em dev na porta **8010** (a 8000 costuma estar
   ocupada nesta máquina); o Vite repassa `/api` para ela (outra porta: `TERRA_API_PORTA`). `.claude/launch.json` sobe

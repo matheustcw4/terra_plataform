@@ -15,7 +15,10 @@ export class ErroDaApi extends Error {
 // Toda chamada à API passa por aqui: põe o token, transforma erro HTTP em ErroDaApi e lê o JSON da resposta.
 export async function chamarApi<T>(caminho: string, opcoes: RequestInit = {}): Promise<T> {
   const cabecalhos = new Headers(opcoes.headers);
-  cabecalhos.set("Content-Type", "application/json");
+  // com arquivo (FormData), quem escreve o Content-Type é o navegador: ele põe a fronteira das partes
+  if (!(opcoes.body instanceof FormData)) {
+    cabecalhos.set("Content-Type", "application/json");
+  }
   const token = lerToken();
   if (token !== null) {
     cabecalhos.set("Authorization", `Bearer ${token}`);

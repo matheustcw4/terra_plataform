@@ -58,14 +58,19 @@ class AdapterPlanilha:
 
     def extrair(self, unidade: UnidadeOrigem) -> Bruto:
         caminho = unidade.metadados.get("caminho") or str(self.pasta / unidade.chave)
-        dados = Path(caminho).read_bytes()
-        m = REGEX_ARQUIVO.match(unidade.chave)
-        conteudo = ler_planilha(dados)
-        conteudo["arquivo"] = {"nome": unidade.chave, "codigo_nome": m.group(1) if m else None,
-                               "rotulo": m.group(2).strip() if m else None,
-                               "mtime": unidade.metadados.get("mtime")}
-        return Bruto(unidade, "json", conteudo, sha256_bytes(dados), len(dados),
-                     {"endpoint": "xlsm", "arquivo": unidade.chave})
+        return bruto_da_planilha(unidade, Path(caminho).read_bytes())
 
     def normalizar(self, bruto: Bruto) -> LoteCanonico:
         return normalizar(bruto.conteudo)
+
+
+def bruto_da_planilha(unidade: UnidadeOrigem, dados: bytes) -> Bruto:
+    """Os bytes do arquivo -> o bruto: o dict do leitor, com o nome do arquivo (o código e a fazenda do nome conferem
+    o fUnidade). Serve à pasta e às planilhas enviadas pela tela (enviada.py)."""
+    m = REGEX_ARQUIVO.match(unidade.chave)
+    conteudo = ler_planilha(dados)
+    conteudo["arquivo"] = {"nome": unidade.chave, "codigo_nome": m.group(1) if m else None,
+                           "rotulo": m.group(2).strip() if m else None,
+                           "mtime": unidade.metadados.get("mtime")}
+    return Bruto(unidade, "json", conteudo, sha256_bytes(dados), len(dados),
+                 {"endpoint": "xlsm", "arquivo": unidade.chave})

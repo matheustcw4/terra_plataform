@@ -250,6 +250,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/importacoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Importacoes */
+        get: operations["listar_importacoes_api_v1_importacoes_get"];
+        put?: never;
+        /** Importar Planilha */
+        post: operations["importar_planilha_api_v1_importacoes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/categorias": {
         parameters: {
             query?: never;
@@ -454,6 +472,11 @@ export interface components {
             ativo?: boolean | null;
             /** Senha */
             senha?: string | null;
+        };
+        /** Body_importar_planilha_api_v1_importacoes_post */
+        Body_importar_planilha_api_v1_importacoes_post: {
+            /** Arquivo */
+            arquivo: string;
         };
         /** BoletimAnalitico */
         BoletimAnalitico: {
@@ -824,6 +847,47 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * Importacao
+         * @description Uma planilha enviada pela tela: espera o worker na fila e, depois, mostra o que a carga fez.
+         */
+        Importacao: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Arquivo */
+            arquivo: string;
+            /** Tamanho Bytes */
+            tamanho_bytes: number;
+            /** Enviado Por */
+            enviado_por: string;
+            /**
+             * Enviado Em
+             * Format: date-time
+             */
+            enviado_em: string;
+            /** Minha */
+            minha: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "na_fila" | "processando" | "carregada" | "carregada_com_avisos" | "inalterada" | "ignorada" | "erro";
+            /** Mensagem */
+            mensagem: string | null;
+            /** Avisos */
+            avisos: number;
+            /** Quarentena */
+            quarentena: number;
+            /** Fazendas */
+            fazendas: string[];
+            /** Iniciado Em */
+            iniciado_em: string | null;
+            /** Finalizado Em */
+            finalizado_em: string | null;
         };
         /** IndicadoresDoLote */
         IndicadoresDoLote: {
@@ -2041,6 +2105,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Pendencias"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_importacoes_api_v1_importacoes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Importacao"][];
+                };
+            };
+        };
+    };
+    importar_planilha_api_v1_importacoes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_importar_planilha_api_v1_importacoes_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Importacao"];
                 };
             };
             /** @description Validation Error */

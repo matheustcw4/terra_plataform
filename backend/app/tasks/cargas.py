@@ -16,6 +16,7 @@ from app.core.config import Settings, get_settings
 from app.db.session import engine_etl
 from app.etl.adapters.metryx.adapter import AdapterMetryx
 from app.etl.adapters.planilha.adapter import AdapterPlanilha
+from app.etl.importacao import processar_fila
 from app.etl.pipeline import MotorCarga, ResultadoJob
 from app.tasks.fila import celery
 from app.tasks.trava import trava_das_cargas
@@ -89,6 +90,16 @@ def atualizacao_agora(engine: Engine, pasta: str | None, com_metryx: bool, usuar
         return resultado
 
 
+def importacoes_na_fila(engine: Engine) -> dict:
+    """As planilhas enviadas pela tela, da mais antiga para a mais nova. Com outra carga rodando, ficam na fila: a API
+    avisa o worker a cada envio, e a agenda (AGENDA_IMPORTACOES) tenta de novo de tempos em tempos."""
+    with trava_das_cargas(engine, esperar=False) as conseguiu:
+        if not conseguiu:
+            log.info("importações puladas: outra carga está rodando")
+            return {"status": "ocupada"}
+        return {"status": "concluido", "importacoes": processar_fila(engine)}
+
+
 def recalculo_do_estoque(engine: Engine, ate: date) -> dict:
     """Estende o estoque de todas as fazendas até o mês de `ate`. A carga só recalcula as fazendas cuja fonte mudou;
     sem isto, fazenda sem novidade ficaria sem o mês novo. Espera a carga que estiver rodando: não pode ser pulado."""
@@ -120,6 +131,13 @@ def atualizar_agora(usuario_id: str | None = None) -> dict:
         dono = UUID(usuario_id)
     resultado = atualizacao_agora(engine_etl(), configuracao.planilhas_dir, metryx_ligado(configuracao), dono)
     log.info("atualização pedida pelo admin: %s", resultado)
+    return resultado
+
+
+@celery.task(name="cargas.importacoes")
+def importar_planilhas_enviadas() -> dict:
+    resultado = importacoes_na_fila(engine_etl())
+    log.info("planilhas enviadas pela tela: %s", resultado)
     return resultado
 
 

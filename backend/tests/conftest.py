@@ -25,7 +25,8 @@ BANCO_TESTE = f"terra_test_{os.getpid()}"
 TABELAS_DADOS = [
     "fato.estoque_mensal", "fato.mov_animal", "fato.inventario", "fato.rebanho_medio_mensal", "fato.area_mensal",
     "fato.lancamento_financeiro", "fato.orcamento_financeiro",
-    "ingest.linha_quarentena", "ingest.ocorrencia", "raw.payload", "ingest.unidade_origem", "ingest.versao_origem",
+    "ingest.importacao", "ingest.linha_quarentena", "ingest.ocorrencia", "raw.payload", "ingest.unidade_origem",
+    "ingest.versao_origem",
     "ingest.job", "integracao.metryx_credencial",
     "dim.categoria_map", "dim.plano_contas_map", "dim.versao_plano",
     "core.usuario_fazenda", "core.usuario", "core.funcao", "core.fazenda_fonte", "core.fonte_vinculo", "core.retiro",

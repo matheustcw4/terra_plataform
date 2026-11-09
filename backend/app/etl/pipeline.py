@@ -5,7 +5,8 @@ Por unidade de origem (um arquivo, um cliente Metryx, uma fazenda do histórico)
   2. extrai o bruto; sha256 igual ao da última versão carregada -> 'inalterada';
   3. cópia com os mesmos bytes de um arquivo mais recente -> 'ignorada' (duplicatas.py);
   4. grava a versão (e o bruto JSON em raw.payload) — permite reprocessar sem reler a fonte;
-  5. normaliza (adapter: bruto -> LoteCanonico);
+  5. normaliza (adapter: bruto -> LoteCanonico) e, se quem chamou pediu, confere o lote (`conferir_lote`: a
+     importação pela tela recusa a planilha de fazenda a que quem enviou não tem acesso);
   6. numa ÚNICA transação (`carregar_lote`): valida o contrato, trava as fazendas, resolve identidades, confere arquivo
      em dobro, checa qualidade, aplica as partições, recalcula o estoque e grava o diagnóstico.
 Erro numa unidade não afeta as outras nem apaga dados: a versão anterior continua valendo.
@@ -14,6 +15,7 @@ Erro numa unidade não afeta as outras nem apaga dados: a versão anterior conti
 import logging
 import traceback
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Any
@@ -42,6 +44,13 @@ class ErroContrato(Exception):
     def __init__(self, erros: list[str]):
         super().__init__(f"{len(erros)} violação(ões) de contrato: " + "; ".join(erros[:5]))
         self.erros = erros
+
+
+class ErroDePermissao(Exception):
+    """Quem pediu a carga não pode alimentar a fazenda do lote (a planilha enviada pela tela)."""
+
+
+ConferenciaDoLote = Callable[[LoteCanonico], None]
 
 
 @dataclass
@@ -74,11 +83,14 @@ class UnidadeRegistrada:
 
 class MotorCarga:
     def __init__(self, engine: Engine, hoje: date | None = None, estoque_ate: date | None = None,
-                 ignorar_guarda: bool = False):
+                 ignorar_guarda: bool = False, conferir_lote: ConferenciaDoLote | None = None):
         self.engine = engine
         self.hoje = hoje
         self.estoque_ate = estoque_ate
         self.ignorar_guarda = ignorar_guarda   # True só por decisão explícita (queda legítima de volume na fonte)
+        # chamada com o lote já normalizado, antes de gravar; recusa com ErroDePermissao (a fazenda do lote só se sabe
+        # depois de ler o arquivo: é assim que a importação pela tela confere o acesso de quem enviou)
+        self.conferir_lote = conferir_lote
 
     def data_do_estoque(self) -> date:
         """Até quando o estoque mensal é recalculado (meses sem evento repetem o saldo)."""
@@ -215,6 +227,11 @@ class MotorCarga:
             self._registrar_erro(job_id, versao_id, Cod.NORMALIZE_FAILED, exc)
             return ResultadoUnidade(chave, "erro", versao_id, erro=str(exc))
 
+        recusa = self._recusa_do_lote(lote, versao_id, job_id)
+        if recusa is not None:
+            recusa.chave = chave
+            return recusa
+
         try:
             with sessao(self.engine) as s:
                 resultado = self.carregar_lote(s, lote, versao_id=versao_id, unidade_id=unidade_id, job_id=job_id)
@@ -236,6 +253,17 @@ class MotorCarga:
             log.exception("falha ao carregar %s", chave)
             self._registrar_erro(job_id, versao_id, Cod.LOAD_FAILED, exc)
             return ResultadoUnidade(chave, "erro", versao_id, erro=str(exc))
+
+    def _recusa_do_lote(self, lote: LoteCanonico, versao_id: UUID, job_id: UUID | None) -> ResultadoUnidade | None:
+        """A conferência de quem chamou recusou o lote? Recusado, nada se grava e a versão anterior continua valendo."""
+        if self.conferir_lote is None:
+            return None
+        try:
+            self.conferir_lote(lote)
+        except ErroDePermissao as exc:
+            self._registrar_erro(job_id, versao_id, Cod.PERMISSION_DENIED, exc, {})
+            return ResultadoUnidade("", "erro", versao_id, erro=str(exc))
+        return None
 
     def _registrar_erro(self, job_id: UUID | None, versao_id: UUID | None, codigo: Cod, exc: Exception,
                         contexto: dict[str, Any] | None = None, nivel: str = "erro") -> None:

@@ -1242,6 +1242,80 @@
         }
       }
     },
+    "/api/v1/importacoes": {
+      "get": {
+        "tags": [
+          "importacao"
+        ],
+        "summary": "Listar Importacoes",
+        "operationId": "listar_importacoes_api_v1_importacoes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Importacao"
+                  },
+                  "type": "array",
+                  "title": "Response Listar Importacoes Api V1 Importacoes Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "importacao"
+        ],
+        "summary": "Importar Planilha",
+        "operationId": "importar_planilha_api_v1_importacoes_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_importar_planilha_api_v1_importacoes_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Importacao"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/categorias": {
       "get": {
         "tags": [
@@ -2028,6 +2102,20 @@
         "type": "object",
         "title": "AlteracaoDeUsuario",
         "description": "Só os campos enviados mudam."
+      },
+      "Body_importar_planilha_api_v1_importacoes_post": {
+        "properties": {
+          "arquivo": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Arquivo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "arquivo"
+        ],
+        "title": "Body_importar_planilha_api_v1_importacoes_post"
       },
       "BoletimAnalitico": {
         "properties": {
@@ -3197,6 +3285,117 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "Importacao": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "arquivo": {
+            "type": "string",
+            "title": "Arquivo"
+          },
+          "tamanho_bytes": {
+            "type": "integer",
+            "title": "Tamanho Bytes"
+          },
+          "enviado_por": {
+            "type": "string",
+            "title": "Enviado Por"
+          },
+          "enviado_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Enviado Em"
+          },
+          "minha": {
+            "type": "boolean",
+            "title": "Minha"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "na_fila",
+              "processando",
+              "carregada",
+              "carregada_com_avisos",
+              "inalterada",
+              "ignorada",
+              "erro"
+            ],
+            "title": "Status"
+          },
+          "mensagem": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mensagem"
+          },
+          "avisos": {
+            "type": "integer",
+            "title": "Avisos"
+          },
+          "quarentena": {
+            "type": "integer",
+            "title": "Quarentena"
+          },
+          "fazendas": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fazendas"
+          },
+          "iniciado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Iniciado Em"
+          },
+          "finalizado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finalizado Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "arquivo",
+          "tamanho_bytes",
+          "enviado_por",
+          "enviado_em",
+          "minha",
+          "status",
+          "mensagem",
+          "avisos",
+          "quarentena",
+          "fazendas",
+          "iniciado_em",
+          "finalizado_em"
+        ],
+        "title": "Importacao",
+        "description": "Uma planilha enviada pela tela: espera o worker na fila e, depois, mostra o que a carga fez."
       },
       "IndicadoresDoLote": {
         "properties": {

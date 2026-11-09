@@ -18,6 +18,7 @@ class Cod(StrEnum):
     NORMALIZE_FAILED = "NORMALIZE_FAILED"
     CONTRACT_VIOLATION = "CONTRACT_VIOLATION"
     LOAD_FAILED = "LOAD_FAILED"
+    PERMISSION_DENIED = "PERMISSION_DENIED"     # quem enviou a planilha pela tela não pode alimentar a fazenda dela
     # identidade / de-para
     FARM_CREATED = "FARM_CREATED"
     CATEGORY_UNMAPPED = "CATEGORY_UNMAPPED"

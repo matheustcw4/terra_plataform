@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from app.api.deps import EngineDaApi
-from app.api.v1.endpoints import admin, auth, dashboards, escopo, qualidade
+from app.api.v1.endpoints import admin, auth, dashboards, escopo, importacoes, qualidade
 from app.core.config import get_settings
 from app.core.logging import configurar_logging
 
@@ -34,5 +34,6 @@ api_v1.include_router(auth.router)
 api_v1.include_router(escopo.router)
 api_v1.include_router(dashboards.router)
 api_v1.include_router(qualidade.router)
+api_v1.include_router(importacoes.router)
 api_v1.include_router(admin.router)
 app.include_router(api_v1)

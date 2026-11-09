@@ -32,10 +32,14 @@ def test_horario_do_cron():
 
 
 def test_agenda_tem_so_as_cargas_com_horario():
-    configuracao = Settings(agenda_planilhas="0 */2 * * *", agenda_metryx="", agenda_estoque="30 0 1 * *")
+    configuracao = Settings(agenda_importacoes="*/5 * * * *", agenda_planilhas="", agenda_metryx="",
+                            agenda_estoque="30 0 1 * *")
     agenda = agenda_das_cargas(configuracao)
-    assert {nome: item["task"] for nome, item in agenda.items()} == {"planilhas": "cargas.planilhas",
+    assert {nome: item["task"] for nome, item in agenda.items()} == {"importacoes": "cargas.importacoes",
                                                                        "estoque": "cargas.estoque"}
+    # a pasta (carga em massa) continua podendo entrar na agenda
+    com_a_pasta = agenda_das_cargas(Settings(agenda_planilhas="0 */2 * * *"))
+    assert com_a_pasta["planilhas"]["task"] == "cargas.planilhas"
 
 
 def test_carga_de_planilhas_e_a_segunda_passada_sem_mudanca(engine_etl, tmp_path):

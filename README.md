@@ -36,9 +36,15 @@ fonte ──► adapter.descobrir() ─► extrair() ─► normalizar() ──�
 
 ## Rodar as cargas
 
+No dia a dia, as planilhas chegam pela tela **Importar planilhas** do painel (menu Dados): a API guarda o arquivo na
+fila (`ingest.importacao`) e o worker carrega, um por vez, conferindo se quem enviou tem acesso à fazenda da planilha
+(fazenda nova, só o admin). Sem worker no desenvolvimento, a fila anda pela linha de comando. A pasta
+(`PLANILHAS_DIR`) ficou para a carga em massa.
+
 ```bash
 cd backend
-.venv/Scripts/python -m app.etl planilhas                 # todos os RELATÓRIO*.xlsm de PLANILHAS_DIR (pula o que não mudou)
+.venv/Scripts/python -m app.etl importacoes               # as planilhas enviadas pela tela que estão na fila
+.venv/Scripts/python -m app.etl planilhas                 # carga em massa: os RELATÓRIO*.xlsm de PLANILHAS_DIR (pula o que não mudou)
 .venv/Scripts/python -m app.etl planilhas --arquivo "RELATÓRIO - 85 - ITAPAJÉ - BELA VISTA.xlsm"
 .venv/Scripts/python -m app.etl planilhas-historico --ate 2026-06   # carga única do histórico (snapshot do BI), após `planilhas`
 .venv/Scripts/python -m app.etl metryx-credencial --cliente <idCustomer> --nome "Cliente"   # pede o token sem ecoar
@@ -60,7 +66,7 @@ Validação contra os BIs atuais (banco descartável `terra_validacao`; relatór
 
 | Adapter | Onde | Fonte | Unidade de origem |
 |---|---|---|---|
-| Planilhas | `backend/app/etl/adapters/planilha/` | `.xlsm` em `PLANILHAS_DIR` (somente leitura, calamine) | um arquivo |
+| Planilhas | `backend/app/etl/adapters/planilha/` | `.xlsm` enviado pela tela (`enviada.py`) ou, na carga em massa, em `PLANILHAS_DIR` (somente leitura, calamine) | um arquivo (a chave é o nome) |
 | Metryx | `backend/app/etl/adapters/metryx/` | API REST, só os GET da allow-list | um cliente (token) |
 
 - **Planilha:**

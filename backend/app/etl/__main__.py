@@ -1,6 +1,7 @@
 """Linha de comando do motor de carga (roda como app_etl).
 
-    python -m app.etl planilhas [--pasta DIR] [--arquivo NOME ...] [--forcar]
+    python -m app.etl importacoes   (as planilhas enviadas pela tela que estão na fila; o worker faz o mesmo)
+    python -m app.etl planilhas [--pasta DIR] [--arquivo NOME ...] [--forcar]   (carga em massa de uma pasta)
     python -m app.etl planilhas-historico [--ate AAAA-MM] [--prop-faz CHAVE ...]   (carga única; depois de `planilhas`)
     python -m app.etl metryx [--cliente ID ...] [--forcar]
     python -m app.etl metryx-credencial --cliente ID --nome "Nome do cliente"   (lê o token sem ecoar)
@@ -57,6 +58,7 @@ def _historico(engine, motor: MotorCarga, ate: date, prop_faz: list[str] | None)
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m app.etl", description="Cargas do Projeto Terra")
     sub = ap.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("importacoes", help="carrega as planilhas enviadas pela tela que estão na fila")
     p = sub.add_parser("planilhas", help="carrega os RELATÓRIO*.xlsm da pasta")
     p.add_argument("--pasta")
     p.add_argument("--arquivo", action="append")
@@ -88,6 +90,11 @@ def main(argv: list[str] | None = None) -> int:
         token = os.environ.pop("METRYX_TOKEN_NOVO", None) or getpass.getpass("token do cliente (não aparece): ")
         cliente_id = credenciais.registrar(engine, a.cliente.strip(), token.strip(), a.nome)
         print(f"credencial cadastrada para o cliente Metryx {a.cliente} (cliente interno {cliente_id})")
+        return 0
+
+    if a.cmd == "importacoes":
+        from app.tasks.cargas import importacoes_na_fila
+        print(importacoes_na_fila(engine))
         return 0
 
     if a.cmd == "estoque":

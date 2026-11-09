@@ -75,7 +75,7 @@ services:
       JWT_SEGREDO: ${JWT_SEGREDO:?defina JWT_SEGREDO}
       JWT_MINUTOS: ${JWT_MINUTOS:-480}
       CORS_ORIGENS: https://${DOMINIO}
-      REDIS_URL: redis://redis:6379/0        # o "Atualizar agora" do admin põe a carga na fila do worker
+      REDIS_URL: redis://redis:6379/0        # o "Atualizar agora" e a importação de planilhas avisam o worker
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
       interval: 15s
@@ -95,11 +95,8 @@ services:
       <<: *banco
       APP_ETL_PASSWORD: ${APP_ETL_PASSWORD}
       REDIS_URL: redis://redis:6379/0
-      PLANILHAS_DIR: /dados/planilhas
       METRYX_CHAVE_CIFRA: ${METRYX_CHAVE_CIFRA:-}
       AGENDA_METRYX: ${AGENDA_METRYX-}       # o "Atualizar agora" só chama o Metryx com a agenda dele ligada
-    volumes:
-      - ${PLANILHAS_HOST_DIR:-./planilhas}:/dados/planilhas:ro
     depends_on:
       migracao:
         condition: service_completed_successfully
@@ -113,7 +110,7 @@ services:
     environment:
       TZ: America/Cuiaba
       REDIS_URL: redis://redis:6379/0
-      AGENDA_PLANILHAS: ${AGENDA_PLANILHAS-0 */2 * * *}
+      AGENDA_IMPORTACOES: ${AGENDA_IMPORTACOES-*/5 * * * *}   # as planilhas enviadas pela tela que ainda esperam
       AGENDA_METRYX: ${AGENDA_METRYX-}
       AGENDA_ESTOQUE: ${AGENDA_ESTOQUE-30 0 1 * *}
     depends_on:
@@ -160,20 +157,6 @@ services:
       # o primeiro backup sai na subida: com o banco já migrado
       migracao:
         condition: service_completed_successfully
-
-  # opcional (perfil "drive"): traz as planilhas do Google Drive para PLANILHAS_HOST_DIR, a cada 10 minutos
-  planilhas:
-    image: rclone/rclone:1
-    profiles: ["drive"]
-    restart: unless-stopped
-    entrypoint: ["/bin/sh", "/sincronizar.sh"]
-    environment:
-      RCLONE_ORIGEM: ${RCLONE_ORIGEM:-drive:Relatórios}
-      INTERVALO_S: ${INTERVALO_DO_DRIVE_S:-600}
-    volumes:
-      - ./docker/planilhas/sincronizar.sh:/sincronizar.sh:ro
-      - ${RCLONE_CONFIG_DIR:-./rclone}:/config/rclone
-      - ${PLANILHAS_HOST_DIR:-./planilhas}:/dados/planilhas
 
 volumes:
   pgdata:
