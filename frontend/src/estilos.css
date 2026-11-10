@@ -1227,27 +1227,7 @@ input[type="radio"] {
   margin: 0 auto;
 }
 
-.velocimetro-fundo,
-.velocimetro-valor {
-  fill: none;
-  stroke-width: 22;
-}
-
-.velocimetro-fundo {
-  stroke: var(--cor-grade);
-}
-
-.velocimetro-meta {
-  stroke: var(--cor-marinho);
-  stroke-width: 3;
-}
-
-.velocimetro-numero {
-  font-size: 22px;
-  font-weight: 700;
-  text-anchor: middle;
-  fill: var(--cor-texto);
-}
+/* o arco, a marca e o número do velocímetro têm o estilo nos atributos do SVG (Velocimetro.tsx), para sair no PDF */
 
 .velocimetro-legenda {
   margin: 4px 0 0;

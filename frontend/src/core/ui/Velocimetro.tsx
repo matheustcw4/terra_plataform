@@ -9,9 +9,12 @@ type Props = {
 
 const CENTRO = { x: 100, y: 100 };
 const RAIO = 80;
+const ESPESSURA_DO_ARCO = 22;
 
 // O velocímetro do BI ("DESEMBOLSO CABEÇA MÊS", "Valor de Venda @"): o arco vai até o realizado, o traço marca a
 // meta e a escala termina no máximo que a API manda. Verde dentro da meta, vermelho fora (a API diz qual é o caso).
+// O estilo do desenho vai nos atributos do SVG, não em classes: na exportação para PDF, o html-to-image copia o <svg>
+// sem o estilo calculado dos filhos, e o que vem de classe se perde (o arco saía preto).
 export function Velocimetro({ titulo, valores, formatar }: Props) {
   const fracaoDoRealizado = fracaoDaEscala(valores.realizado, valores.maximo);
   const fracaoDaMeta = fracaoDaEscala(valores.planejado, valores.maximo);
@@ -28,14 +31,18 @@ export function Velocimetro({ titulo, valores, formatar }: Props) {
     <section className="painel-grafico velocimetro">
       <h2>{titulo}</h2>
       <svg viewBox="0 0 200 118" role="img" aria-label={`${titulo}: ${formatar(valores.realizado)}`}>
-        <path d={caminhoDoArco(1, CENTRO, RAIO)} className="velocimetro-fundo" />
-        {fracaoDoRealizado > 0 && <path d={caminhoDoArco(fracaoDoRealizado, CENTRO, RAIO)} stroke={cor}
-          className="velocimetro-valor" />}
+        <path d={caminhoDoArco(1, CENTRO, RAIO)} fill="none" stroke="var(--cor-grade)"
+          strokeWidth={ESPESSURA_DO_ARCO} />
+        {fracaoDoRealizado > 0 && <path d={caminhoDoArco(fracaoDoRealizado, CENTRO, RAIO)} fill="none" stroke={cor}
+          strokeWidth={ESPESSURA_DO_ARCO} />}
         {valores.planejado !== null && (
           <line x1={baseDaMarca.x} y1={baseDaMarca.y} x2={pontaDaMarca.x} y2={pontaDaMarca.y}
-            className="velocimetro-meta" />
+            stroke="var(--cor-marinho)" strokeWidth={3} />
         )}
-        <text x={CENTRO.x} y={CENTRO.y - 8} className="velocimetro-numero">{formatar(valores.realizado)}</text>
+        <text x={CENTRO.x} y={CENTRO.y - 8} fontSize={22} fontWeight={700} textAnchor="middle"
+          fill="var(--cor-texto)">
+          {formatar(valores.realizado)}
+        </text>
       </svg>
       <p className="velocimetro-legenda">
         Meta: <strong>{formatar(valores.planejado)}</strong>

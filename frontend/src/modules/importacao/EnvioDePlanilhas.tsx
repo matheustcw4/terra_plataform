@@ -1,10 +1,10 @@
-import { useState, type ChangeEvent, type DragEvent } from "react";
+import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { Icone } from "../../core/ui/Icone";
 import { motivoDaRecusa, PADRAO_EXPLICADO, tamanhoLegivel } from "../../logic/importacao";
 import { useEnviarPlanilha } from "./api";
 
 type SituacaoDoEnvio = "enviando" | "enviada" | "recusado";
-type Envio = { chave: string; nome: string; tamanho: number; situacao: SituacaoDoEnvio; mensagem: string | null };
+type Envio = { chave: number; nome: string; tamanho: number; situacao: SituacaoDoEnvio; mensagem: string | null };
 
 const ROTULO_DO_ENVIO: Record<SituacaoDoEnvio, string> = {
   enviando: "Enviando…",
@@ -19,8 +19,11 @@ export function EnvioDePlanilhas() {
   const enviar = useEnviarPlanilha();
   const [envios, trocarEnvios] = useState<Envio[]>([]);
   const [arrastando, trocarArrastando] = useState(false);
+  // um contador basta para a chave da lista; crypto.randomUUID só existe em página segura (HTTPS ou localhost), e o
+  // servidor pode estar aberto por HTTP
+  const ultimaChave = useRef(0);
 
-  function anotar(chave: string, situacao: SituacaoDoEnvio, mensagem: string | null) {
+  function anotar(chave: number, situacao: SituacaoDoEnvio, mensagem: string | null) {
     trocarEnvios((atuais) => atuais.map((envio) => (envio.chave === chave ? { ...envio, situacao, mensagem } : envio)));
   }
 
@@ -31,7 +34,8 @@ export function EnvioDePlanilhas() {
       if (motivo !== null) {
         situacao = "recusado";
       }
-      const envio: Envio = { chave: crypto.randomUUID(), nome: arquivo.name, tamanho: arquivo.size, situacao,
+      ultimaChave.current += 1;
+      const envio: Envio = { chave: ultimaChave.current, nome: arquivo.name, tamanho: arquivo.size, situacao,
         mensagem: motivo };
       trocarEnvios((atuais) => [envio, ...atuais]);
       if (motivo !== null) {
