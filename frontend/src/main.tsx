@@ -4,6 +4,10 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router";
 import { rotas } from "./rotas";
 import "@fontsource-variable/figtree";
+// as fontes do boletim de resultados em PDF (as do gerador oficial da Terra): Archivo larga nos números e títulos,
+// Arimo no texto; vêm do pacote, e não do Google Fonts, para o PDF sair igual sem internet
+import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource-variable/arimo";
 import "./estilos.css";
 
 const queryClient = new QueryClient({

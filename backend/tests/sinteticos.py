@@ -169,7 +169,8 @@ def payloads_metryx(**sobrescrever) -> dict[str, list[dict]]:
              "type": "Débito", "amountPaid": 1500.5, "datePayment": "2025-07-15", "dueDate": "2025-07-10"},
             {"idCustomer": CLIENTE, "idFarmFiscal": FAZENDA, "idfarmDestination": FAZENDA, "idFinancialEntrie": "f2",
              "idPayment": None, "parcel": "1", "costCenter": "Pastagens", "subCenter": "Adubação",
-             "type": "Débito", "amountPaid": 0, "datePayment": None, "dueDate": "2025-08-10"}],   # não pago
+             "type": "Débito", "amountPaid": 0, "amountPayable": 800, "datePayment": None,
+             "dueDate": "2025-08-10"}],   # em aberto: só entra com o filtro de status pedindo
     }
     dados.update(sobrescrever)
     return dados
@@ -218,11 +219,11 @@ def fluxo_de_caixa(data: str, valor: float, tipo: str, *, versao: int, centro: s
 
 def plano_metryx() -> dict[str, list[dict]]:
     """O planejamento da mesma fazenda, na versão 1 da safra 25-26: 100 nascimentos previstos em jul/2025, a evolução
-    do rebanho (100 bezerros no saldo inicial e +20 em julho: rebanho médio previsto de 110 em julho) e R$ 1.500 de
-    adubação prevista em julho."""
+    do rebanho (90 bezerros no saldo inicial e +20 em julho: o rebanho previsto de julho é o saldo do fim do mês, 110,
+    como o relatório do Metryx) e R$ 1.500 de adubação prevista em julho."""
     return {
         "nascimento_plano": [item_do_plano("7/25", 11, 100)],
-        "rebanho_plano": [item_do_plano(None, 11, 100, type="Entrada", originMovement="Saldo Inicial"),
+        "rebanho_plano": [item_do_plano(None, 11, 90, type="Entrada", originMovement="Saldo Inicial"),
                           item_do_plano("7/25", 11, 20, type="Entrada", originMovement="nascimento")],
         "previsao_financeiro": [previsao_financeira("2025-07-01", -1500, "Débito")],
     }

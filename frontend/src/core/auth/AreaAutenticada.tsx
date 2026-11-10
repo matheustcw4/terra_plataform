@@ -55,9 +55,15 @@ function Area({ escopo }: { escopo: Escopo }) {
     }
   }, [filtro, urlTemFiltro, setParametros]);
 
+  // O tipo do orçamento (`previsto`) não é do filtro, mas fica: trocar a versão ou o status nas páginas do financeiro
+  // não pode desfazer a escolha do planejado.
   function trocarFiltro(novo: Filtro) {
     const url = filtroParaUrl(novo);
     lembrarFiltro(url);
+    const previsto = parametros.get("previsto");
+    if (previsto) {
+      url.set("previsto", previsto);
+    }
     setParametros(url);
   }
 
@@ -72,8 +78,7 @@ function Area({ escopo }: { escopo: Escopo }) {
   const contexto: ContextoDaArea = {
     escopo,
     filtro,
-    // a versão do planejamento fica na URL, fora do filtro do MENU: escolhida numa página, vale em todas
-    consulta: { ...consultaDoFiltro(filtro, escopo.fazendas), versao: parametros.get("versao") },
+    consulta: consultaDoFiltro(filtro, escopo.fazendas),
     trocarFiltro,
   };
   return <Outlet context={contexto} />;

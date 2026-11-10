@@ -7,7 +7,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from app.schemas.api import EscolhaDaVersao, MesDoFinanceiro, PrevistoRealizado
+from app.schemas.api import EscolhaDaVersao, MesDoFinanceiro, PrevistoRealizado, QuadroDoLote
 
 
 class Comparado(BaseModel):
@@ -16,6 +16,7 @@ class Comparado(BaseModel):
     realizado: float | None
     variacao: float | None                  # realizado − previsto
     variacao_percentual: float | None       # (realizado − previsto) ÷ previsto; sem previsto, vazio
+    percentual_da_meta: float | None        # realizado ÷ previsto ("96,2% da meta"); sem previsto, vazio
     status: str | None                      # verde | amarelo | vermelho; vazio quando o indicador não tem sentido
 
 
@@ -157,6 +158,10 @@ class SecaoDeCompras(SecaoDeLotes):
     agio: float | None                      # (@ de compra − @ vendida) ÷ @ vendida, no acumulado
 
 
+class SecaoDeVendas(SecaoDeLotes):
+    por_sexo: list[QuadroDoLote]            # o acumulado em GERAL, MACHO e FÊMEA (a tabela por sexo do boletim)
+
+
 class SecaoTransferencias(BaseModel):
     entradas: SecaoDeLotes
     saidas: SecaoDeLotes
@@ -227,6 +232,27 @@ class SecaoCaixa(BaseModel):
     leitura: list[str]
 
 
+# --- a folha 01 do boletim de resultados ---------------------------------------------------------------------------
+
+
+class ParteDoDesembolso(BaseModel):
+    nome: str                               # o centro de custo, ou "Outros (N grupos)"
+    valor: float
+
+
+class SecaoResumo(BaseModel):
+    """O que só a folha de resumo mostra, já somado: as cabeças vendidas (abate + em pé) e compradas contra a meta, os
+    sete maiores grupos de desembolso e o resto em "Outros", e o status do resultado pela regra do boletim (verde
+    quando o realizado é maior ou igual ao planejado; o semáforo do BI usa o %, que inverte com o planejado
+    negativo)."""
+    vendas: Comparado                       # cabeças, abate + em pé, no acumulado
+    compras: Comparado
+    desembolso_por_grupo: list[ParteDoDesembolso]
+    desembolso_total: float
+    status_do_resultado_mes: str | None     # verde | vermelho; sem caixa previsto nem realizado, vazio
+    status_do_resultado_acumulado: str | None
+
+
 class BoletimAnalitico(BaseModel):
     mes_referencia: date
     inicio_do_periodo: date
@@ -237,9 +263,10 @@ class BoletimAnalitico(BaseModel):
     placar_zootecnico: SecaoPlacar
     nascimentos: SecaoDeLotes
     compras: SecaoDeCompras
-    vendas: list[SecaoDeLotes]              # abate e em pé
+    vendas: list[SecaoDeVendas]             # abate e em pé
     transferencias: SecaoTransferencias
     mortes: SecaoMortes
     financeiro: SecaoFinanceiro
     caixa: SecaoCaixa
+    resumo: SecaoResumo
     plano: EscolhaDaVersao                  # a versão do planejamento das metas do boletim

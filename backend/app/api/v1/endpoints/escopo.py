@@ -29,6 +29,9 @@ FAZENDAS_VISIVEIS = """
                    WHERE r.fazenda_id = f.id AND r.cenario = 'realizado') AS tem_rebanho_medio,
            EXISTS (SELECT 1 FROM fato.area_mensal a WHERE a.fazenda_id = f.id AND a.cenario = 'realizado') AS tem_area,
            EXISTS (SELECT 1 FROM fato.lancamento_financeiro l WHERE l.fazenda_id = f.id) AS tem_financeiro,
+           -- as situações dos títulos que a fazenda tem (o MENU só mostra o filtro de status quando há o que escolher)
+           ARRAY(SELECT DISTINCT l.situacao FROM fato.lancamento_financeiro l WHERE l.fazenda_id = f.id
+                 ORDER BY 1) AS situacoes,
            EXISTS (SELECT 1 FROM fato.orcamento_financeiro o WHERE o.fazenda_id = f.id)
              OR EXISTS (SELECT 1 FROM fato.mov_animal m WHERE m.fazenda_id = f.id AND m.cenario = 'planejado')
              AS tem_planejado
@@ -47,7 +50,7 @@ def escopo(s: SessaoDoUsuario, usuario: UsuarioLogado) -> Escopo:
     for linha in s.execute(text(FAZENDAS_VISIVEIS)).mappings():
         capacidades = Capacidades(estoque=linha["primeiro_mes"] is not None, rebanho_medio=linha["tem_rebanho_medio"],
                                   area=linha["tem_area"], financeiro=linha["tem_financeiro"],
-                                  planejado=linha["tem_planejado"])
+                                  planejado=linha["tem_planejado"], situacoes=linha["situacoes"])
         fazendas.append(FazendaDoEscopo(
             id=linha["id"], nome=linha["nome"], cliente=linha["cliente"], origem=linha["origem"],
             sistema_produtivo=linha["sistema_produtivo"],

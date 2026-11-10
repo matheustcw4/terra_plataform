@@ -13,20 +13,25 @@ from app.kpis.analitico.mortes import secao_mortes
 from app.kpis.analitico.nascimentos import secao_nascimentos
 from app.kpis.analitico.placar import secao_placar, tres_recortes
 from app.kpis.analitico.recortes import recortes_do_boletim
+from app.kpis.analitico.resumo import secao_resumo
 from app.kpis.analitico.transferencias import secao_transferencias
 from app.kpis.analitico.ultimo_dado import aviso_do_ultimo_dado
 from app.kpis.analitico.vendas import secoes_de_vendas
+from app.kpis.situacao_do_lancamento import SITUACOES_PADRAO
 from app.kpis.versao_do_plano import escolha_da_versao
 from app.schemas.analitico import BoletimAnalitico
 
 
 def boletim_analitico(s: Session, fazendas: list[UUID], mes_referencia: date, visao: str,
-                      versao_do_plano: UUID | None = None) -> BoletimAnalitico:
-    recortes = recortes_do_boletim(fazendas, mes_referencia, visao, versao_do_plano)
+                      versoes_do_plano: tuple[UUID, ...] = (), fazendas_sem_plano: tuple[UUID, ...] = (),
+                      situacoes: tuple[str, ...] = SITUACOES_PADRAO) -> BoletimAnalitico:
+    recortes = recortes_do_boletim(fazendas, mes_referencia, visao, versoes_do_plano, fazendas_sem_plano, situacoes)
     limiar = limiar_do_semaforo(s)
     aviso = aviso_do_ultimo_dado(s, recortes)
     estoque = secao_estoque(s, recortes, sem_lancamento_no_mes=aviso.todas_paradas)
     valores = tres_recortes(s, recortes)
+    financeiro = secao_financeiro(s, recortes, limiar)
+    caixa = secao_caixa(s, recortes)
     boletim = BoletimAnalitico(
         mes_referencia=recortes.mes_referencia, inicio_do_periodo=recortes.inicio_do_periodo,
         fim_do_periodo=recortes.fim_do_periodo, visao=visao, estoque=estoque,
@@ -34,7 +39,7 @@ def boletim_analitico(s: Session, fazendas: list[UUID], mes_referencia: date, vi
         nascimentos=secao_nascimentos(s, recortes, valores, limiar),
         compras=secao_compras(s, recortes, valores, limiar), vendas=secoes_de_vendas(s, recortes, valores, limiar),
         transferencias=secao_transferencias(s, recortes, valores, limiar), mortes=secao_mortes(s, recortes),
-        financeiro=secao_financeiro(s, recortes, limiar), caixa=secao_caixa(s, recortes),
+        financeiro=financeiro, caixa=caixa, resumo=secao_resumo(valores, financeiro, caixa, limiar),
         plano=escolha_da_versao(s, recortes.periodo))
     abrir_com_o_aviso(boletim, aviso.frase)
     return boletim

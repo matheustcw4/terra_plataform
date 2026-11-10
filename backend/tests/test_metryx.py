@@ -2,6 +2,7 @@
 
 import logging
 from datetime import date
+from decimal import Decimal
 
 import httpx
 import pytest
@@ -112,8 +113,10 @@ def test_carga_da_api(engine_etl, engine_super):
     assert contar(engine_super, "SELECT count(*) FROM fato.mov_animal WHERE tipo IN ('TRANSF_SAIDA','TRANSF_ENTRADA')") == 2
     # morte com idRetiro legado vai para o retiro certo (uuid), não para um retiro fantasma
     assert contar(engine_super, "SELECT count(*) FROM core.retiro") == 1
-    # lançamento não pago não é realizado
-    assert contar(engine_super, "SELECT count(*) FROM fato.lancamento_financeiro") == 1
+    # o título pago (conciliado ou não) e o em aberto entram, cada um com a situação; o em aberto pelo vencimento
+    assert contar(engine_super, "SELECT string_agg(situacao || ':' || competencia || ':' || valor, ' ' ORDER BY "
+                                "situacao) FROM fato.lancamento_financeiro") == ("em_aberto:2025-08-01:800.00 "
+                                                                                 "pago:2025-07-01:1500.50")
     assert contar(engine_super, "SELECT count(*) FROM raw.payload") == 1
     assert contar(engine_super, "SELECT count(*) FROM integracao.metryx_credencial WHERE ultima_validacao_em IS NOT NULL") == 1
 
@@ -303,3 +306,22 @@ def test_consumo_e_doacao_seguem_o_metryx():
     tipos = {m.causa: m.tipo for m in lote.mov_animal if m.tipo in ("MORTE", "CONSUMO_DOACAO")}
     assert tipos == {"Consumo Abate": "CONSUMO_DOACAO", "Consumo Acidente": "CONSUMO_DOACAO",
                      "Doação": "CONSUMO_DOACAO", "Fraqueza": "MORTE", "Ajuste de saldo": "MORTE"}
+
+
+def test_situacao_do_titulo_e_excluido_fora():
+    """Pedido do usuário, 10/11/2026: o título ativo entra conciliado (pago e conciliado no banco), pago (sem a
+    conciliação) ou em aberto (pelo vencimento e pelo valor a pagar); o excluído no Metryx não entra, nem pago."""
+    dados = payloads_metryx()
+    pago = dados["lancamento"][0]
+    dados["lancamento"] = [
+        {**pago, "idFinancialEntrie": "c1", "conciliationDate": "2025-07-31", "status": "Ativo"},
+        {**pago, "idFinancialEntrie": "p1", "status": "Ativo"},
+        {**pago, "idFinancialEntrie": "a1", "datePayment": None, "amountPaid": 0, "amountPayable": 700,
+         "dueDate": "2025-12-05", "status": "Ativo"},
+        {**pago, "idFinancialEntrie": "d1", "status": "Deletado"},
+    ]
+    lote = normalizar(conteudo_bruto(dados))
+    titulos = sorted((lancamento.situacao, lancamento.data_do_caixa, lancamento.valor) for lancamento in lote.lancamentos)
+    assert titulos == [("conciliado", date(2025, 7, 15), Decimal("1500.5")), ("em_aberto", date(2025, 12, 5), 700),
+                       ("pago", date(2025, 7, 15), Decimal("1500.5"))]
+    assert lote.rejeitadas == []

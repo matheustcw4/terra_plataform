@@ -200,17 +200,68 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
               "title": "Versao"
             },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
           }
         ],
         "responses": {
@@ -327,17 +378,68 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
               "title": "Versao"
             },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
           }
         ],
         "responses": {
@@ -441,17 +543,68 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
               "title": "Versao"
             },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
           }
         ],
         "responses": {
@@ -555,17 +708,68 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
               "title": "Versao"
             },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
           }
         ],
         "responses": {
@@ -669,17 +873,68 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
               "title": "Versao"
             },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
           }
         ],
         "responses": {
@@ -783,17 +1038,68 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
               "title": "Versao"
             },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
           }
         ],
         "responses": {
@@ -919,17 +1225,68 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
               "title": "Versao"
             },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
           }
         ],
         "responses": {
@@ -1055,17 +1412,68 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
               "title": "Versao"
             },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
           }
         ],
         "responses": {
@@ -1092,13 +1500,179 @@
         }
       }
     },
+    "/api/v1/dashboards/versoes_do_plano": {
+      "get": {
+        "tags": [
+          "dashboards"
+        ],
+        "summary": "Versoes Do Plano",
+        "description": "No MENU: as versões do plano de cada fazenda do filtro no período (das metas e do orçamento do\nplanejamento), a escolhida em cada uma e as que estão valendo.",
+        "operationId": "versoes_do_plano_api_v1_dashboards_versoes_do_plano_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fazendas",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "title": "Fazendas"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Inicio"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "fim",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "AAAA-MM",
+              "title": "Fim"
+            },
+            "description": "AAAA-MM"
+          },
+          {
+            "name": "meses",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim",
+              "title": "Meses"
+            },
+            "description": "AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim"
+          },
+          {
+            "name": "versao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
+              "title": "Versao"
+            },
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EscolhaDaVersao"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/dashboards/analitico": {
       "get": {
         "tags": [
           "dashboards"
         ],
         "summary": "Boletim Do Mes",
-        "description": "O \"Exportar PDF\" no modo Analítico: o mês de referência, o acumulado do período (safra ou ano) até ele e a meta\ndo período inteiro, com as frases que explicam os números.",
+        "description": "O \"Exportar PDF\" no modo Boletim Resumido (e no Personalizado): o mês de referência, o acumulado do período\n(safra ou ano) até ele e a meta do período inteiro, com as frases que explicam os números.",
         "operationId": "boletim_do_mes_api_v1_dashboards_analitico_get",
         "security": [
           {
@@ -1152,17 +1726,68 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "format": "uuid"
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
                 },
                 {
                   "type": "null"
                 }
               ],
-              "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra",
+              "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra",
               "title": "Versao"
             },
-            "description": "versão do plano; sem ela, a mais recente de cada fazenda e safra"
+            "description": "versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra"
+          },
+          {
+            "name": "sem_plano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "fazendas marcadas como sem planejamento",
+              "title": "Sem Plano"
+            },
+            "description": "fazendas marcadas como sem planejamento"
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "conciliado",
+                      "pago",
+                      "em_aberto"
+                    ],
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago",
+              "title": "Situacao"
+            },
+            "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
           }
         ],
         "responses": {
@@ -2155,7 +2780,7 @@
           },
           "vendas": {
             "items": {
-              "$ref": "#/components/schemas/SecaoDeLotes"
+              "$ref": "#/components/schemas/SecaoDeVendas"
             },
             "type": "array",
             "title": "Vendas"
@@ -2171,6 +2796,9 @@
           },
           "caixa": {
             "$ref": "#/components/schemas/SecaoCaixa"
+          },
+          "resumo": {
+            "$ref": "#/components/schemas/SecaoResumo"
           },
           "plano": {
             "$ref": "#/components/schemas/EscolhaDaVersao"
@@ -2192,6 +2820,7 @@
           "mortes",
           "financeiro",
           "caixa",
+          "resumo",
           "plano"
         ],
         "title": "BoletimAnalitico"
@@ -2217,6 +2846,14 @@
           "planejado": {
             "type": "boolean",
             "title": "Planejado"
+          },
+          "situacoes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Situacoes",
+            "default": []
           }
         },
         "type": "object",
@@ -2645,6 +3282,17 @@
             ],
             "title": "Variacao Percentual"
           },
+          "percentual_da_meta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentual Da Meta"
+          },
           "status": {
             "anyOf": [
               {
@@ -2663,6 +3311,7 @@
           "realizado",
           "variacao",
           "variacao_percentual",
+          "percentual_da_meta",
           "status"
         ],
         "title": "Comparado",
@@ -2879,24 +3528,12 @@
       },
       "EscolhaDaVersao": {
         "properties": {
-          "versoes": {
+          "fazendas": {
             "items": {
-              "$ref": "#/components/schemas/VersaoDoPrevisto"
+              "$ref": "#/components/schemas/VersoesDaFazenda"
             },
             "type": "array",
-            "title": "Versoes"
-          },
-          "versao": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Versao"
+            "title": "Fazendas"
           },
           "em_uso": {
             "items": {
@@ -2908,12 +3545,11 @@
         },
         "type": "object",
         "required": [
-          "versoes",
-          "versao",
+          "fazendas",
           "em_uso"
         ],
         "title": "EscolhaDaVersao",
-        "description": "A versão do planejamento das metas de animais e do rebanho médio previsto (todas as páginas com meta)."
+        "description": "A versão do planejamento das metas de animais e do rebanho médio previsto (as páginas com meta e o MENU)."
       },
       "EscolhaDoPrevisto": {
         "properties": {
@@ -2939,24 +3575,12 @@
             ],
             "title": "Tipo"
           },
-          "versoes": {
+          "fazendas": {
             "items": {
-              "$ref": "#/components/schemas/VersaoDoPrevisto"
+              "$ref": "#/components/schemas/VersoesDaFazenda"
             },
             "type": "array",
-            "title": "Versoes"
-          },
-          "versao": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Versao"
+            "title": "Fazendas"
           },
           "em_uso": {
             "items": {
@@ -2970,8 +3594,7 @@
         "required": [
           "tipos",
           "tipo",
-          "versoes",
-          "versao",
+          "fazendas",
           "em_uso"
         ],
         "title": "EscolhaDoPrevisto",
@@ -4690,6 +5313,24 @@
         ],
         "title": "OpcaoDeConta"
       },
+      "ParteDoDesembolso": {
+        "properties": {
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "valor": {
+            "type": "number",
+            "title": "Valor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nome",
+          "valor"
+        ],
+        "title": "ParteDoDesembolso"
+      },
       "PedidoDeAcesso": {
         "properties": {
           "fazendas": {
@@ -5222,6 +5863,64 @@
         ],
         "title": "SecaoDeLotes"
       },
+      "SecaoDeVendas": {
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "titulo": {
+            "type": "string",
+            "title": "Titulo"
+          },
+          "lancamentos": {
+            "items": {
+              "$ref": "#/components/schemas/LoteDoMes"
+            },
+            "type": "array",
+            "title": "Lancamentos"
+          },
+          "meses": {
+            "items": {
+              "$ref": "#/components/schemas/MesDoLoteComparado"
+            },
+            "type": "array",
+            "title": "Meses"
+          },
+          "resumo": {
+            "items": {
+              "$ref": "#/components/schemas/LinhaDoPlacar"
+            },
+            "type": "array",
+            "title": "Resumo"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          },
+          "por_sexo": {
+            "items": {
+              "$ref": "#/components/schemas/QuadroDoLote"
+            },
+            "type": "array",
+            "title": "Por Sexo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tipo",
+          "titulo",
+          "lancamentos",
+          "meses",
+          "resumo",
+          "leitura",
+          "por_sexo"
+        ],
+        "title": "SecaoDeVendas"
+      },
       "SecaoEstoque": {
         "properties": {
           "mes": {
@@ -5524,6 +6223,60 @@
           "leitura"
         ],
         "title": "SecaoPlacar"
+      },
+      "SecaoResumo": {
+        "properties": {
+          "vendas": {
+            "$ref": "#/components/schemas/Comparado"
+          },
+          "compras": {
+            "$ref": "#/components/schemas/Comparado"
+          },
+          "desembolso_por_grupo": {
+            "items": {
+              "$ref": "#/components/schemas/ParteDoDesembolso"
+            },
+            "type": "array",
+            "title": "Desembolso Por Grupo"
+          },
+          "desembolso_total": {
+            "type": "number",
+            "title": "Desembolso Total"
+          },
+          "status_do_resultado_mes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Do Resultado Mes"
+          },
+          "status_do_resultado_acumulado": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Do Resultado Acumulado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "vendas",
+          "compras",
+          "desembolso_por_grupo",
+          "desembolso_total",
+          "status_do_resultado_mes",
+          "status_do_resultado_acumulado"
+        ],
+        "title": "SecaoResumo",
+        "description": "O que só a folha de resumo mostra, já somado: as cabeças vendidas (abate + em pé) e compradas contra a meta, os\nsete maiores grupos de desembolso e o resto em \"Outros\", e o status do resultado pela regra do boletim (verde\nquando o realizado é maior ou igual ao planejado; o semáforo do BI usa o %, que inverte com o planejado\nnegativo)."
       },
       "SecaoTransferencias": {
         "properties": {
@@ -5891,6 +6644,48 @@
           "rotulo"
         ],
         "title": "VersaoDoPrevisto"
+      },
+      "VersoesDaFazenda": {
+        "properties": {
+          "fazenda_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fazenda Id"
+          },
+          "fazenda": {
+            "type": "string",
+            "title": "Fazenda"
+          },
+          "versoes": {
+            "items": {
+              "$ref": "#/components/schemas/VersaoDoPrevisto"
+            },
+            "type": "array",
+            "title": "Versoes"
+          },
+          "escolhidas": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Escolhidas"
+          },
+          "sem_plano": {
+            "type": "boolean",
+            "title": "Sem Plano"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fazenda_id",
+          "fazenda",
+          "versoes",
+          "escolhidas",
+          "sem_plano"
+        ],
+        "title": "VersoesDaFazenda",
+        "description": "As versões do plano de uma fazenda do filtro no período (pedido do usuário, 10/11/2026: a escolha é por\nfazenda), da mais recente para a mais antiga; nenhuma = a fazenda não tem plano no período."
       }
     },
     "securitySchemes": {

@@ -15,6 +15,7 @@ from app.kpis.analitico.estoque import COLUNAS_DO_ESTOQUE, DoMes, leitura_do_est
 from app.kpis.analitico.financeiro import frase_do_resultado, leitura_financeira
 from app.kpis.analitico.mortes import frase_das_mortes_do_mes
 from app.kpis.analitico.recortes import recortes_do_boletim
+from app.kpis.analitico.resumo import grupos_do_resumo, status_do_resultado
 from app.kpis.analitico.textos import (
     acima_ou_abaixo,
     cabecas,
@@ -26,7 +27,7 @@ from app.kpis.analitico.textos import (
     percentual,
 )
 from app.kpis.analitico.ultimo_dado import frase_das_paradas
-from app.schemas.analitico import LinhaDoEstoque, MesDaMortalidade, MorteDoMes, ResumoDoEstoque
+from app.schemas.analitico import CentroDoDesembolso, LinhaDoEstoque, MesDaMortalidade, MorteDoMes, ResumoDoEstoque
 from app.schemas.api import Comparacao, EscolhaDoPrevisto, LinhaDoPrevisto, Periodo, PrevistoRealizado
 from tests.test_api import carregar_planilha, entrar, usuario_com_senha
 
@@ -143,6 +144,39 @@ def test_series_do_boletim_de_resultados(api, consultor, fazenda):
     assert (geral["grupo"], geral["mortes"], geral["mortes_previstas"]) == ("GERAL", 5, 2)
 
 
+def test_resumo_do_boletim_de_resultados(api, consultor, fazenda):
+    """A folha 01: vendas = abate + em pé, os grupos de desembolso com o resto em "Outros", o resultado pela regra do
+    boletim (verde quando o realizado chega ao planejado) e a venda por sexo."""
+    dados = boletim(api, consultor, fazenda)
+    resumo = dados["resumo"]
+    assert resumo["vendas"]["realizado"] == 10                               # as vacas vendidas em pé em agosto
+    assert resumo["compras"]["realizado"] == 0
+    centros = dados["financeiro"]["centros"]
+    assert sum(grupo["valor"] for grupo in resumo["desembolso_por_grupo"]) == pytest.approx(resumo["desembolso_total"])
+    assert resumo["desembolso_total"] == pytest.approx(sum(centro["valor_acumulado"] for centro in centros))
+    resultado = dados["caixa"]["previsto_realizado"]["resultado"]["acumulado"]
+    esperado = "verde" if resultado["realizado"] >= resultado["planejado"] else "vermelho"
+    if resultado["realizado"] == 0 and resultado["planejado"] == 0:
+        esperado = None
+    assert resumo["status_do_resultado_acumulado"] == esperado
+    em_pe = dados["vendas"][1]
+    assert [quadro["recorte"] for quadro in em_pe["por_sexo"]] == ["GERAL", "MACHO", "FÊMEA"]
+    assert em_pe["por_sexo"][0]["realizado"]["cabecas"] == 10
+    nascidos = next(linha for linha in dados["placar_zootecnico"]["linhas"] if linha["indicador"] == "Nascimentos")
+    assert nascidos["acumulado"]["percentual_da_meta"] == pytest.approx(120 / 32)
+
+
+def test_grupos_do_resumo_juntam_o_resto_em_outros():
+    centros =[CentroDoDesembolso(centro_custo=f"C{posicao}", valor_mes=0, valor_acumulado=100 - posicao,
+                                  por_cabeca_mes=None, participacao=None) for posicao in range(10)]
+    partes = grupos_do_resumo(centros)
+    assert [parte.nome for parte in partes][-1] == "Outros (3 grupos)"
+    assert partes[-1].valor == 93 + 92 + 91
+    assert [parte.nome for parte in grupos_do_resumo(centros[:8])][-1] == "C7"     # um só a mais vai com o nome
+    negativo = Comparacao(realizado=-6.4, planejado=-8.0, diferenca=1.6, variacao=-0.2, semaforo="vermelho")
+    assert status_do_resultado(negativo) == "verde"           # melhor que o planejado, mesmo com o % negativo
+
+
 def test_mes_depois_do_ultimo_lancamento_ganha_o_aviso(api, consultor, fazenda):
     dados = boletim(api, consultor, fazenda, mes="2026-03")
     aviso = "Os lançamentos de rebanho vão até agosto/2025; depois disso o saldo só se repete"
@@ -221,7 +255,7 @@ def test_sem_lancamento_financeiro_a_leitura_nao_fala_em_zero():
     caixa = PrevistoRealizado(periodo=Periodo(inicio=date(2025, 7, 1), fim=date(2025, 9, 1), meses=3),
                               ultimo_mes=date(2025, 9, 1), grupos=[],
                               resultado=LinhaDoPrevisto(nome="RESULTADO", mensal=zero, acumulado=zero),
-                              previsto=EscolhaDoPrevisto(tipos=[], tipo=None, versoes=[], versao=None, em_uso=[]))
+                              previsto=EscolhaDoPrevisto(tipos=[], tipo=None, fazendas=[], em_uso=[]))
     assert frase_do_resultado(recortes, caixa) == (
         "Não há lançamentos financeiros nem fluxo de caixa previsto no período (até setembro/2025).")
 

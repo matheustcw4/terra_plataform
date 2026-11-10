@@ -71,23 +71,25 @@ def test_sem_escolha_vale_a_previsao_financeira_e_a_tela_recebe_as_opcoes(pedir)
     assert planejado_de_pastagens(pagina) == 1500
     previsto = pagina["previsto"]
     assert [tipo["codigo"] for tipo in previsto["tipos"]] == ["previsao", "planejamento"]
-    # a previsão financeira tem uma versão só: não há versão para escolher
-    assert (previsto["tipo"], previsto["versao"], previsto["versoes"]) == ("previsao", None, [])
+    # a previsão financeira não tem versão; a lista é a das versões do plano da fazenda, a mesma das outras páginas
+    assert previsto["tipo"] == "previsao"
+    assert [versao["rotulo"] for versao in previsto["fazendas"][0]["versoes"]] == ["Versão 3", "Versão 1"]
 
 
 def test_planejamento_usa_a_versao_mais_recente_da_safra(pedir):
     pagina = pedir("previsto_realizado", previsto="planejamento")
     assert planejado_de_pastagens(pagina) == 1200          # o agosto da versão 1 não soma com a versão 3
-    assert [versao["rotulo"] for versao in pagina["previsto"]["versoes"]] == ["Versão 3", "Versão 1"]
-    assert pagina["previsto"]["versao"] is None
+    [da_fazenda] = pagina["previsto"]["fazendas"]
+    assert [versao["rotulo"] for versao in da_fazenda["versoes"]] == ["Versão 3", "Versão 1"]
+    assert (da_fazenda["escolhidas"], da_fazenda["sem_plano"]) == ([], False)
 
 
 def test_versao_escolhida_substitui_a_mais_recente(pedir):
     versoes = pedir("previsto_realizado", previsto="planejamento")
-    versao_1 = versoes["previsto"]["versoes"][1]["id"]
+    versao_1 = versoes["previsto"]["fazendas"][0]["versoes"][1]["id"]
     pagina = pedir("previsto_realizado", previsto="planejamento", versao=versao_1)
     assert planejado_de_pastagens(pagina) == 1300
-    assert pagina["previsto"]["versao"] == versao_1
+    assert pagina["previsto"]["fazendas"][0]["escolhidas"] == [versao_1]
 
 
 def desembolso_planejado(pagina: dict) -> list[float]:
@@ -98,7 +100,7 @@ def test_financeiro_segue_a_mesma_escolha(pedir):
     assert desembolso_planejado(pedir("financeiro")) == [1500, 0, 0]
     planejamento = pedir("financeiro", previsto="planejamento")
     assert desembolso_planejado(planejamento) == [1200, 0, 0]
-    versao_1 = planejamento["previsto"]["versoes"][1]["id"]
+    versao_1 = planejamento["previsto"]["fazendas"][0]["versoes"][1]["id"]
     assert desembolso_planejado(pedir("financeiro", previsto="planejamento", versao=versao_1)) == [1000, 300, 0]
 
 
@@ -106,6 +108,29 @@ def test_a_tela_diz_qual_versao_do_orcamento_esta_valendo(pedir):
     assert pedir("previsto_realizado")["previsto"]["em_uso"] == ["Previsão financeira do Metryx (sem versão)"]
     planejamento = pedir("previsto_realizado", previsto="planejamento")["previsto"]
     assert planejamento["em_uso"] == ["Versão 3"]
-    versao_1 = planejamento["versoes"][1]["id"]
+    versao_1 = planejamento["fazendas"][0]["versoes"][1]["id"]
     escolhida = pedir("previsto_realizado", previsto="planejamento", versao=versao_1)["previsto"]
     assert escolhida["em_uso"] == ["Versão 1"]
+
+
+
+def desembolso_realizado(pagina: dict) -> list[float]:
+    return [mes["desembolso"] for mes in pagina["serie_mensal"]]
+
+
+def test_filtro_de_status_dos_lancamentos(pedir):
+    """Pedido do usuário, 10/11/2026: sem escolha, o realizado é o que foi pago; o título em aberto (R$ 800 vencendo em
+    agosto) entra quando o filtro pede, no mês do vencimento; só os conciliados, aqui, não dão nada."""
+    assert desembolso_realizado(pedir("financeiro")) == [1500.5, 0, 0]
+    assert desembolso_realizado(pedir("financeiro", situacao=["pago", "em_aberto"])) == [1500.5, 800, 0]
+    assert desembolso_realizado(pedir("financeiro", situacao=["conciliado"])) == [0, 0, 0]
+
+
+def test_planejamento_com_as_duas_versoes_soma_e_sem_planejamento_zera(pedir):
+    """As versões marcadas somam também no orçamento (1.000 + 1.200 em julho), e "nenhum planejamento" tira o
+    orçamento da fazenda, dos dois tipos."""
+    versoes = [versao["id"] for versao in pedir("financeiro")["previsto"]["fazendas"][0]["versoes"]]
+    as_duas = pedir("financeiro", previsto="planejamento", versao=versoes)
+    assert desembolso_planejado(as_duas) == [2200, 300, 0]
+    for tipo in ("planejamento", "previsao"):
+        assert desembolso_planejado(pedir("financeiro", previsto=tipo, sem_plano=[str(pedir.fazenda)])) == [0, 0, 0]

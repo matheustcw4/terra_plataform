@@ -56,13 +56,13 @@ export function rotuloDaPaginaDoPdf(chave: string): string {
   return PAGINAS_DO_BOLETIM.find((pagina) => pagina.caminho === chave)?.rotulo ?? chave;
 }
 
-// Os modos do "Exportar PDF": o padrão (as páginas do painel, como estão na tela), o analítico (o boletim de
-// resultados da Terra, em folhas de paisagem: o mês de referência, o acumulado e a meta, explicados em frases) e o
-// personalizado (os assuntos do boletim em folhas A4, com a pessoa escolhendo o que mostrar em cada um).
+// Os modos do "Exportar PDF": o padrão (as páginas do painel, como estão na tela), o Boletim Resumido (chave
+// `analitico`; o boletim de resultados da Terra em quatro folhas de paisagem, como o da Fazenda CMI: o mês de
+// referência, o acumulado e a meta; nome dado em 10/11/2026) e o personalizado (os assuntos do boletim em folhas A4, com a pessoa escolhendo o que mostrar em cada um).
 export type ModoDoPdf = "padrao" | "analitico" | "personalizado";
 
-// As folhas do modo Analítico, na ordem em que saem no arquivo (a capa é a do boletim de resultados; a
-// Comercialização pode ocupar duas folhas, uma a cada dois blocos de venda e compra).
+// As folhas do Boletim Resumido, na ordem em que saem no arquivo (a capa e as quatro folhas do boletim de
+// resultados).
 export const FOLHAS_ANALITICAS: { chave: string; rotulo: string }[] = [
   { chave: CAPA, rotulo: "Capa" },
   { chave: "resumo", rotulo: "Resumo · Previsto × Realizado" },

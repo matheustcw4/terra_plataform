@@ -36,6 +36,9 @@ class Capacidades(BaseModel):
     area: bool
     financeiro: bool
     planejado: bool
+    # as situações dos títulos do realizado do financeiro que a fazenda tem: conciliado, pago, em_aberto (a planilha só
+    # traz o pago; pedido do usuário, 10/11/2026)
+    situacoes: list[str] = []
 
 
 class FazendaDoEscopo(BaseModel):
@@ -85,14 +88,23 @@ class EstoqueDaCategoria(BaseModel):
 
 class VersaoDoPrevisto(BaseModel):
     id: UUID
-    rotulo: str                     # o nome da versão; com mais de uma fazenda, "fazenda · nome"
+    rotulo: str                     # o nome da versão
+
+
+class VersoesDaFazenda(BaseModel):
+    """As versões do plano de uma fazenda do filtro no período (pedido do usuário, 10/11/2026: a escolha é por
+    fazenda), da mais recente para a mais antiga; nenhuma = a fazenda não tem plano no período."""
+    fazenda_id: UUID
+    fazenda: str
+    versoes: list[VersaoDoPrevisto]
+    escolhidas: list[UUID]          # as marcadas (somam); nenhuma e sem `sem_plano` = a mais recente de cada safra
+    sem_plano: bool                 # marcada "nenhum planejamento": nada do planejado dela entra
 
 
 class EscolhaDaVersao(BaseModel):
-    """A versão do planejamento das metas de animais e do rebanho médio previsto (todas as páginas com meta)."""
-    versoes: list[VersaoDoPrevisto]  # as que têm meta no período, quando alguma fazenda tem mais de uma
-    versao: UUID | None             # a escolhida; None = a mais recente de cada fazenda e safra
-    em_uso: list[str]               # as versões que valem no período
+    """A versão do planejamento das metas de animais e do rebanho médio previsto (as páginas com meta e o MENU)."""
+    fazendas: list[VersoesDaFazenda]  # todas as fazendas do filtro (só há o que escolher onde há mais de uma)
+    em_uso: list[str]                 # as versões que valem no período; com mais de uma fazenda, "fazenda · nome"
 
 
 class Movimentacao(BaseModel):
@@ -259,9 +271,8 @@ class EscolhaDoPrevisto(BaseModel):
     """De qual orçamento vem o planejado do financeiro (as páginas Previsto × Realizado e Financeiro escolhem)."""
     tipos: list[TipoDoPrevisto]     # os que têm orçamento nas fazendas escolhidas
     tipo: Literal["previsao", "planejamento"] | None    # o que entrou no planejado; None = nenhum orçamento
-    versoes: list[VersaoDoPrevisto]  # as do tipo em uso com orçamento no período, quando há o que escolher
-    versao: UUID | None             # a escolhida; None = a mais recente de cada fazenda e safra
-    em_uso: list[str]               # as versões que entraram no planejado do período
+    fazendas: list[VersoesDaFazenda]  # as versões do plano de cada fazenda (as mesmas das outras páginas)
+    em_uso: list[str]                 # as versões que entraram no planejado do período
 
 
 class Financeiro(BaseModel):

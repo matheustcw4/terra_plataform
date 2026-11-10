@@ -9,8 +9,8 @@ import {
 } from "./filtro";
 import { mesCurto } from "./meses";
 
-// O que a capa do PDF mostra (a capa do boletim da consultoria) e o nome do arquivo. A cidade é digitada na hora da
-// exportação e não é gravada em lugar nenhum.
+// O que a capa do PDF mostra (a capa do boletim de resultados, nos três modos) e o nome do arquivo. A cidade é
+// digitada na hora da exportação e não é gravada em lugar nenhum.
 
 const MESES_POR_EXTENSO = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro",
   "outubro", "novembro", "dezembro"];
@@ -38,43 +38,6 @@ export function nomesDaCapa(filtro: Filtro, fazendas: FazendaDoEscopo[]): string
   return doCliente.map((fazenda) => fazenda.nome).join(" | ");
 }
 
-// O nome tem de caber no losango branco da capa: quanto mais fazendas, menor a letra (em px, na capa de 1920×1080).
-export function tamanhoDosNomes(nomes: string): number {
-  if (nomes.length <= 24) {
-    return 64;
-  }
-  if (nomes.length <= 60) {
-    return 46;
-  }
-  if (nomes.length <= 120) {
-    return 34;
-  }
-  if (nomes.length <= 240) {
-    return 26;
-  }
-  return 20;
-}
-
-// O rodapé da capa: "Cuiabá, outubro de 2026."; sem cidade, só a data.
-export function localEData(cidade: string, mes: string): string {
-  const data = mesPorExtenso(mes);
-  if (cidade.trim() === "") {
-    return `${data.charAt(0).toUpperCase()}${data.slice(1)}.`;
-  }
-  return `${cidade.trim()}, ${data}.`;
-}
-
-// O rodapé tem ~430 px antes do losango: cidade comprida usa letra menor.
-export function tamanhoDoLocal(texto: string): number {
-  if (texto.length <= 26) {
-    return 27;
-  }
-  if (texto.length <= 32) {
-    return 23;
-  }
-  return 19;
-}
-
 // As páginas marcadas, na ordem do boletim (a mesma das abas), com a capa primeiro.
 export function paginasNaOrdem(marcadas: string[], ordem: string[]): string[] {
   return ordem.filter((pagina) => marcadas.includes(pagina));
@@ -87,7 +50,7 @@ export function nomeDoArquivo(filtro: Filtro, fazendas: FazendaDoEscopo[]): stri
   return `Boletim - ${selecao} - ${periodo}.pdf`;
 }
 
-// "Boletim analítico - GRUPO - set-26.pdf": nos modos Analítico e Personalizado o que importa é o mês de referência.
+// "Boletim resumido - GRUPO - set-26.pdf": nos modos Boletim Resumido e Personalizado o que importa é o mês de referência.
 export function nomeDoArquivoDoMes(tipo: string, filtro: Filtro, fazendas: FazendaDoEscopo[], mes: string): string {
   const selecao = semCaracterProibido(nomeDaSelecao(filtro, fazendas));
   return `${tipo} - ${selecao} - ${mesCurto(mes).replace("/", "-")}.pdf`;

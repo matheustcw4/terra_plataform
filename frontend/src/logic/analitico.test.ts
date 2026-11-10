@@ -11,7 +11,8 @@ import {
   variacaoComUnidade,
 } from "./analitico";
 
-const VAZIO = { previsto: null, realizado: null, variacao: null, variacao_percentual: null, status: null };
+const VAZIO = { previsto: null, realizado: null, variacao: null, variacao_percentual: null, percentual_da_meta: null,
+  status: null };
 
 function linha(grupo: string, indicador: string): LinhaDoPlacar {
   return { grupo, indicador, unidade: "cab", mes: VAZIO, acumulado: VAZIO, meta_periodo: null };

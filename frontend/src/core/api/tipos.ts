@@ -33,6 +33,7 @@ export type MesDoFinanceiro = Schemas["MesDoFinanceiro"];
 export type PrevistoRealizado = Schemas["PrevistoRealizado"];
 export type EscolhaDoPrevisto = Schemas["EscolhaDoPrevisto"];
 export type EscolhaDaVersao = Schemas["EscolhaDaVersao"];
+export type VersoesDaFazenda = Schemas["VersoesDaFazenda"];
 export type GrupoDoPrevisto = Schemas["GrupoDoPrevisto"];
 export type LinhaDoPrevisto = Schemas["LinhaDoPrevisto"];
 export type Comparacao = Schemas["Comparacao"];
@@ -67,6 +68,9 @@ export type MesComparado = Pick<Schemas["MesDoLoteComparado"],
   "mes" | "realizado" | "previsto" | "realizado_acumulado" | "previsto_acumulado">;
 export type MesDoLoteComparado = Schemas["MesDoLoteComparado"];
 export type SecaoDeCompras = Schemas["SecaoDeCompras"];
+export type SecaoDeVendas = Schemas["SecaoDeVendas"];
+export type SecaoResumo = Schemas["SecaoResumo"];
+export type MortalidadeDoGrupo = Schemas["MortalidadeDoGrupo"];
 export type SecaoTransferencias = Schemas["SecaoTransferencias"];
 export type SecaoMortes = Schemas["SecaoMortes"];
 export type SecaoFinanceiro = Schemas["SecaoFinanceiro"];

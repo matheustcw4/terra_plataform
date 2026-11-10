@@ -15,7 +15,7 @@ import { esperarAsPaginas, gerarPdf } from "./pdf";
 // Gera o PDF pedido no "Exportar PDF": desenha a capa e as páginas escolhidas, uma abaixo da outra e com o filtro do
 // MENU (por trás do aviso de progresso), espera os dados e os gráficos, fotografa cada folha e baixa o arquivo.
 // Depois volta para a página de onde a pessoa pediu. Sem pedido (link aberto direto), vai para o MENU.
-// No modo Analítico as folhas são as do boletim de resultados, em paisagem (`boletim/`); no Personalizado, as A4 com os
+// No Boletim Resumido as folhas são as do boletim de resultados, em paisagem (`boletim/`); no Personalizado, as A4 com os
 // assuntos escolhidos (`analitico/`), e a quantidade de folhas depende de como os blocos se encaixam.
 export function ExportacaoPagina() {
   const { state, search } = useLocation();
@@ -39,7 +39,7 @@ function GerarPdf({ pedido }: { pedido: PedidoDePdf }) {
   let arquivo = nomeDoArquivo(filtro, escopo.fazendas);
   let paginas = pedido.paginas.filter((chave) => chave === CAPA || chave in PAGINA_DO_PDF);
   if (doMes) {
-    const tipo = modo === "personalizado" ? "Boletim personalizado" : "Boletim analítico";
+    const tipo = modo === "personalizado" ? "Boletim personalizado" : "Boletim resumido";
     arquivo = nomeDoArquivoDoMes(tipo, filtro, escopo.fazendas, mesDeReferencia(filtro, escopo.fazendas));
     paginas = pedido.paginas.filter((chave) => ordemDoModo(modo).includes(chave));
   }

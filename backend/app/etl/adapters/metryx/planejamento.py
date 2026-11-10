@@ -16,14 +16,16 @@ Regras (27/10/2026):
 - peso e valor: `weight` é por cabeça e `totalValue` é o total; no abate, a carcaça é weight × yield/100 por cabeça
   (a coluna pesomorto_total do BI); a venda de tipo "Abate" é abate, e as outras, venda em pé;
 - rebanho médio previsto: o endpoint traz a evolução do rebanho (o saldo inicial da safra, sem data, e as entradas e
-  saídas de cada mês). O rebanho médio do mês é a média entre o saldo do começo e o do fim do mês, por categoria, e
-  categoria negativa no mês conta zero (ver `rebanho_medio`). O BI não tem rebanho médio previsto: a fórmula fica
-  para conferir contra a tela de planejamento do Metryx;
+  saídas de cada mês). O rebanho previsto do mês é o saldo do fim do mês, por categoria, como o relatório financeiro
+  do Metryx divide o desembolso e o custeio previstos por cabeça (U6, safra 26/27 até outubro: Σ dos saldos do fim
+  do mês = 31.958 cab e R$ 197,01 por cabeça por mês; a média entre o começo e o fim do mês dava R$ 204,49; conferido
+  em 10/11/2026). Categoria negativa no mês conta zero (ver `rebanho_medio`). O BI não tem rebanho médio previsto;
 - DRE previsto: o `previsao-financeiro` não tem versão e entra numa versão própria; a natureza sai do sinal do valor
   (crédito positivo, débito negativo), e a soma fica igual à do BI (fMetasDre). É o orçamento de tipo 'previsao';
 - orçamento do planejamento (29/10/2026): o `previsao-fluxo-caixa-planejamento` entra como orçamento de tipo
   'planejamento', com TODAS as versões (a tela escolhe o tipo e a versão que compara com o realizado; padrão: a mais
-  recente de cada fazenda e safra). A natureza vem do `type` (o valor vem sempre positivo). Quase todo item vem com o
+  recente de cada fazenda e safra). A natureza vem só do `type`, e o valor entra sem sinal: parte das despesas vem
+  negativa e é débito do mesmo jeito (corrigido em 10/11/2026, ver `fluxo_de_caixa`). Quase todo item vem com o
   subcentro genérico "Subcentro de Custo" (só o código muda): ele não é conta, e o item fica no centro de custo.
 """
 
@@ -58,7 +60,6 @@ ENDPOINT_DO_FLUXO = "fluxo_caixa_plano"
 PRIMEIRO_MES_DA_SAFRA = 7
 SUBCENTRO_GENERICO = "subcentro de custo"
 NATUREZA_DO_TIPO = {"crédito": "C", "credito": "C", "débito": "D", "debito": "D"}
-INVERSA = {"C": "D", "D": "C"}
 CAMPOS_EXTRAS_DO_FLUXO = ("className", "classificationAnalyticDescription", "classificationAnalyticDisbursement",
                           "subCenterCode")
 
@@ -192,20 +193,19 @@ class Evolucao:
             mes = proximo_mes(mes)
         return meses
 
-    def medias(self) -> dict[tuple[date, str], Decimal]:
-        """(mês, categoria) -> média entre o saldo do começo e o do fim do mês."""
+    def saldos_do_fim_do_mes(self) -> dict[tuple[date, str], Decimal]:
+        """(mês, categoria) -> o saldo do fim do mês."""
         categorias = set(self.saldo_inicial)
         for _, categoria in self.movimento:
             categorias.add(categoria)
         meses = self.meses()
-        medias = {}
+        saldos = {}
         for categoria in sorted(categorias):
             saldo = self.saldo_inicial.get(categoria, Decimal(0))
             for mes in meses:
-                inicio = saldo
                 saldo += self.movimento.get((mes, categoria), Decimal(0))
-                medias[(mes, categoria)] = (inicio + saldo) / 2
-        return medias
+                saldos[(mes, categoria)] = saldo
+        return saldos
 
 
 class MontagemDoPlano:
@@ -367,7 +367,7 @@ class MontagemDoPlano:
     # -- rebanho médio previsto --
 
     def rebanho_medio(self) -> None:
-        """A média entre o saldo do começo e o do fim de cada mês, por categoria.
+        """O saldo do fim de cada mês, por categoria (a regra do relatório financeiro do Metryx; ver o topo).
 
         Em algumas fazendas a evolução do plano não fecha por categoria, só no total: sai da categoria mais do que ela
         tem naquele mês, e ela fica negativa por uns meses (os casos grandes são as fazendas ADMINISTRATIVO, do U6, e
@@ -378,14 +378,14 @@ class MontagemDoPlano:
         repetidos = 0
         zerados: dict[str, Decimal] = defaultdict(Decimal)        # fazenda -> soma das médias negativas
         for (fazenda, safra, versao), evolucao in sorted(self.evolucoes().items()):
-            for (mes, categoria), media in evolucao.medias().items():
+            for (mes, categoria), saldo in evolucao.saldos_do_fim_do_mes().items():
                 ja_gravado = safra_do_mes.setdefault((fazenda, versao, mes), safra)
                 if ja_gravado != safra:
                     repetidos += 1
-                elif media < 0:
-                    zerados[fazenda] += -media
-                elif media > 0:
-                    self.gravar_rebanho_medio(fazenda, versao, mes, categoria, media)
+                elif saldo < 0:
+                    zerados[fazenda] += -saldo
+                elif saldo > 0:
+                    self.gravar_rebanho_medio(fazenda, versao, mes, categoria, saldo)
         if repetidos:
             self.metryx.aviso("PLAN_MONTH_OVERLAP", f"{repetidos} rebanho(s) médio(s) previsto(s) num mês que outra "
                               "safra do plano já cobria ficaram de fora")
@@ -401,10 +401,10 @@ class MontagemDoPlano:
                           "elas contam zero no rebanho médio previsto (cab·mês que ficaram de fora: "
                           + "; ".join(trechos) + ")")
 
-    def gravar_rebanho_medio(self, fazenda: str, versao: str, mes: date, categoria: str, media: Decimal) -> None:
+    def gravar_rebanho_medio(self, fazenda: str, versao: str, mes: date, categoria: str, cabecas: Decimal) -> None:
         self.lote.rebanho_medio.append(RebanhoMedio(fazenda=fazenda, cenario="planejado", versao_plano=versao,
                                                     competencia=mes, categoria=self.categoria(categoria),
-                                                    qtd_cab=media,
+                                                    qtd_cab=cabecas,
                                                     origem_linha=f"rebanho_plano:{versao}:{categoria}:{mes:%Y-%m}"))
 
     def evolucoes(self) -> dict[tuple[str, str, str], Evolucao]:
@@ -466,7 +466,12 @@ class MontagemDoPlano:
 
     def fluxo_de_caixa(self) -> None:
         """O orçamento de todas as versões do plano (a tela escolhe qual comparar com o realizado). Sem fazenda do
-        cliente, versão, data, valor ou natureza -> quarentena; valor negativo seria estorno e inverte a natureza."""
+        cliente, versão, data, valor ou natureza -> quarentena.
+
+        A natureza é só a do `type`, e o valor entra sem sinal (10/11/2026). Parte das despesas vem com o valor
+        negativo e `type` "Débito" (os projetos do plano: "Contrapiso curral (MO)", −20.000): é a convenção de saída do
+        Metryx, e não estorno. Antes o negativo invertia a natureza, e a despesa virava crédito: o desembolso previsto
+        da U6 na safra 26/27 ficava negativo (−R$ 58,45 por cabeça por mês), e a Maister perdia R$ 67 mi de despesa."""
         for numero, item in enumerate(self.dados.get(ENDPOINT_DO_FLUXO, [])):
             ref = f"{ENDPOINT_DO_FLUXO}:{numero}"
             fazenda = self.metryx.fazenda_pelo_id(item)
@@ -480,8 +485,6 @@ class MontagemDoPlano:
                 continue
             if valor == 0:
                 continue
-            if valor < 0:
-                natureza = INVERSA[natureza]
             self.nome_da_versao.setdefault((fazenda, versao), item.get("plVersionName"))
             self.versoes_do_fluxo.add((fazenda, versao))
             extra = {campo: item.get(campo) for campo in CAMPOS_EXTRAS_DO_FLUXO}

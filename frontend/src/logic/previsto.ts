@@ -1,8 +1,8 @@
 import { parametrosDaConsulta, type Consulta } from "./filtro";
 
 // De qual orçamento vem o planejado do financeiro nas páginas Previsto × Realizado e Financeiro (pedido do usuário,
-// 29/10/2026): o tipo ("previsao" ou "planejamento"). A versão do plano (`versao`) vale nas metas de todas as
-// páginas e vai na consulta (filtro.ts). Os dois ficam na URL, como o filtro do MENU: vão junto no link e no PDF.
+// 29/10/2026): o tipo ("previsao" ou "planejamento"). As versões do plano de cada fazenda são do filtro (filtro.ts) e
+// valem nas metas de todas as páginas. O tipo fica na URL, como o filtro do MENU: vai junto no link e no PDF.
 // Vazio = a escolha padrão da API.
 export type PedidoDoPrevisto = {
   previsto: string | null;
@@ -21,20 +21,10 @@ export function parametrosComPrevisto(consulta: Consulta, pedido: PedidoDoPrevis
   return parametros;
 }
 
-// A URL com o tipo trocado; a versão do plano continua (ela vale também nas metas das outras páginas).
+// A URL com o tipo trocado; o resto do filtro continua.
 export function urlComTipo(parametros: URLSearchParams, tipo: string): URLSearchParams {
   const nova = new URLSearchParams(parametros);
   nova.set("previsto", tipo);
   return nova;
 }
 
-// A URL com a versão trocada; vazio volta para a mais recente.
-export function urlComVersao(parametros: URLSearchParams, versao: string): URLSearchParams {
-  const nova = new URLSearchParams(parametros);
-  if (versao) {
-    nova.set("versao", versao);
-  } else {
-    nova.delete("versao");
-  }
-  return nova;
-}

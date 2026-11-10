@@ -121,13 +121,14 @@ def test_meta_sem_versao_vai_para_a_quarentena():
 
 # --- rebanho médio previsto ------------------------------------------------------------------------------------------
 
-def test_evolucao_media_entre_o_comeco_e_o_fim_do_mes_sem_pular_mes_parado():
+def test_evolucao_da_o_saldo_do_fim_do_mes_sem_pular_mes_parado():
+    """O rebanho previsto do mês é o saldo do fim do mês, como o relatório financeiro do Metryx (U6, 10/11/2026)."""
     evolucao = Evolucao()
     evolucao.somar_saldo_inicial("8", Decimal(50))
     evolucao.somar_movimento(date(2025, 7, 1), "8", Decimal(10))
     evolucao.somar_movimento(date(2025, 9, 1), "8", Decimal(-10))
-    assert evolucao.medias() == {(date(2025, 7, 1), "8"): 55, (date(2025, 8, 1), "8"): 60,
-                                 (date(2025, 9, 1), "8"): 55}
+    assert evolucao.saldos_do_fim_do_mes() == {(date(2025, 7, 1), "8"): 60, (date(2025, 8, 1), "8"): 60,
+                                               (date(2025, 9, 1), "8"): 50}
 
 
 def test_rebanho_medio_previsto_pela_evolucao_e_categoria_negativa_conta_zero():
@@ -140,10 +141,10 @@ def test_rebanho_medio_previsto_pela_evolucao_e_categoria_negativa_conta_zero():
     lote = lote_do_plano(rebanho_plano=evolucao)
     medias = {(r.categoria.id_externo, r.competencia): r.qtd_cab for r in lote.rebanho_medio
               if r.cenario == "planejado"}
-    assert medias == {("12", date(2025, 7, 1)): 110, ("12", date(2025, 8, 1)): 115}
+    assert medias == {("12", date(2025, 7, 1)): 120, ("12", date(2025, 8, 1)): 110}
     assert avisos(lote, "PLAN_NEGATIVE_STOCK") == [
         "a evolução do plano deixa categorias negativas em alguns meses; elas contam zero no rebanho médio previsto "
-        "(cab·mês que ficaram de fora: Fazenda Metryx: 30)"]
+        "(cab·mês que ficaram de fora: Fazenda Metryx: 40)"]
     assert lote.rejeitadas == []
 
 
@@ -207,12 +208,12 @@ def test_carga_do_planejado_com_versao_nova_e_versao_apagada(engine_etl, engine_
                                item_do_plano("7/25", 11, 10, versao=2, type="Entrada", originMovement="nascimento")]
     carregar(engine_etl, payloads_metryx(**plano))
     assert previsto(engine_super) == {"nascimentos": 190, "versoes": [f"{FAZENDA_EXTERNA}|v1", f"{FAZENDA_EXTERNA}|v2"],
-                                      "rebanho": 315, "orcado": 1500}
+                                      "rebanho": 320, "orcado": 1500}
     so_a_versao_2 = plano_metryx()
     so_a_versao_2["nascimento_plano"] = [item_do_plano("7/25", 11, 90, versao=2)]
     so_a_versao_2["rebanho_plano"] = plano["rebanho_plano"][2:]
     carregar(engine_etl, payloads_metryx(**so_a_versao_2))
-    assert previsto(engine_super) == {"nascimentos": 90, "versoes": [f"{FAZENDA_EXTERNA}|v2"], "rebanho": 205,
+    assert previsto(engine_super) == {"nascimentos": 90, "versoes": [f"{FAZENDA_EXTERNA}|v2"], "rebanho": 210,
                                       "orcado": 1500}
 
 
@@ -253,8 +254,8 @@ def test_evolucao_com_o_desmame_de_junho_depois_dos_nascimentos():
     lote = lote_do_plano(rebanho_plano=evolucao)
     medias = {(r.categoria.id_externo, r.competencia): r.qtd_cab for r in lote.rebanho_medio
               if r.cenario == "planejado"}
-    assert medias[("11", date(2025, 7, 1))] == 50 and medias[("11", date(2026, 5, 1))] == 100
-    assert medias[("11", date(2026, 6, 1))] == 50 and medias[("12", date(2026, 6, 1))] == 100
+    assert medias[("11", date(2025, 7, 1))] == 100 and medias[("11", date(2026, 5, 1))] == 100
+    assert ("11", date(2026, 6, 1)) not in medias and medias[("12", date(2026, 6, 1))] == 150
     assert avisos(lote, "PLAN_NEGATIVE_STOCK") == []
 
 
@@ -282,6 +283,19 @@ def test_fluxo_de_caixa_entra_com_todas_as_versoes():
     assert versoes[f"{FAZENDA_EXTERNA}|v1"] == (True, 1) and versoes[f"{FAZENDA_EXTERNA}|v3"] == (False, 3)
     tipos = {particao.tipos for particao in lote.particoes if particao.entidade == "orcamento"}
     assert tipos == {("previsao",), ("planejamento",)}
+
+
+def test_despesa_do_fluxo_de_caixa_com_valor_negativo_continua_debito():
+    """U6 26/27: os projetos do plano vêm com `type` "Débito" e o valor negativo ("Contrapiso curral (MO)", −20.000). É
+    a convenção de saída do Metryx, e não estorno: antes a natureza invertia e a despesa virava crédito, e o desembolso
+    previsto da safra ficava negativo."""
+    fluxo = [fluxo_de_caixa("2025-07-01", -20000, "Débito", versao=1),
+             fluxo_de_caixa("2025-07-01", 1000, "Débito", versao=1),
+             fluxo_de_caixa("2025-07-01", 5000, "Crédito", versao=1, centro="Rebanho", subcentro="Venda de Rebanho")]
+    lote = lote_do_plano(**plano_metryx(), fluxo_caixa_plano=fluxo)
+    do_planejamento = sorted((orcamento.natureza, orcamento.valor) for orcamento in lote.orcamentos
+                             if orcamento.tipo == "planejamento")
+    assert do_planejamento == [("C", Decimal(5000)), ("D", Decimal(1000)), ("D", Decimal(20000))]
 
 
 def test_fluxo_de_caixa_sem_natureza_vai_para_a_quarentena():

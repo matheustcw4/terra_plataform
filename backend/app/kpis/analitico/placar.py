@@ -56,6 +56,8 @@ class DoRecorte:
     compras: QuadroDoLote
     em_pe: QuadroDoLote
     abate: QuadroDoLote
+    em_pe_por_sexo: list[QuadroDoLote]                  # GERAL, MACHO e FÊMEA
+    abate_por_sexo: list[QuadroDoLote]
     transferencia_entrada: QuadroDoLote
     transferencia_saida: QuadroDoLote
     mortes: MortesDoGrupo
@@ -70,11 +72,13 @@ def do_recorte(s: Session, filtro: Filtro) -> DoRecorte:
     previsto_cab, previsto_lotacao = rebanho_e_lotacao_previstos(s, filtro)
     transferidos = transferencias(s, filtro)
     nascidos = nascimentos(s, filtro).quadro
+    em_pe = vendas(s, filtro, "em_pe").quadro
+    abate = vendas(s, filtro, "abate").quadro
     return DoRecorte(
         rebanho_medio=rebanho["rebanho_medio_cab"], rebanho_medio_previsto=previsto_cab,
         lotacao=rebanho["lotacao_cab_ha"], lotacao_prevista=previsto_lotacao,
         nascimentos=nascidos[0], nascimentos_por_sexo=nascidos, compras=compras(s, filtro).quadro[0],
-        em_pe=vendas(s, filtro, "em_pe").quadro[0], abate=vendas(s, filtro, "abate").quadro[0],
+        em_pe=em_pe[0], abate=abate[0], em_pe_por_sexo=em_pe, abate_por_sexo=abate,
         transferencia_entrada=transferidos.entrada[0], transferencia_saida=transferidos.saida[0],
         mortes=mortes(s, filtro).quadro[0])
 

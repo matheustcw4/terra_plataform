@@ -14,36 +14,39 @@
   --cor-texto-apagado: #646a76;
   --cor-texto-terciario: #98928c;
 
-  /* a paleta da Terra: o marinho e o marrom do boletim de resultados */
-  --cor-marinho: #1b2a47;
-  --cor-marinho-escuro: #131f36;
-  --cor-marinho-medio: #3d5a8a;
-  --cor-marinho-claro: #8fa3c4;
-  --cor-marrom: #876552;
-  --cor-marrom-claro: #a88a76;
-  --cor-bege: #d6cbc1;
-  --cor-bege-suave: #efe8e1;
-  --cor-titulo: #1b2a47; /* títulos dos quadros (REBANHO MÉDIO, FÊMEA...) */
-  --cor-destaque: #1b2a47; /* o número grande dos quadros (faturamento, desembolso) */
-  --cor-rebanho-final: #876552;
+  /* a paleta da Terra: o marinho (oxford) e o marrom do gerador oficial do boletim de resultados */
+  --cor-marinho: #182945;
+  --cor-marinho-escuro: #0f1c31;
+  --cor-marinho-medio: #3d5580;
+  --cor-marinho-claro: #8fa3c2;
+  --cor-marinho-faixa: #2b3d5c; /* a faixa "Mensal" por cima do cabeçalho das tabelas */
+  --cor-marrom: #856454;
+  --cor-marrom-claro: #a98a76;
+  --cor-marrom-suave: #d3bfb2; /* rótulos e o texto claro sobre o marinho */
+  --cor-bege: #d3c7bd;
+  --cor-bege-suave: #efe7e1;
+  --cor-titulo: #182945; /* títulos dos quadros (REBANHO MÉDIO, FÊMEA...) */
+  --cor-destaque: #182945; /* o número grande dos quadros (faturamento, desembolso) */
+  --cor-rebanho-final: #856454;
   --cor-azul: #2f4a78; /* links, botões e o que se clica */
-  --cor-azul-escuro: #1b2a47;
-  --cor-azul-medio: #3d5a8a;
-  --cor-azul-claro: #d6cbc1; /* a barra entre os blocos das tabelas (realizado | planejado) */
+  --cor-azul-escuro: #182945;
+  --cor-azul-medio: #3d5580;
+  --cor-azul-claro: #d3c7bd; /* a barra entre os blocos das tabelas (realizado | planejado) */
   --cor-azul-suave: #eef1f6;
   --cor-capa: #0a3459; /* a arte da capa do modo padrão */
 
   /* as séries dos gráficos */
-  --cor-realizado: #1b2a47;
-  --cor-planejado: #d6cbc1;
-  --cor-acumulado: #876552;
-  --cor-despesa: #a88a76;
-  --cor-receita: #3d8a5c;
+  --cor-realizado: #182945;
+  --cor-planejado: #d3c7bd;
+  --cor-acumulado: #856454;
+  --cor-despesa: #a98a76;
+  --cor-receita: #3f8a5b;
 
   /* o status das metas (verde dentro, âmbar até 3% fora, vermelho além) e os avisos */
-  --cor-status-verde: #3d8a5c;
-  --cor-status-amarelo: #c48a1d;
-  --cor-status-vermelho: #b5463a;
+  --cor-status-verde: #3f8a5b;
+  --cor-status-amarelo: #c08a1e;
+  --cor-status-amarelo-texto: #9a6a00;
+  --cor-status-vermelho: #b34b3c;
   --cor-erro: #b3261e;
   --cor-erro-fundo: #fbeceb;
   --cor-aviso: #c48a1d;
@@ -69,6 +72,9 @@
   --sombra-alta: 0 12px 40px -12px rgba(27, 42, 71, 0.3);
   --fonte: "Figtree Variable", "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
   --fonte-capa: "Segoe UI", system-ui, sans-serif; /* as posições da capa foram medidas com esta fonte */
+  /* o boletim de resultados em PDF: Archivo larga (font-stretch 125%) nos números e títulos, Arimo no texto */
+  --fonte-boletim: "Arimo Variable", "Arimo", Arial, sans-serif;
+  --fonte-boletim-titulo: "Archivo Variable", "Archivo", var(--fonte-boletim);
 
   --mov-rapida: 120ms; /* hover, foco */
   --mov-media: 200ms; /* recolher o menu */
@@ -793,7 +799,8 @@ input[type="radio"] {
   opacity: 0.55;
 }
 
-/* o orçamento do planejado (Previsto × Realizado e Financeiro): a única escolha fora do MENU */
+/* o topo das páginas com escolha fora do MENU: o orçamento do planejado e o status (Previsto × Realizado e
+   Financeiro) e a versão do plano de cada fazenda (as páginas com meta) */
 .seletor-do-previsto {
   display: flex;
   flex-wrap: wrap;
@@ -804,6 +811,121 @@ input[type="radio"] {
 .seletor-do-previsto .campo {
   flex: 0 1 300px;
   min-width: 220px;
+}
+
+/* a versão do plano de cada fazenda: um botão abre a janela com uma lista por fazenda (pedido do usuário, 10/11/2026:
+   escolher por fazenda sem encher a tela de campos) */
+.botao-das-versoes {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.botao-das-versoes::after {
+  content: "  ›";
+  color: var(--cor-marrom);
+  font-weight: 700;
+}
+
+.botao-das-versoes:hover {
+  border-color: var(--cor-marrom);
+}
+
+.dialogo.janela-das-versoes {
+  width: min(620px, 100%);
+}
+
+.janela-das-versoes > p {
+  margin: 4px 0 14px;
+  font-size: 14px;
+  color: var(--cor-texto-apagado);
+}
+
+/* uma tabela compacta: a fazenda à esquerda, a versão à direita, uma linha fina entre as fazendas */
+.janela-das-versoes-lista {
+  margin-bottom: 18px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.janela-das-versoes-linha {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.4fr);
+  align-items: start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.janela-das-versoes-fazenda {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cor-marinho);
+}
+
+.janela-das-versoes-linha select {
+  width: 100%;
+}
+
+/* as caixas de cada fazenda: "Mais recente", as versões (somam) e "Nenhum planejamento" */
+.janela-das-versoes-caixas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.janela-das-versoes-caixas label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* a fazenda sem planejamento no período: o aviso, sem caixas */
+.janela-das-versoes-unica {
+  font-size: 14px;
+  color: var(--cor-texto-apagado);
+}
+
+/* o status dos lançamentos do financeiro: caixas de marcar na mesma linha */
+.filtro-do-status {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.filtro-do-status legend {
+  margin-bottom: 5px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cor-texto-apagado);
+}
+
+.filtro-do-status-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  min-height: 38px;
+}
+
+.filtro-do-status-opcoes label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 /* a versão do planejamento que vale no período, ao lado dos seletores */
@@ -1878,6 +2000,11 @@ h2 .selo {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .janela-das-versoes-linha {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
   /* no topo do celular ficam só os ícones (o nome dos botões continua no aria-label) */
   .topo-migalhas > span,
   .topo-usuario,
@@ -1971,384 +2098,101 @@ h2 .selo {
   border-right: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-/* a capa: a arte da capa do boletim (1920×1080) e os textos nas posições da versão preenchida */
-.folha-capa {
-  width: 1920px;
-}
-
-.capa {
-  position: relative;
-  width: 1920px;
-  height: 1080px;
-  overflow: hidden;
-  font-family: var(--fonte-capa);
-}
-
-.capa-fundo {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.capa p {
-  margin: 0;
-}
-
-.capa-titulo,
-.capa-periodo {
-  position: absolute;
-  left: 240px;
-  width: 400px;
-  text-align: center;
-  color: #ffffff;
-}
-
-.capa-titulo {
-  top: 88px;
-  font-size: 42px;
-  font-weight: 300;
-  letter-spacing: 0.75em;
-  text-indent: 0.75em; /* o espaçamento fica depois de cada letra: compensa para centralizar */
-}
-
-.capa-periodo {
-  top: 196px;
-  font-size: 92px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.capa-analise {
-  position: absolute;
-  left: 30px;
-  top: 714px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 32px;
-  color: #111111;
-}
-
-.capa-analise strong {
-  padding-left: 8px;
-}
-
-.capa-nomes {
-  position: absolute;
-  left: 1000px;
-  top: 600px;
-  width: 680px;
-  height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  line-height: 1.2;
-  font-weight: 600;
-  color: var(--cor-capa);
-  overflow-wrap: anywhere;
-}
-
-.capa-rodape {
-  position: absolute;
-  left: 0;
-  top: 930px;
-  width: 900px;
-  height: 84px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-left: 14px;
-  font-size: 27px;
-  color: #ffffff;
-}
-
-.capa-globo {
-  display: grid;
-  place-items: center;
-  width: 66px;
-  height: 66px;
-  border-radius: 50%;
-  background: #ffffff;
-}
-
-.capa-globo img {
-  width: 46px;
-  height: 46px;
-}
-
-.capa-local {
-  position: absolute;
-  left: 470px;
-  width: 430px;
-  text-align: right;
-  white-space: nowrap;
-}
-
 /* --- boletim de resultados (o "Exportar PDF" no modo Analítico): folhas de paisagem 16:9 (1600 × 900 px), no desenho
-   da apresentação da Terra (modules/exportacao/boletim/) --- */
+   do gerador oficial da Terra (gerar_boletim.py): modules/exportacao/boletim/. As medidas e as cores são as do
+   gerador; as do boletim que não existem nas telas ficam nas variáveis --boletim-*. --- */
 
 .folha-pdf.folha-boletim {
   width: 1600px;
 }
 
-.boletim-folha {
+.boletim-folha,
+.boletim-capa {
+  --boletim-fundo: #f5f3f1;
+  --boletim-texto: #232323;
+  --boletim-cinza: #646366;
+  --boletim-borda: #e2ded9;
+  --boletim-linha: #ece8e4;
+  --boletim-eixo: #cfc8c1;
+  --boletim-chip: #f6f2ee;
+  --boletim-rotulo: #464547;
+  --boletim-claro-sobre-marinho: #c7cfdd;
+  --boletim-claro-sobre-marrom: #f1e6de;
   width: 1600px;
   min-height: 900px;
   display: flex;
   flex-direction: column;
-  background: var(--cor-fundo);
-  color: var(--cor-texto);
+  background: var(--boletim-fundo);
+  color: var(--boletim-texto);
+  font-family: var(--fonte-boletim);
   font-size: 13px;
 }
 
-.boletim-faixa {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  height: 80px;
-  flex-shrink: 0;
-  padding: 0 40px;
-  border-bottom: 6px solid var(--cor-marrom);
-  background: var(--cor-marinho);
-  color: #ffffff;
+/* as peças comuns do gerador: rótulo, número grande, cartão, texto miúdo, eixo, bolinha */
+.boletim-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--boletim-cinza);
 }
 
-.boletim-faixa-logo {
-  height: 42px;
-  padding-right: 22px;
-  border-right: 1px solid rgba(255, 255, 255, 0.25);
+.boletim-lbl.marinho {
+  color: var(--cor-marinho);
 }
 
-.boletim-selo {
-  display: inline-grid;
-  place-items: center;
-  min-width: 36px;
-  height: 26px;
-  padding: 0 8px;
-  border-radius: 4px;
-  background: var(--cor-marrom);
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.boletim-faixa h1 {
-  margin: 0;
-  font-size: 25px;
+.boletim-big {
+  font-family: var(--fonte-boletim-titulo);
+  font-stretch: 125%;
   font-weight: 800;
   letter-spacing: -0.01em;
-  text-transform: uppercase;
+  color: var(--cor-marinho);
 }
 
-.boletim-faixa-direita {
-  margin: 0 0 0 auto;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--cor-bege);
-}
-
-.boletim-corpo {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 22px 40px 24px;
-}
-
-.boletim-rodape,
-.boletim-capa-rodape {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  height: 40px;
-  flex-shrink: 0;
-  padding: 0 40px;
-  background: var(--cor-marinho);
-  color: #ffffff;
-  font-size: 12px;
-}
-
-.boletim-rodape em,
-.boletim-capa-rodape em {
-  color: var(--cor-bege);
-}
-
-/* quadros, títulos e legendas */
-.boletim-quadro {
+.boletim-card {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 16px 18px;
-  border: 1px solid var(--cor-borda);
+  border: 1px solid var(--boletim-borda);
   border-radius: 10px;
-  background: var(--cor-superficie);
+  background: #ffffff;
 }
 
-.boletim-quadro-topo {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.boletim-quadro-topo h2,
-.boletim-sem-movimento h2 {
-  margin: 0;
-  font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--cor-marinho);
-}
-
-.boletim-quadro-direita,
-.boletim-de,
-.boletim-meta {
-  font-size: 12px;
-  color: var(--cor-texto-apagado);
-}
-
-.boletim-quadro-direita strong,
-.boletim-de strong {
-  color: var(--cor-marinho);
-}
-
-.boletim-meta {
-  font-weight: 700;
-  color: var(--cor-marrom);
-}
-
-.boletim-quadro-conteudo {
-  flex: 1;
-  min-height: 0;
-}
-
-.boletim-nota {
-  margin: 10px 0 0;
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--cor-texto-apagado);
-}
-
-.boletim-subtitulo {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--cor-marinho);
-}
-
-.boletim-subtitulo::before {
-  content: "";
-  width: 11px;
-  height: 11px;
-  border-radius: 2px;
-  background: var(--cor-marrom);
-}
-
-.boletim-legenda {
-  display: inline-flex;
-  gap: 14px;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--cor-texto-apagado);
-}
-
-.boletim-legenda > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.boletim-legenda i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-
-.boletim-vazio {
-  margin: 6px 0;
-  color: var(--cor-texto-apagado);
-}
-
-.boletim-vazio.grande {
-  padding: 60px;
-  font-size: 18px;
-  text-align: center;
-}
-
-/* indicadores: a faixa do alto tem a cor do status */
-.boletim-indicador {
-  min-width: 0;
-  padding: 14px 18px;
-  border: 1px solid var(--cor-borda);
-  border-top: 4px solid var(--cor-marinho);
-  border-radius: 10px;
-  background: var(--cor-superficie);
-}
-
-.boletim-indicador.tom-verde {
-  border-top-color: var(--cor-status-verde);
-}
-
-.boletim-indicador.tom-amarelo {
-  border-top-color: var(--cor-status-amarelo);
-}
-
-.boletim-indicador.tom-vermelho {
-  border-top-color: var(--cor-status-vermelho);
-}
-
-.boletim-indicador h2 {
-  margin: 0 0 4px;
+.boletim-sub {
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--cor-texto-apagado);
+  color: var(--boletim-cinza);
 }
 
-.boletim-indicador > strong {
-  display: block;
-  font-size: 30px;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
+.boletim-sub b {
   color: var(--cor-marinho);
 }
 
-.boletim-indicador p {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--cor-texto-apagado);
+.boletim-eixo {
+  font-size: 10px;
+  text-align: center;
+  color: var(--boletim-cinza);
 }
 
-.boletim-indicador.pequeno {
-  padding: 10px 12px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--cor-superficie-2);
+.boletim-bolinha {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: 0;
+  background: var(--boletim-eixo);
 }
 
-.boletim-indicador.pequeno h2 {
-  font-size: 10.5px;
+.boletim-bolinha.tom-verde {
+  background: var(--cor-status-verde);
 }
 
-.boletim-indicador.pequeno > strong {
-  font-size: 22px;
+.boletim-bolinha.tom-amarelo {
+  background: var(--cor-status-amarelo);
 }
 
+.boletim-bolinha.tom-vermelho {
+  background: var(--cor-status-vermelho);
+}
+
+/* o número com a cor do status ("+7,2%" em verde) */
 .com-status {
   font-weight: 700;
 }
@@ -2358,330 +2202,420 @@ h2 .selo {
 }
 
 .com-status.tom-amarelo {
-  color: var(--cor-status-amarelo);
+  color: var(--cor-status-amarelo-texto);
 }
 
 .com-status.tom-vermelho {
   color: var(--cor-status-vermelho);
 }
 
-.boletim-totais dl {
+.boletim-legenda {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 2px 0 0;
-}
-
-.boletim-totais dl div {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: 12px;
+  font-size: 10.5px;
+  color: var(--boletim-cinza);
 }
 
-.boletim-totais dt {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--cor-texto-apagado);
+.boletim-legenda .boletim-bolinha {
+  margin-right: 4px;
 }
 
-.boletim-totais dd {
+/* o título de uma parte da folha: o número no selo marrom e o nome em Archivo larga */
+.boletim-colt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
-  font-size: 24px;
+  font-family: var(--fonte-boletim-titulo);
+  font-stretch: 125%;
+  font-size: 15px;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  text-transform: uppercase;
   color: var(--cor-marinho);
 }
 
-.boletim-totais dd.receitas {
-  color: var(--cor-receita);
+.boletim-colt i {
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--cor-marrom);
+  font-style: normal;
+  font-size: 11px;
+  color: #ffffff;
 }
 
-/* grades das folhas */
-.boletim-linha-2,
-.boletim-linha-3,
-.boletim-linha-4,
-.boletim-linha-5 {
-  display: grid;
-  gap: 16px;
+.boletim-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--boletim-chip);
 }
 
-.boletim-linha-2 {
-  flex: 1;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+.boletim-faixa-de-texto {
+  padding: 9px 12px;
+  border-radius: 6px;
+  background: var(--boletim-chip);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--boletim-rotulo);
 }
 
-.boletim-linha-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.boletim-faixa-de-texto b {
+  color: var(--cor-marinho);
 }
 
-.boletim-linha-3.compacta {
-  gap: 10px;
+/* o cartão de indicador: a faixa do alto na cor do status */
+.boletim-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 18px;
+  border-top: 4px solid var(--cor-marinho);
 }
 
-.boletim-linha-4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.boletim-kpi .boletim-big {
+  font-size: 26px;
+  white-space: nowrap;
 }
 
-.boletim-linha-5 {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
+.boletim-kpi .boletim-sub {
+  font-size: 11.5px;
 }
 
-.boletim-duas-colunas {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 44px;
+/* a tabela do gerador: cabeçalho marinho, linha fina, o total na faixa bege */
+.boletim-tb {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.boletim-tb th {
+  padding: 6px 8px;
+  background: var(--cor-marinho);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.boletim-tb th.esquerda {
+  text-align: left;
+}
+
+.boletim-tb th.faixa-mes {
+  background: var(--cor-marinho-faixa);
+  text-align: center;
+}
+
+.boletim-tb th.faixa-acumulado,
+.boletim-tb.cabecalho-marrom th {
+  background: var(--cor-marrom);
+}
+
+.boletim-tb th.faixa-acumulado {
+  text-align: center;
+}
+
+.boletim-tb td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--boletim-linha);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.boletim-tb td.nome {
+  text-align: left;
+  font-weight: 700;
+  color: var(--cor-marinho);
+}
+
+.boletim-tb td.nome.parte {
+  padding-left: 22px;
+  font-weight: 500;
+}
+
+.boletim-tb td.apagado {
+  color: var(--boletim-cinza);
+}
+
+.boletim-tb td .boletim-bolinha {
+  margin-left: 6px;
+}
+
+.boletim-tb tr.total td {
+  border-bottom: none;
+  background: var(--cor-bege-suave);
+  font-weight: 700;
+  color: var(--cor-marinho);
+}
+
+.boletim-tb.miuda {
+  table-layout: fixed;
+  font-size: 10.5px;
+}
+
+.boletim-tb.miuda th:first-child {
+  width: 110px;
 }
 
 /* colunas mês a mês (HTML, para sair igual no PDF) */
 .boletim-colunas {
-  padding-top: 18px;
+  position: relative;
 }
 
 .boletim-colunas-area {
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: grid;
   align-items: end;
-  border-bottom: 1px solid var(--cor-borda-forte);
+  gap: 6px;
+  border-bottom: 1px solid var(--boletim-eixo);
 }
 
 .boletim-colunas-mes {
-  height: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   gap: 3px;
 }
 
-.boletim-coluna-lugar {
-  flex: 0 1 26px;
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
-}
-
 .boletim-coluna {
-  position: relative;
-  display: block;
-  width: 100%;
-  border-radius: 3px 3px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 
 .boletim-coluna-rotulo {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  margin-bottom: 3px;
-  transform: translateX(-50%);
-  font-size: 10.5px;
   font-weight: 700;
   white-space: nowrap;
-  color: var(--cor-marinho);
+}
+
+.boletim-coluna-barra {
+  width: 100%;
+  max-width: 56px;
+  border-radius: 2px 2px 0 0;
 }
 
 .boletim-colunas-meta {
   position: absolute;
   left: 0;
   right: 0;
-  z-index: 1;
   border-top: 2px dashed var(--cor-marrom);
 }
 
 .boletim-colunas-eixo {
   display: grid;
+  gap: 6px;
   margin-top: 6px;
-  font-size: 11px;
-  text-align: center;
-  color: var(--cor-texto-apagado);
 }
 
 /* barras deitadas */
 .boletim-barras {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.boletim-barras li {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.6fr) auto auto;
   align-items: center;
-  gap: 10px;
-  font-size: 12px;
-}
-
-/* nome comprido quebra em duas linhas, em vez de ser cortado */
-.boletim-barras-nome {
-  line-height: 1.15;
-}
-
-.boletim-barras-trilho {
-  height: 12px;
+  gap: 6px 10px;
+  font-size: 11.5px;
 }
 
 .boletim-barras-barra {
-  display: block;
-  height: 100%;
+  height: 10px;
+  min-width: 2px;
   border-radius: 2px;
 }
 
 .boletim-barras-valor {
-  min-width: 78px;
   text-align: right;
-  white-space: nowrap;
-  font-weight: 800;
-  color: var(--cor-marinho);
+  font-weight: 700;
 }
 
-.boletim-barras-extra {
-  min-width: 46px;
+.boletim-barras-participacao {
   text-align: right;
-  color: var(--cor-texto-apagado);
+  color: var(--boletim-cinza);
 }
 
-/* tabelas */
-.boletim-tabela-caixa,
-.boletim-tabela-placar,
-.boletim-tabela-meses {
-  width: 100%;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
-}
-
-.boletim-tabela-caixa th,
-.boletim-tabela-caixa td,
-.boletim-tabela-placar th,
-.boletim-tabela-placar td {
-  padding: 7px 10px;
-  text-align: right;
-  white-space: nowrap;
-  font-size: 12.5px;
-}
-
-.boletim-tabela-caixa thead th,
-.boletim-tabela-placar thead th {
+/* o topo e o rodapé das folhas do Financeiro em diante */
+.boletim-faixa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 18px 40px;
+  border-bottom: 6px solid var(--cor-marrom);
   background: var(--cor-marinho);
   color: #ffffff;
+}
+
+.boletim-faixa-esquerda {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.boletim-faixa-logo {
+  display: block;
+  width: auto;
+  height: 40px;
+}
+
+.boletim-faixa-fio {
+  width: 1px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.boletim-faixa-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boletim-selo {
+  padding: 4px 9px;
+  border-radius: 3px;
+  background: var(--cor-marrom);
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.boletim-faixa h1 {
+  margin: 0;
+  font-family: var(--fonte-boletim-titulo);
+  font-stretch: 125%;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.boletim-faixa-direita {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cor-marrom-suave);
+}
+
+.boletim-corpo {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px 40px;
+}
+
+.boletim-corpo.apertado {
+  gap: 16px;
+  padding: 22px 40px;
+}
+
+.boletim-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 11px 40px;
+  background: var(--cor-marinho);
+  font-size: 11px;
+  color: #ffffff;
+}
+
+.boletim-rodape strong {
+  letter-spacing: 0.04em;
+}
+
+.boletim-rodape em {
+  color: var(--cor-marrom-suave);
+}
+
+.boletim-rodape span {
+  color: var(--boletim-claro-sobre-marinho);
+}
+
+/* grades das folhas */
+.boletim-grade-4,
+.boletim-grade-3,
+.boletim-grade-5 {
+  display: grid;
+  gap: 16px;
+}
+
+.boletim-grade-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.boletim-grade-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.boletim-grade-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.boletim-grade-3.pequena {
+  gap: 8px;
+}
+
+.boletim-quadro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+}
+
+.boletim-meta {
   font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.boletim-tabela-caixa thead tr.faixas th {
-  background: var(--cor-superficie);
-  text-align: center;
-}
-
-.boletim-tabela-caixa thead tr.faixas th.faixa-mes {
-  background: var(--cor-marinho-medio);
-}
-
-.boletim-tabela-caixa thead tr.faixas th.faixa-acumulado {
-  background: var(--cor-marrom);
-}
-
-.boletim-tabela-caixa thead th:first-child,
-.boletim-tabela-placar thead th:first-child,
-.boletim-tabela-caixa tbody th,
-.boletim-tabela-caixa tfoot th,
-.boletim-tabela-placar tbody th {
-  text-align: left;
-}
-
-.boletim-tabela-caixa tbody tr,
-.boletim-tabela-placar tbody tr {
-  border-bottom: 1px solid var(--cor-grade);
-}
-
-.boletim-tabela-caixa tbody th {
   font-weight: 700;
-  color: var(--cor-marinho);
-}
-
-.boletim-tabela-caixa tr.parte th {
-  padding-left: 26px;
-  font-weight: 500;
-  color: var(--cor-texto-apagado);
-}
-
-.boletim-tabela-caixa .planejado,
-.boletim-tabela-placar .planejado {
-  color: var(--cor-texto-terciario);
-}
-
-.boletim-tabela-caixa tfoot tr,
-.boletim-tabela-placar tr.total {
-  background: var(--cor-bege-suave);
-  font-weight: 800;
-}
-
-.boletim-tabela-caixa tfoot th,
-.boletim-tabela-placar tbody th {
-  color: var(--cor-marinho);
-}
-
-.boletim-tabela-placar tbody th {
-  font-weight: 600;
-}
-
-.boletim-tabela-meses th,
-.boletim-tabela-meses td {
-  padding: 4px 6px;
-  text-align: right;
-  white-space: nowrap;
-  font-size: 11.5px;
-}
-
-.boletim-tabela-meses thead th {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.boletim-tabela-meses.cabecalho-escuro thead th {
-  background: var(--cor-marinho);
-  color: #ffffff;
-}
-
-.boletim-tabela-meses.cabecalho-marrom thead th {
-  background: var(--cor-marrom);
-  color: #ffffff;
-}
-
-.boletim-tabela-meses thead th:first-child,
-.boletim-tabela-meses tbody th {
-  text-align: left;
-}
-
-.boletim-tabela-meses tbody th {
-  font-weight: 700;
-  color: var(--cor-marinho);
-}
-
-.boletim-tabela-meses tbody tr {
-  border-bottom: 1px solid var(--cor-grade);
-}
-
-.boletim-tabela-meses tr.planejado td {
-  color: var(--cor-texto-terciario);
-}
-
-.boletim-tabela-meses tr.acumulado {
-  background: var(--cor-bege-suave);
-  font-weight: 800;
-}
-
-.boletim-tabela-meses tr.destaque th {
   color: var(--cor-marrom);
+}
+
+/* o cartão de desembolso e receitas do Financeiro */
+.boletim-totais {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 20px;
+}
+
+.boletim-totais > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.boletim-totais .boletim-big {
+  font-size: 20px;
+}
+
+.boletim-totais .boletim-big.receitas {
+  color: var(--cor-receita);
+}
+
+.boletim-grupos {
+  flex: 1;
+  min-height: 0;
+}
+
+.boletim-duas-colunas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 48px;
+}
+
+.boletim-quadro-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 /* folha 01: o resumo, com a lateral marinho */
@@ -2690,92 +2624,114 @@ h2 .selo {
 }
 
 .boletim-resumo-lateral {
-  width: 380px;
-  flex-shrink: 0;
+  width: 400px;
+  flex: none;
   display: flex;
   flex-direction: column;
-  padding: 34px 34px 26px 32px;
+  padding: 36px 40px 28px;
+  border-right: 6px solid var(--cor-marrom);
   background: var(--cor-marinho);
-  box-shadow: inset -8px 0 0 var(--cor-marrom);
   color: #ffffff;
 }
 
 .boletim-resumo-logo {
-  width: 210px;
-  margin-bottom: 34px;
-}
-
-.boletim-resumo-rotulo {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--cor-bege);
+  align-self: flex-start;
+  width: auto;
+  height: 52px;
 }
 
 .boletim-resumo-nome {
-  margin: 8px 0;
-  font-size: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 34px;
+}
+
+.boletim-resumo-rotulo {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--cor-marrom-suave);
+}
+
+.boletim-resumo-nome h1 {
+  margin: 0;
+  font-family: var(--fonte-boletim-titulo);
+  font-stretch: 125%;
+  font-size: 38px;
   font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.02em;
+  line-height: 0.98;
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
 
-.boletim-resumo-sobre {
-  margin: 0 0 22px;
-  font-size: 12.5px;
-  color: var(--cor-sobre-rail-2);
+.boletim-resumo-nome h1.longo {
+  font-size: 30px;
+}
+
+.boletim-resumo-nome p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--boletim-claro-sobre-marinho);
 }
 
 .boletim-resumo-numeros {
   display: flex;
   flex-direction: column;
-  margin: 0;
+  margin-top: 18px;
 }
 
-.boletim-resumo-numeros > div {
-  padding: 14px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
+.boletim-kp {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 13px 0;
+  border-bottom: 1px solid rgba(211, 191, 178, 0.28);
 }
 
-.boletim-resumo-numeros dt {
-  font-size: 10.5px;
-  font-weight: 800;
+.boletim-kp:last-child {
+  border-bottom: none;
+}
+
+.boletim-kp-rotulo {
+  font-size: 10px;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--cor-bege);
+  color: var(--cor-marrom-suave);
 }
 
-.boletim-resumo-numeros dd {
-  margin: 4px 0 0;
-  font-size: 25px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+.boletim-kp .boletim-big {
+  font-size: 22px;
   white-space: nowrap;
+  color: #ffffff;
 }
 
-.boletim-resumo-numeros dd.sub {
-  margin-top: 2px;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: normal;
-  color: var(--cor-sobre-rail-2);
+.boletim-kp .boletim-big.grande {
+  font-size: 26px;
+}
+
+.boletim-kp .boletim-big.medio {
+  font-size: 21px;
+}
+
+.boletim-kp-sub {
+  font-size: 11.5px;
+  color: var(--boletim-claro-sobre-marinho);
 }
 
 /* no fundo marinho, o status em tons mais claros */
 .boletim-resumo-lateral .com-status.tom-verde {
-  color: #86d3a3;
+  color: #8fd1a6;
 }
 
 .boletim-resumo-lateral .com-status.tom-amarelo {
-  color: #f0c56b;
+  color: #f0c66e;
 }
 
 .boletim-resumo-lateral .com-status.tom-vermelho {
-  color: #f19a8b;
+  color: #f2a497;
 }
 
 .boletim-resumo-pe {
@@ -2783,13 +2739,16 @@ h2 .selo {
   flex-direction: column;
   gap: 4px;
   margin-top: auto;
-  font-size: 11.5px;
-  color: var(--cor-sobre-rail-2);
 }
 
 .boletim-resumo-pe em {
-  font-size: 13px;
-  color: #ffffff;
+  font-size: 12px;
+  color: var(--cor-marrom-suave);
+}
+
+.boletim-resumo-pe span {
+  font-size: 11px;
+  color: var(--cor-marinho-claro);
 }
 
 .boletim-resumo-conteudo {
@@ -2798,130 +2757,208 @@ h2 .selo {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 26px 34px 28px;
+  padding: 28px 36px 26px;
 }
 
 .boletim-resumo-topo {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
 }
 
-.boletim-resumo-topo h1 {
+.boletim-resumo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boletim-resumo-titulo .boletim-selo {
+  font-size: 11px;
+}
+
+.boletim-resumo-titulo h2 {
   margin: 0;
-  font-size: 22px;
+  font-family: var(--fonte-boletim-titulo);
+  font-stretch: 125%;
+  font-size: 20px;
   font-weight: 800;
   text-transform: uppercase;
   color: var(--cor-marinho);
 }
 
 .boletim-resumo-topo .boletim-legenda {
-  margin-left: auto;
+  gap: 14px;
+  font-size: 11px;
 }
 
 .boletim-resumo-pagina {
   padding-left: 14px;
-  border-left: 1px solid var(--cor-borda-forte);
-  font-size: 12px;
+  border-left: 1px solid var(--boletim-eixo);
+  font-weight: 700;
   color: var(--cor-marinho);
 }
 
 .boletim-resumo-alto {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 16px;
+}
+
+.boletim-resumo-caixa {
+  grid-column: span 7;
+  overflow: hidden;
+}
+
+.boletim-resumo-caixa p {
+  margin: 0;
+  padding: 9px 10px;
+  font-size: 10.5px;
+  color: var(--boletim-cinza);
+}
+
+.boletim-resumo-fluxo {
+  grid-column: span 5;
+  padding: 14px 18px;
+  gap: 8px;
 }
 
 .boletim-resumo-baixo {
   flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
-/* folha do rebanho: movimentação, mortes e a coluna das transferências */
+.boletim-resumo-baixo .boletim-quadro {
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.boletim-resumo-baixo .boletim-sub.rodape-do-quadro {
+  margin-top: auto;
+  font-size: 10px;
+}
+
+.boletim-resumo-baixo .boletim-sub.legenda-do-quadro {
+  font-size: 10.5px;
+}
+
+/* folha do rebanho: movimentação, mortes e a coluna de nascimentos e transferências */
 .boletim-rebanho {
   flex: 1;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(0, 0.8fr);
-  align-items: start;
-  gap: 18px;
+  grid-template-columns: 5fr 5fr 3fr;
+  gap: 16px;
 }
 
-.boletim-parte,
+.boletim-rebanho .boletim-quadro {
+  gap: 12px;
+  padding: 18px 20px;
+}
+
 .boletim-coluna-estreita {
-  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
-.boletim-grupos-de-morte {
+.boletim-coluna-estreita .boletim-quadro {
+  padding: 16px 18px;
+}
+
+.boletim-quadro.crescer {
+  flex: 1;
+}
+
+.boletim-quadro.sem-movimento {
+  background: var(--boletim-chip);
+}
+
+.boletim-mortes-grupos {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
-.boletim-grupos-de-morte .boletim-indicador:last-child {
-  background: var(--cor-bege-suave);
-}
-
-.boletim-sem-movimento {
-  background: var(--cor-superficie-2);
-}
-
-.boletim-sem-movimento ul {
-  margin: 10px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.boletim-sem-movimento li,
-.boletim-valores > div {
+.boletim-morte {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--cor-borda);
-  font-size: 12.5px;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--boletim-chip);
 }
 
-.boletim-sem-movimento strong,
-.boletim-valores strong {
+.boletim-morte .boletim-lbl {
+  font-size: 9.5px;
+}
+
+.boletim-morte .boletim-big {
+  font-size: 20px;
+}
+
+.boletim-morte .boletim-sub {
+  font-size: 10px;
+}
+
+.boletim-morte.acima {
+  border: 1px solid #e3b7ae;
+  background: #fbf1ef;
+}
+
+.boletim-morte.acima .boletim-lbl,
+.boletim-morte.acima .boletim-big {
+  color: var(--cor-status-vermelho);
+}
+
+.boletim-mortes-meio {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 6fr 5fr;
+  gap: 18px;
+}
+
+.boletim-mortes-meio > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.boletim-transferencia {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--boletim-linha);
+  font-size: 11.5px;
+}
+
+.boletim-transferencia b {
   color: var(--cor-marinho);
 }
 
-.boletim-valores {
-  margin: 0;
+/* folha da comercialização: venda abate e compras lado a lado */
+.boletim-comercializacao {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 22px 40px;
 }
 
-.boletim-valores dt {
-  color: var(--cor-texto-apagado);
+.boletim-comercializacao .boletim-quadro {
+  gap: 11px;
+  padding: 18px 20px;
 }
 
-.boletim-valores dd {
-  margin: 0;
-  color: var(--cor-texto-terciario);
+.boletim-chip .boletim-big {
+  font-size: 20px;
 }
 
-.boletim-valores strong {
-  font-size: 15px;
-}
-
-/* folha da comercialização: dois blocos lado a lado */
-.boletim-bloco {
-  gap: 10px;
-}
-
-.boletim-bloco .boletim-tabela-placar th,
-.boletim-bloco .boletim-tabela-placar td {
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-
-.boletim-bloco > .boletim-quadro-topo {
-  margin: 4px 0 0;
+.boletim-ate-o-fim {
+  margin-top: auto;
 }
 
 /* nota técnica */
@@ -2940,98 +2977,104 @@ h2 .selo {
   white-space: pre-line;
 }
 
-/* a capa: o marinho com o globo à esquerda, o marrom com a fazenda e o conteúdo à direita */
+/* a capa: o marinho com o símbolo da Terra ao fundo, à esquerda; o marrom com a fazenda e o conteúdo, à direita */
 .boletim-capa {
-  position: relative;
-  width: 1600px;
   height: 900px;
-  display: grid;
-  grid-template-columns: 1000px 600px;
-  grid-template-rows: minmax(0, 1fr) 46px;
   overflow: hidden;
+  background: var(--cor-marinho);
   color: #ffffff;
+}
+
+.boletim-capa-meio {
+  flex: 1;
+  min-height: 0;
+  display: flex;
 }
 
 .boletim-capa-esquerda {
   position: relative;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 60px 70px 46px;
+  padding: 56px 72px;
   overflow: hidden;
-  background: var(--cor-marinho);
 }
 
-.boletim-capa-globo {
+.boletim-capa-simbolo {
   position: absolute;
-  top: 110px;
-  right: -280px;
-  width: 920px;
+  right: -260px;
+  bottom: -330px;
+  width: 980px;
+  height: 980px;
   opacity: 0.07;
 }
 
 .boletim-capa-logo {
   position: relative;
-  width: 300px;
+  align-self: flex-start;
+  width: auto;
+  height: 72px;
 }
 
 .boletim-capa-periodo {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   margin-top: auto;
 }
 
 .boletim-capa-etiqueta {
-  display: inline-block;
-  padding: 7px 14px;
+  align-self: flex-start;
+  padding: 6px 14px;
   background: var(--cor-marrom);
   font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.2em;
 }
 
-.boletim-capa-titulo-do-periodo {
-  margin: 26px 0 0;
+.boletim-capa-rotulo-do-periodo {
   font-size: 26px;
-  font-weight: 300;
-  letter-spacing: 0.5em;
-  color: var(--cor-bege);
+  letter-spacing: 0.6em;
+  color: var(--cor-marrom-suave);
 }
 
-.boletim-capa-ano {
+.boletim-capa-periodo h1 {
   margin: 0;
-  font-size: 200px;
+  font-family: var(--fonte-boletim-titulo);
+  font-stretch: 125%;
+  font-size: 190px;
   font-weight: 900;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
+  line-height: 0.85;
+  letter-spacing: -0.02em;
 }
 
 .boletim-capa-linha {
-  position: relative;
-  display: block;
-  width: 540px;
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.boletim-capa-linha span:first-child {
+  width: 520px;
   height: 3px;
-  margin: 30px 0 18px;
   background: #ffffff;
 }
 
-.boletim-capa-linha::after {
-  content: "";
-  position: absolute;
-  top: -6px;
-  right: -8px;
-  width: 15px;
-  height: 15px;
+.boletim-capa-linha span:last-child {
+  width: 16px;
+  height: 16px;
+  margin-left: -2px;
   border-radius: 50%;
   background: #ffffff;
 }
 
 .boletim-capa-analise {
-  margin: 0;
   font-size: 18px;
-  color: var(--cor-sobre-rail-2);
+  color: var(--boletim-claro-sobre-marinho);
 }
 
-.boletim-capa-analise strong {
+.boletim-capa-analise b {
   color: #ffffff;
 }
 
@@ -3040,44 +3083,46 @@ h2 .selo {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  max-width: 720px;
-  margin: 48px 0 0;
+  max-width: 820px;
+  margin: 52px 0 0;
   padding: 0;
   list-style: none;
 }
 
 .boletim-capa-servicos li {
   padding: 5px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.04);
-  font-size: 11px;
-  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+  font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .boletim-capa-direita {
+  width: 600px;
+  flex: none;
   display: flex;
   flex-direction: column;
-  padding: 70px 60px 46px;
+  padding: 56px 60px;
   background: var(--cor-marrom);
 }
 
 .boletim-capa-rotulo {
-  margin: 0;
   font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.75);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--boletim-claro-sobre-marrom);
 }
 
 .boletim-capa-nome {
-  margin: 10px 0 12px;
-  font-size: 64px;
+  margin: 10px 0 0;
+  font-family: var(--fonte-boletim-titulo);
+  font-stretch: 125%;
+  font-size: 56px;
   font-weight: 900;
-  line-height: 0.98;
-  letter-spacing: -0.02em;
+  line-height: 0.95;
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
@@ -3087,71 +3132,110 @@ h2 .selo {
 }
 
 .boletim-capa-nome.longo {
-  font-size: 32px;
+  font-size: 38px;
+}
+
+.boletim-capa-nome.muito-longo {
+  font-size: 28px;
 }
 
 .boletim-capa-cliente {
-  margin: 0;
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.88);
+  margin: 14px 0 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: #f6eee8;
 }
 
 .boletim-capa-fazendas {
   margin: 8px 0 0;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--boletim-claro-sobre-marrom);
 }
 
 .boletim-capa-dados {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px 24px;
-  margin: 34px 0 0;
-  padding: 22px 0;
+  margin-top: 32px;
+  padding: 20px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.3);
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.boletim-capa-dados div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 .boletim-capa-dados dt {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--boletim-claro-sobre-marrom);
 }
 
 .boletim-capa-dados dd {
-  margin: 4px 0 0;
-  font-size: 16px;
+  margin: 0;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .boletim-capa-conteudo {
+  display: flex;
+  flex-direction: column;
   margin-top: auto;
 }
 
+.boletim-capa-conteudo .boletim-capa-rotulo {
+  margin-bottom: 4px;
+}
+
 .boletim-capa-conteudo ol {
-  margin: 12px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .boletim-capa-conteudo li {
   display: flex;
-  gap: 20px;
+  align-items: baseline;
+  gap: 14px;
   padding: 11px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-  font-size: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 15px;
 }
 
-.boletim-capa-conteudo li strong {
-  min-width: 26px;
+.boletim-capa-conteudo li:last-child {
+  border-bottom: none;
+}
+
+.boletim-capa-conteudo ol.compacto li {
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.boletim-capa-conteudo li b {
+  min-width: 28px;
+  font-family: var(--fonte-boletim-titulo);
+  font-stretch: 125%;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--boletim-claro-sobre-marrom);
 }
 
 .boletim-capa-rodape {
-  grid-column: 1 / -1;
-  height: 46px;
+  display: flex;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 16px 72px;
   background: var(--cor-marinho-escuro);
+  font-size: 14px;
+}
+
+.boletim-capa-rodape em {
+  color: var(--cor-marrom-suave);
 }
 
 /* --- boletim personalizado (o "Exportar PDF" no modo Personalizado): folhas A4 em pé, com a leitura do mês --- */

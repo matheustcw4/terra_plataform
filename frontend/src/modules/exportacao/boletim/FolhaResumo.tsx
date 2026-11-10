@@ -1,74 +1,70 @@
-import logoBranco from "../../../assets/bi/terra-logo-branco.png";
-import type { BoletimAnalitico, Comparacao, LinhaDoPrevisto, SecaoDeLotes } from "../../../core/api/tipos";
+import type { ReactNode } from "react";
+import logoBranco from "../../../assets/boletim/logo_terra_branco.png";
+import type { BoletimAnalitico, Comparacao, GrupoDoPrevisto, SecaoDeLotes } from "../../../core/api/tipos";
 import {
   ateAReferencia,
-  cabecasOuTraco,
-  celulaEmMilhoes,
-  diferencaEmReais,
+  cabeONumeroDoPlanejado,
+  diferencaCompacta,
+  diferencaDoResultado,
   doisDigitos,
   ehParteDoDesembolso,
   grupoDaLetra,
   type Identificacao,
   LEMA_DA_TERRA,
   linhaDoIndicador,
+  mesComAno,
+  mesDoEixo,
+  naUnidade,
   nomeDaClassificacao,
+  percentualDaMeta,
   reaisCurtos,
   rotuloDaPagina,
+  secaoDeVenda,
+  semMoeda,
   SITE_DA_TERRA,
+  unidadeDosValores,
   variacaoComSinal,
 } from "../../../logic/boletim";
-import { numero } from "../../../logic/formatar";
+import { dinheiro, numero, percentual } from "../../../logic/formatar";
 import { mesCurto } from "../../../logic/meses";
 import { BarrasDeitadas } from "./BarrasDeitadas";
 import { Colunas } from "./Colunas";
-import { LegendaDoBoletim, QuadroDoBoletim } from "./FolhaDoBoletim";
-import { ComStatus } from "./Indicador";
-import { TabelaDosMeses } from "./TabelaDosMeses";
+import { Bolinha, ComStatus, LegendaDoBoletim } from "./Indicador";
 
 type Props = { boletim: BoletimAnalitico; identificacao: Identificacao; numero: number; total: number };
 
-const CENTROS_NO_RESUMO = 8;
-
-// A folha 01 do boletim de resultados: na lateral marinho, a fazenda e os quatro números do período (resultado,
-// receitas × desembolso, rebanho e vendas × compras); ao lado, o Previsto × Realizado do caixa, o fluxo de caixa mês a
-// mês, o desembolso por grupo e as vendas e compras em cabeças.
+// A folha 01 do boletim de resultados, como a do gerador oficial: na lateral marinho, a fazenda e os quatro números do
+// período (resultado, receitas × desembolso, rebanho e vendas × compras); ao lado, o Previsto × Realizado do caixa, o
+// fluxo de caixa mês a mês, o desembolso por grupo e as cabeças vendidas e compradas mês a mês.
 export function FolhaResumo({ boletim, identificacao, numero: numeroDaFolha, total }: Props) {
   return (
     <section className="boletim-folha boletim-resumo" aria-label="Resumo">
       <LateralDoResumo boletim={boletim} identificacao={identificacao} />
-      <div className="boletim-resumo-conteudo">
-        <header className="boletim-resumo-topo">
-          <span className="boletim-selo">{doisDigitos(numeroDaFolha)}</span>
-          <h1>Previsto × Realizado</h1>
-          <LegendaDoBoletim itens={[
-            { nome: "Dentro da meta", cor: "var(--cor-status-verde)" },
-            { nome: "Até 3% fora", cor: "var(--cor-status-amarelo)" },
-            { nome: "Mais de 3% fora", cor: "var(--cor-status-vermelho)" },
-          ]} />
-          <strong className="boletim-resumo-pagina">{rotuloDaPagina(numeroDaFolha, total)}</strong>
-        </header>
+      <main className="boletim-resumo-conteudo">
+        <div className="boletim-resumo-topo">
+          <div className="boletim-resumo-titulo">
+            <span className="boletim-selo">{doisDigitos(numeroDaFolha)}</span>
+            <h2>Previsto × Realizado</h2>
+          </div>
+          <div className="boletim-legenda">
+            <span><Bolinha status="verde" /> Dentro da meta</span>
+            <span><Bolinha status="amarelo" /> Até 3% acima</span>
+            <span><Bolinha status="vermelho" /> Acima de 3%</span>
+            <span className="boletim-resumo-pagina">{rotuloDaPagina(numeroDaFolha, total)}</span>
+          </div>
+        </div>
         <div className="boletim-resumo-alto">
-          <TabelaDoCaixa boletim={boletim} />
+          <TabelaDoCaixa boletim={boletim} identificacao={identificacao} />
           <FluxoDeCaixa boletim={boletim} />
         </div>
         <div className="boletim-resumo-baixo">
           <DesembolsoPorGrupo boletim={boletim} />
-          <CabecasDoMes titulo="Venda abate · cab" secao={vendaAbate(boletim)} mesDeReferencia={boletim.mes_referencia}
-            cor="var(--cor-realizado)" />
-          <CabecasDoMes titulo="Compras · cab" secao={boletim.compras} mesDeReferencia={boletim.mes_referencia}
-            cor="var(--cor-marrom)" />
+          <VendaAbate boletim={boletim} />
+          <Compras boletim={boletim} />
         </div>
-      </div>
+      </main>
     </section>
   );
-}
-
-function vendaAbate(boletim: BoletimAnalitico): SecaoDeLotes {
-  const abate = boletim.vendas.find((secao) => secao.tipo === "abate");
-  if (abate === undefined) {
-    throw new Error("o boletim veio sem as vendas abate");
-  }
-  return abate;
 }
 
 function LateralDoResumo({ boletim, identificacao }: { boletim: BoletimAnalitico; identificacao: Identificacao }) {
@@ -77,85 +73,84 @@ function LateralDoResumo({ boletim, identificacao }: { boletim: BoletimAnalitico
   const receitas = grupoDaLetra(caixa.grupos, "A")?.total.acumulado ?? null;
   const desembolso = grupoDaLetra(caixa.grupos, "B")?.total.acumulado ?? null;
   const lotacao = boletim.lotacao;
-  const vendas = linhaDoIndicador(vendaAbate(boletim).resumo, "Cabeças");
-  const compras = linhaDoIndicador(boletim.compras.resumo, "Cabeças");
+  const resumo = boletim.resumo;
+  let lotacaoNoTexto = "";
+  if (lotacao.lotacao_cab_ha !== null) {
+    lotacaoNoTexto = ` · lotação ${numero(lotacao.lotacao_cab_ha, 2)} cab/ha`;
+  }
+  let classeDoNome: string | undefined = undefined;
+  if (identificacao.titulo.length > 10) {
+    classeDoNome = "longo";
+  }
   return (
     <aside className="boletim-resumo-lateral">
       <img className="boletim-resumo-logo" src={logoBranco} alt="Terra Desenvolvimento Agropecuário" />
-      <p className="boletim-resumo-rotulo">Boletim mensal · {identificacao.rotuloDoPeriodo}</p>
-      <h2 className="boletim-resumo-nome">{identificacao.titulo}</h2>
-      <p className="boletim-resumo-sobre">
-        {identificacao.cliente} · {identificacao.periodo} ({identificacao.meses} meses) · {identificacao.planejamento}
-      </p>
-      <dl className="boletim-resumo-numeros">
-        <div>
-          <dt>Resultado acumulado</dt>
-          <dd>{reaisCurtos(resultado.realizado)}</dd>
-          <dd className="sub">
-            Plan. {reaisCurtos(resultado.planejado)} · <strong>{diferencaEmReais(resultado.diferenca)}</strong>
-          </dd>
-        </div>
-        <div>
-          <dt>Receitas · Desembolso</dt>
-          <dd>{reaisCurtos(receitas?.realizado ?? null)} · {reaisCurtos(desembolso?.realizado ?? null)}</dd>
-          <dd className="sub">
-            <ComStatus status={receitas?.semaforo}>{variacaoComSinal(receitas?.variacao ?? null)}</ComStatus> e{" "}
-            <ComStatus status={desembolso?.semaforo}>{variacaoComSinal(desembolso?.variacao ?? null)}</ComStatus>{" "}
-            sobre o planejado
-          </dd>
-        </div>
-        <div>
-          <dt>Rebanho final</dt>
-          <dd>{numero(lotacao.estoque_final)} cab</dd>
-          <dd className="sub">
-            Médio {numero(lotacao.rebanho_medio_cab)} cab · {numero(lotacao.rebanho_medio_ua)} UA · lotação{" "}
-            {numero(lotacao.lotacao_cab_ha, 2)} cab/ha
-          </dd>
-        </div>
-        <div>
-          <dt>Venda abate · Compras</dt>
-          <dd>
-            {cabecasOuTraco(vendas?.acumulado.realizado ?? null)} · {cabecasOuTraco(compras?.acumulado.realizado ?? null)} cab
-          </dd>
-          <dd className="sub">
-            <ComStatus status={vendas?.acumulado.status}>
-              {variacaoComSinal(vendas?.acumulado.variacao_percentual ?? null)}
-            </ComStatus>{" "}
-            e{" "}
-            <ComStatus status={compras?.acumulado.status}>
-              {variacaoComSinal(compras?.acumulado.variacao_percentual ?? null)}
-            </ComStatus>{" "}
-            sobre a meta até aqui
-          </dd>
-        </div>
-      </dl>
-      <footer className="boletim-resumo-pe">
+      <div className="boletim-resumo-nome">
+        <span className="boletim-resumo-rotulo">BOLETIM MENSAL · {identificacao.rotuloDoPeriodo}</span>
+        <h1 className={classeDoNome}>{identificacao.titulo}</h1>
+        <p>
+          {identificacao.cliente} · {identificacao.periodo} ({identificacao.meses} meses) · {identificacao.planejamento}
+        </p>
+      </div>
+      <div className="boletim-resumo-numeros">
+        <NumeroDaLateral rotulo="Resultado acumulado" valor={reaisCurtos(resultado.realizado)} tamanho="grande">
+          Plan. {reaisCurtos(resultado.planejado)} ·{" "}
+          <ComStatus status={resumo.status_do_resultado_acumulado}>{diferencaDoResultado(resultado.diferenca)}</ComStatus>
+        </NumeroDaLateral>
+        <NumeroDaLateral rotulo="Receitas · Desembolso" tamanho="medio"
+          valor={`${reaisCurtos(receitas?.realizado ?? null)} · ${reaisCurtos(desembolso?.realizado ?? null)}`}>
+          <ComStatus status={receitas?.semaforo}>{variacaoComSinal(receitas?.variacao ?? null)}</ComStatus> e{" "}
+          <ComStatus status={desembolso?.semaforo}>{variacaoComSinal(desembolso?.variacao ?? null)}</ComStatus> sobre o
+          planejado
+        </NumeroDaLateral>
+        <NumeroDaLateral rotulo="Rebanho final" valor={`${numero(lotacao.estoque_final)} cab`}>
+          Médio {numero(lotacao.rebanho_medio_cab)} cab{lotacaoNoTexto}
+        </NumeroDaLateral>
+        <NumeroDaLateral rotulo="Vendas · Compras"
+          valor={`${numero(resumo.vendas.realizado)} · ${numero(resumo.compras.realizado)} cab`}>
+          {percentualDaMeta(resumo.vendas.percentual_da_meta)} e {percentualDaMeta(resumo.compras.percentual_da_meta)}{" "}
+          da meta
+        </NumeroDaLateral>
+      </div>
+      <div className="boletim-resumo-pe">
         <em>{LEMA_DA_TERRA}</em>
-        <span>
-          {SITE_DA_TERRA} · {identificacao.localEData}
-        </span>
-      </footer>
+        <span>{SITE_DA_TERRA} · {identificacao.localEData}</span>
+      </div>
     </aside>
   );
 }
 
-// O Previsto × Realizado do caixa, só os totais de cada classificação: o mês de referência e o acumulado.
-function TabelaDoCaixa({ boletim }: { boletim: BoletimAnalitico }) {
-  const caixa = boletim.caixa.previsto_realizado;
+type NumeroProps = { rotulo: string; valor: string; tamanho?: "grande" | "medio"; children: ReactNode };
+
+function NumeroDaLateral({ rotulo, valor, tamanho, children }: NumeroProps) {
+  let classes = "boletim-big";
+  if (tamanho !== undefined) {
+    classes += ` ${tamanho}`;
+  }
   return (
-    <QuadroDoBoletim titulo="Previsto × Realizado" className="boletim-caixa"
-      nota={boletim.caixa.leitura.slice(0, 2).join(" ")}>
-      <table className="boletim-tabela-caixa">
+    <div className="boletim-kp">
+      <span className="boletim-kp-rotulo">{rotulo}</span>
+      <span className={classes}>{valor}</span>
+      <span className="boletim-kp-sub">{children}</span>
+    </div>
+  );
+}
+
+// O Previsto × Realizado do caixa, só os totais de cada classificação: o mês de referência e o acumulado.
+function TabelaDoCaixa({ boletim, identificacao }: { boletim: BoletimAnalitico; identificacao: Identificacao }) {
+  const caixa = boletim.caixa.previsto_realizado;
+  const observacao = boletim.caixa.leitura[0];
+  return (
+    <div className="boletim-card boletim-resumo-caixa">
+      <table className="boletim-tb">
         <thead>
-          <tr className="faixas">
+          <tr>
             <th scope="col" />
-            <th scope="colgroup" colSpan={3} className="faixa-mes">Mensal · {mesCurto(caixa.ultimo_mes)}</th>
-            <th scope="colgroup" colSpan={3} className="faixa-acumulado">
-              Acumulado · {mesCurto(caixa.periodo.inicio)} a {mesCurto(caixa.ultimo_mes)}
-            </th>
+            <th scope="colgroup" colSpan={3} className="faixa-mes">Mensal · {mesComAno(caixa.ultimo_mes)}</th>
+            <th scope="colgroup" colSpan={3} className="faixa-acumulado">Acumulado · {identificacao.periodo}</th>
           </tr>
           <tr>
-            <th scope="col">Conta (R$)</th>
+            <th scope="col" className="esquerda">Conta (R$)</th>
             <th scope="col">Realizado</th>
             <th scope="col">Planejado</th>
             <th scope="col">Var.</th>
@@ -166,18 +161,33 @@ function TabelaDoCaixa({ boletim }: { boletim: BoletimAnalitico }) {
         </thead>
         <tbody>
           {caixa.grupos.map((grupo) => (
-            <tr key={grupo.classificacao} className={ehParteDoDesembolso(grupo.classificacao) ? "parte" : undefined}>
-              <th scope="row">{nomeDaClassificacao(grupo.classificacao)}</th>
-              <CelulasDoCaixa comparacao={grupo.total.mensal} />
-              <CelulasDoCaixa comparacao={grupo.total.acumulado} />
-            </tr>
+            <LinhaDoCaixa key={grupo.classificacao} grupo={grupo} />
           ))}
+          <tr className="total">
+            <td className="nome">Resultado</td>
+            <CelulasDoResultado comparacao={caixa.resultado.mensal}
+              status={boletim.resumo.status_do_resultado_mes} />
+            <CelulasDoResultado comparacao={caixa.resultado.acumulado}
+              status={boletim.resumo.status_do_resultado_acumulado} />
+          </tr>
         </tbody>
-        <tfoot>
-          <LinhaDoResultado resultado={caixa.resultado} />
-        </tfoot>
       </table>
-    </QuadroDoBoletim>
+      {observacao !== undefined && <p>{observacao}</p>}
+    </div>
+  );
+}
+
+function LinhaDoCaixa({ grupo }: { grupo: GrupoDoPrevisto }) {
+  let classeDoNome = "nome";
+  if (ehParteDoDesembolso(grupo.classificacao)) {
+    classeDoNome = "nome parte";
+  }
+  return (
+    <tr>
+      <td className={classeDoNome}>{nomeDaClassificacao(grupo.classificacao)}</td>
+      <CelulasDoCaixa comparacao={grupo.total.mensal} />
+      <CelulasDoCaixa comparacao={grupo.total.acumulado} />
+    </tr>
   );
 }
 
@@ -185,86 +195,119 @@ function CelulasDoCaixa({ comparacao }: { comparacao: Comparacao }) {
   return (
     <>
       <td>{numero(comparacao.realizado)}</td>
-      <td className="planejado">{numero(comparacao.planejado)}</td>
+      <td className="apagado">{numero(comparacao.planejado)}</td>
+      {comparacao.variacao === null && <td className="apagado">—</td>}
+      {comparacao.variacao !== null && (
+        <td>
+          {percentual(comparacao.variacao, 1)}
+          <Bolinha status={comparacao.semaforo} />
+        </td>
+      )}
+    </>
+  );
+}
+
+// No resultado vale a diferença em reais, e a bolinha é a do boletim: verde quando o realizado chega ao planejado.
+function CelulasDoResultado({ comparacao, status }: { comparacao: Comparacao; status: string | null }) {
+  return (
+    <>
+      <td>{numero(comparacao.realizado)}</td>
+      <td>{numero(comparacao.planejado)}</td>
       <td>
-        <ComStatus status={comparacao.semaforo}>{variacaoComSinal(comparacao.variacao)}</ComStatus>
+        {diferencaCompacta(comparacao.diferenca)}
+        <Bolinha status={status} />
       </td>
     </>
   );
 }
 
-// No resultado vale a diferença em reais, sem a cor do semáforo: com o planejado negativo, o % (e o semáforo, que é o
-// do BI) inverte o sentido, e um resultado melhor que o planejado sairia vermelho.
-function LinhaDoResultado({ resultado }: { resultado: LinhaDoPrevisto }) {
-  return (
-    <tr>
-      <th scope="row">Resultado</th>
-      <td>{numero(resultado.mensal.realizado)}</td>
-      <td className="planejado">{numero(resultado.mensal.planejado)}</td>
-      <td>{diferencaEmReais(resultado.mensal.diferenca)}</td>
-      <td>{numero(resultado.acumulado.realizado)}</td>
-      <td className="planejado">{numero(resultado.acumulado.planejado)}</td>
-      <td>{diferencaEmReais(resultado.acumulado.diferenca)}</td>
-    </tr>
-  );
-}
-
 function FluxoDeCaixa({ boletim }: { boletim: BoletimAnalitico }) {
   const meses = boletim.financeiro.meses;
-  const datas = meses.map((mes) => mes.mes);
   const receitas = meses.map((mes) => mes.receitas);
-  const desembolso = meses.map((mes) => mes.desembolso);
+  const despesas = meses.map((mes) => mes.desembolso);
+  const unidade = unidadeDosValores([receitas, despesas]);
   return (
-    <QuadroDoBoletim titulo="Fluxo de caixa mensal" nota="R$ milhões."
-      direita={<LegendaDoBoletim itens={[{ nome: "Receitas", cor: "var(--cor-realizado)" },
-        { nome: "Desembolso", cor: "var(--cor-despesa)" }]} />}>
-      <Colunas meses={datas} altura={150} series={[
-        { nome: "Receitas", valores: receitas, cor: "var(--cor-realizado)" },
-        { nome: "Desembolso", valores: desembolso, cor: "var(--cor-despesa)" },
+    <div className="boletim-card boletim-quadro boletim-resumo-fluxo">
+      <div className="boletim-quadro-topo">
+        <span className="boletim-lbl marinho">Fluxo de caixa mensal · {unidade.rotulo}</span>
+        <LegendaDoBoletim itens={[{ nome: "Receitas", cor: "var(--cor-realizado)" },
+          { nome: "Despesas", cor: "var(--cor-despesa)" }]} />
+      </div>
+      <Colunas eixo={meses.map((mes) => mesCurto(mes.mes))} altura={210} series={[
+        { nome: "Receitas", valores: receitas, cor: "var(--cor-realizado)",
+          rotulo: (valor) => naUnidade(valor, unidade) },
+        { nome: "Despesas", valores: despesas, cor: "var(--cor-despesa)", rotulo: (valor) => naUnidade(valor, unidade) },
       ]} />
-      <TabelaDosMeses meses={datas} cabecalho="nenhum" linhas={[
-        { nome: "Receitas", valores: receitas.map(celulaEmMilhoes) },
-        { nome: "Desembolso", valores: desembolso.map(celulaEmMilhoes), classe: "destaque" },
-      ]} />
-    </QuadroDoBoletim>
+    </div>
   );
 }
 
 function DesembolsoPorGrupo({ boletim }: { boletim: BoletimAnalitico }) {
-  const centros = boletim.financeiro.centros;
-  const total = linhaDoIndicador(boletim.financeiro.placar, "Desembolso")?.acumulado.realizado ?? null;
-  const barras = centros.slice(0, CENTROS_NO_RESUMO).map((centro) => ({
-    rotulo: centro.centro_custo, valor: centro.valor_acumulado, texto: reaisCurtos(centro.valor_acumulado),
+  const barras = boletim.resumo.desembolso_por_grupo.map((grupo) => ({
+    nome: grupo.nome, valor: grupo.valor, texto: semMoeda(grupo.valor),
   }));
-  let nota = `Total ${reaisCurtos(total)}.`;
-  if (centros.length > CENTROS_NO_RESUMO) {
-    nota += ` Mais ${centros.length - CENTROS_NO_RESUMO} grupos na folha do Financeiro.`;
-  }
   return (
-    <QuadroDoBoletim titulo="Desembolso por grupo · acumulado" nota={nota}>
-      <BarrasDeitadas barras={barras} />
-    </QuadroDoBoletim>
+    <div className="boletim-card boletim-quadro">
+      <span className="boletim-lbl marinho">Desembolso por grupo · acumulado</span>
+      <BarrasDeitadas barras={barras} colunas="150px 1fr 60px" />
+      <span className="boletim-sub rodape-do-quadro">Total {reaisCurtos(boletim.resumo.desembolso_total)}</span>
+    </div>
   );
 }
 
-type CabecasProps = { titulo: string; secao: SecaoDeLotes; mesDeReferencia: string; cor: string };
-
-// As cabeças vendidas (ou compradas) mês a mês, realizado × planejado, e a frase do acumulado.
-function CabecasDoMes({ titulo, secao, mesDeReferencia, cor }: CabecasProps) {
-  const meses = ateAReferencia(secao.meses, mesDeReferencia);
-  const cabecas = linhaDoIndicador(secao.resumo, "Cabeças");
-  const direita = (
-    <span className="boletim-de">
-      <strong>{cabecasOuTraco(cabecas?.acumulado.realizado ?? null)}</strong> de{" "}
-      {cabecasOuTraco(cabecas?.acumulado.previsto ?? null)}
-    </span>
-  );
+function VendaAbate({ boletim }: { boletim: BoletimAnalitico }) {
+  const abate = secaoDeVenda(boletim, "abate");
+  const faturamento = linhaDoIndicador(abate.resumo, "Faturamento")?.acumulado;
+  const arroba = linhaDoIndicador(abate.resumo, "Preço da @")?.acumulado;
   return (
-    <QuadroDoBoletim titulo={titulo} direita={direita} nota={secao.leitura.slice(-1).join(" ")}>
-      <Colunas meses={meses.map((mes) => mes.mes)} altura={170} series={[
-        { nome: "Realizado", valores: meses.map((mes) => mes.realizado), cor },
-        { nome: "Planejado", valores: meses.map((mes) => mes.previsto), cor: "var(--cor-planejado)" },
-      ]} />
-    </QuadroDoBoletim>
+    <CabecasDoMes titulo="Venda abate · cab" secao={abate} mesDeReferencia={boletim.mes_referencia}
+      cor="var(--cor-realizado)">
+      Faturamento <b>{reaisCurtos(faturamento?.realizado ?? null)}</b> (
+      {variacaoComSinal(faturamento?.variacao_percentual ?? null)}) · @ {dinheiro(arroba?.realizado ?? null, 2)} vs{" "}
+      {numero(arroba?.previsto ?? null, 2)}
+    </CabecasDoMes>
   );
+}
+
+function Compras({ boletim }: { boletim: BoletimAnalitico }) {
+  const compras = boletim.compras;
+  const investimento = linhaDoIndicador(compras.resumo, "Investimento")?.acumulado;
+  const arroba = linhaDoIndicador(compras.resumo, "Preço da @")?.acumulado;
+  return (
+    <CabecasDoMes titulo="Compras · cab" secao={compras} mesDeReferencia={boletim.mes_referencia}
+      cor="var(--cor-marrom)">
+      Investido <b>{reaisCurtos(investimento?.realizado ?? null)}</b> (
+      {variacaoComSinal(investimento?.variacao_percentual ?? null)}) · @ compra {dinheiro(arroba?.realizado ?? null, 2)}{" "}
+      · ágio {percentual(compras.agio, 1)}
+    </CabecasDoMes>
+  );
+}
+
+type CabecasProps = { titulo: string; secao: SecaoDeLotes; mesDeReferencia: string; cor: string; children: ReactNode };
+
+// As cabeças vendidas (ou compradas) mês a mês, realizado × planejado, com o acumulado no alto e o valor embaixo.
+function CabecasDoMes({ titulo, secao, mesDeReferencia, cor, children }: CabecasProps) {
+  const meses = ateAReferencia(secao.meses, mesDeReferencia);
+  const cabecas = linhaDoIndicador(secao.resumo, "Cabeças")?.acumulado;
+  const rotuloDoPlanejado = cabeONumeroDoPlanejado(meses.length) ? numeroInteiro : undefined;
+  return (
+    <div className="boletim-card boletim-quadro">
+      <div className="boletim-quadro-topo">
+        <span className="boletim-lbl marinho">{titulo}</span>
+        <span className="boletim-sub">
+          <b>{numero(cabecas?.realizado ?? null)}</b> de {numero(cabecas?.previsto ?? null)}
+        </span>
+      </div>
+      <Colunas eixo={meses.map((mes) => mesDoEixo(mes.mes))} altura={160} series={[
+        { nome: "Realizado", valores: meses.map((mes) => mes.realizado), cor, rotulo: numeroInteiro },
+        { nome: "Planejado", valores: meses.map((mes) => mes.previsto), cor: "var(--cor-planejado)",
+          rotulo: rotuloDoPlanejado, corDoRotulo: "var(--boletim-cinza)" },
+      ]} />
+      <span className="boletim-sub legenda-do-quadro">{children}</span>
+    </div>
+  );
+}
+
+function numeroInteiro(valor: number): string {
+  return numero(valor);
 }

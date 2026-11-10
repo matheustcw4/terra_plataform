@@ -2,15 +2,12 @@ import { describe, expect, test } from "vitest";
 import type { FazendaDoEscopo } from "../core/api/tipos";
 import type { Filtro } from "./filtro";
 import {
-  localEData,
   mesPorExtenso,
   nomeDoArquivo,
   nomeDoArquivoDoMes,
   nomesDaCapa,
   paginasNaOrdem,
   periodoDaCapa,
-  tamanhoDoLocal,
-  tamanhoDosNomes,
 } from "./exportacao";
 
 function fazenda(id: string, nome: string, cliente: string, origem = "metryx"): FazendaDoEscopo {
@@ -22,7 +19,8 @@ function fazenda(id: string, nome: string, cliente: string, origem = "metryx"): 
     sistema_produtivo: null,
     primeiro_mes: "2025-01-01",
     ultimo_mes: "2026-09-01",
-    capacidades: { estoque: true, rebanho_medio: true, area: true, financeiro: true, planejado: true },
+    capacidades: { estoque: true, rebanho_medio: true, area: true, financeiro: true, planejado: true,
+        situacoes: ["pago"] },
   };
 }
 
@@ -33,7 +31,8 @@ const FAZENDAS = [
   fazenda("o1", "Outra", "JOÃO"),
 ];
 
-const GRUPO: Filtro = { origem: "metryx", cliente: "MARIA", fazendas: [], visao: "safra", ano: 2024, meses: [] };
+const GRUPO: Filtro = { origem: "metryx", cliente: "MARIA", fazendas: [], visao: "safra", ano: 2024, meses: [],
+  situacoes: [], versoes: [], semPlano: [] };
 
 describe("capa do PDF", () => {
   test("safra 24/25 ou ano 2025", () => {
@@ -47,19 +46,9 @@ describe("capa do PDF", () => {
     expect(nomesDaCapa({ ...GRUPO, fazendas: ["s1", "s2"] }, FAZENDAS)).toBe("Serra Dourada | Santa Fé");
   });
 
-  test("a data é o mês de hoje por extenso; a cidade é livre", () => {
+  test("a data é o mês de hoje por extenso", () => {
     expect(mesPorExtenso("2026-10")).toBe("outubro de 2026");
     expect(mesPorExtenso("2027-03")).toBe("março de 2027");
-    expect(localEData("Cuiabá", "2026-10")).toBe("Cuiabá, outubro de 2026.");
-    expect(localEData("  ", "2026-10")).toBe("Outubro de 2026.");
-  });
-
-  test("texto comprido usa letra menor", () => {
-    expect(tamanhoDosNomes("GRUPO")).toBe(64);
-    expect(tamanhoDosNomes("Serra Dourada | Santa Fé | Boa Vista | Três Irmãos")).toBe(46);
-    expect(tamanhoDosNomes("x".repeat(300))).toBe(20);
-    expect(tamanhoDoLocal("Cuiabá, outubro de 2026.")).toBe(27);
-    expect(tamanhoDoLocal("Campo Novo do Parecis, outubro de 2026.")).toBe(19);
   });
 });
 
@@ -76,8 +65,8 @@ describe("exportação", () => {
       .toBe("Boletim - FAZ. A-B - 2025.pdf");
   });
 
-  test("nome do arquivo analítico leva o mês de referência", () => {
-    expect(nomeDoArquivoDoMes("Boletim analítico", GRUPO, FAZENDAS, "2026-09"))
-      .toBe("Boletim analítico - GRUPO - set-26.pdf");
+  test("nome do arquivo do boletim resumido leva o mês de referência", () => {
+    expect(nomeDoArquivoDoMes("Boletim resumido", GRUPO, FAZENDAS, "2026-09"))
+      .toBe("Boletim resumido - GRUPO - set-26.pdf");
   });
 });

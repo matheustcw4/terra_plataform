@@ -30,6 +30,9 @@ TIPOS_COM_DESTINO: frozenset[str] = frozenset({"DESMAME", "MUDANCA_CATEGORIA"})
 # financeira (o DRE previsto: o `previsao-financeiro` do Metryx, a aba de DRE planejado da planilha) ou o planejamento
 # (o fluxo de caixa do plano do Metryx, por versão).
 TipoOrcamento = Literal["previsao", "planejamento"]
+# A situação do título no realizado (pedido do usuário, 10/11/2026): conciliado (pago e conciliado no banco), pago
+# (sem a conciliação) ou em aberto (sem pagamento; entra pelo vencimento). As telas do financeiro filtram por ela.
+SituacaoDoLancamento = Literal["conciliado", "pago", "em_aberto"]
 Grupo = Literal["BEZERROS", "JOVENS", "ADULTOS"]
 FonteMapaCategoria = Literal["planilha", "metryx_realizado", "metryx_plano"]
 SistemaProdutivo = Literal["CRIA", "RECRIA E ENGORDA", "CICLO COMPLETO"]
@@ -189,11 +192,27 @@ class LancamentoFinanceiro(_Linha):
     conta: ContaOrigem
     natureza: Literal["C", "D"]
     valor: NaoNegativo
-    data_pagamento: date
+    situacao: SituacaoDoLancamento = "pago"
+    data_pagamento: date | None = None       # o título em aberto não tem
     data_vencimento: date | None = None
     descricao: str | None = None
     contraparte: str | None = None
     documento: str | None = None
+
+    @model_validator(mode="after")
+    def _tem_data_do_caixa(self) -> "LancamentoFinanceiro":
+        if self.situacao == "em_aberto" and self.data_vencimento is None:
+            raise ValueError("título em aberto precisa da data de vencimento")
+        if self.situacao != "em_aberto" and self.data_pagamento is None:
+            raise ValueError("título pago precisa da data de pagamento")
+        return self
+
+    @property
+    def data_do_caixa(self) -> date:
+        """O dia em que o dinheiro entra no caixa: o do pagamento; no título em aberto, o do vencimento."""
+        if self.data_pagamento is not None:
+            return self.data_pagamento
+        return self.data_vencimento
 
 
 class OrcamentoFinanceiro(_Linha):
@@ -220,7 +239,7 @@ TIPOS_DA_ENTIDADE: dict[str, set[str]] = {"mov_animal": set(get_args(TipoMov)),
                                           "orcamento": set(get_args(TipoOrcamento))}
 # data que posiciona a linha no tempo (recorte `desde`/`ate` da partição)
 CAMPO_DATA: dict[str, str] = {"mov_animal": "data", "inventario": "data", "rebanho_medio": "competencia",
-                              "area": "competencia", "lancamento": "data_pagamento", "orcamento": "competencia"}
+                              "area": "competencia", "lancamento": "data_do_caixa", "orcamento": "competencia"}
 
 
 def proximo_mes(d: date) -> date:

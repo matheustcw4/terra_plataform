@@ -34,12 +34,13 @@ from app.kpis.previsto_financeiro import (
     PrevistoEscolhido,
     escolher_o_previsto,
 )
+from app.kpis.situacao_do_lancamento import LANCAMENTOS_DO_FILTRO
 from app.kpis.versao_do_plano import so_a_versao_que_vale
 from app.schemas.api import DesembolsoDoCentro, Financeiro, MesDoFinanceiro, Velocimetro
 
-# cenário -> view com a classificação da conta já resolvida (lista fechada: por isso pode entrar no SQL); no
-# planejado, o orçamento do tipo e da versão escolhidos na tela (previsto_financeiro.py)
-VIEW_DO_CENARIO = {"realizado": "fato.v_lancamento_financeiro", "planejado": ORCAMENTO_ESCOLHIDO}
+# cenário -> os lançamentos (das situações do recorte) ou o orçamento (do tipo e das versões escolhidos na tela,
+# previsto_financeiro.py), com a classificação da conta já resolvida (lista fechada: por isso pode entrar no SQL)
+VIEW_DO_CENARIO = {"realizado": LANCAMENTOS_DO_FILTRO, "planejado": ORCAMENTO_ESCOLHIDO}
 
 # TODO(D3): as marcas de desembolso e custeio de cada centro estão em dim.centro_custo, à espera da decisão D3.
 TOTAIS_POR_MES = """
@@ -65,9 +66,9 @@ REBANHO_POR_MES = f"""
       AND {so_a_versao_que_vale('r')}
     GROUP BY r.competencia, r.cenario
 """
-DESEMBOLSO_POR_CENTRO = """
+DESEMBOLSO_POR_CENTRO = f"""
     SELECT v.centro_custo, sum(CASE v.natureza WHEN 'D' THEN v.valor ELSE -v.valor END) AS valor
-    FROM fato.v_lancamento_financeiro v
+    FROM {LANCAMENTOS_DO_FILTRO} v
     WHERE (v.entra_desembolso OR v.eh_reposicao)
       AND v.fazenda_id = ANY (CAST(:fazendas AS uuid[])) AND v.competencia = ANY (CAST(:meses AS date[]))
     GROUP BY v.centro_custo

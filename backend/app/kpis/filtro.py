@@ -4,14 +4,17 @@ Os meses podem vir salteados: no MENU o mês é de seleção múltipla, como no 
 medidas do BI, que usam o calendário filtrado: o que é soma (cabeças, R$, rebanho médio) usa só os meses escolhidos;
 o que é saldo (estoque final) é o do último mês escolhido (`MAX(dCalendar[Data])`).
 
-A versão do planejamento escolhida na tela também vem no recorte: vale para as metas de todas as páginas
-(versao_do_plano.py); sem ela, a mais recente de cada fazenda e safra.
+As versões do planejamento marcadas na tela também vêm no recorte, de seleção múltipla, e as fazendas marcadas "sem
+planejamento" (pedido do usuário, 10/11/2026): valem para as metas de todas as páginas e para o orçamento
+(versao_do_plano.py); na fazenda sem escolha, a mais recente de cada safra. E a situação dos títulos do realizado do
+financeiro (situacao_do_lancamento.py); sem escolha, o que foi pago.
 """
 
 from dataclasses import dataclass
 from datetime import date
 from uuid import UUID
 
+from app.kpis.situacao_do_lancamento import SITUACOES_PADRAO
 from app.schemas.api import Periodo
 
 
@@ -21,14 +24,15 @@ class Filtro:
     inicio: date              # 1º dia do primeiro mês
     fim: date                 # 1º dia do último mês (inclusive)
     meses_escolhidos: tuple[date, ...] = ()   # vazio = todos os meses de `inicio` a `fim`
-    versao_do_plano: UUID | None = None      # vazio = a mais recente de cada fazenda e safra
+    versoes_do_plano: tuple[UUID, ...] = ()      # as marcadas (somam na fazenda); sem elas, a mais recente
+    fazendas_sem_plano: tuple[UUID, ...] = ()    # as fazendas marcadas "nenhum planejamento"
+    situacoes: tuple[str, ...] = SITUACOES_PADRAO   # dos títulos do realizado do financeiro
 
     def parametros(self) -> dict:
-        versao = None
-        if self.versao_do_plano is not None:
-            versao = str(self.versao_do_plano)
         return {"fazendas": [str(fazenda) for fazenda in self.fazendas], "inicio": self.inicio, "fim": self.fim,
-                "meses": meses_do_filtro(self), "versao_do_plano": versao}
+                "meses": meses_do_filtro(self), "versoes_do_plano": [str(versao) for versao in self.versoes_do_plano],
+                "fazendas_sem_plano": [str(fazenda) for fazenda in self.fazendas_sem_plano],
+                "situacoes": list(self.situacoes)}
 
 
 def proximo_mes(mes: date) -> date:

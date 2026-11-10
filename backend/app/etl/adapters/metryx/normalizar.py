@@ -108,6 +108,21 @@ def chave_do_evento(item: dict, campo_origem: str, campo_destino: str) -> tuple:
             para_decimal(item.get("amount")))
 
 
+# o título que o usuário excluiu no Metryx continua na API com este status
+STATUS_EXCLUIDO = "Deletado"
+# situação do título -> o campo do valor: o pago vale o que foi pago; o em aberto, o que falta pagar
+CAMPO_DO_VALOR = {"conciliado": "amountPaid", "pago": "amountPaid", "em_aberto": "amountPayable"}
+
+
+def situacao_do_titulo(item: dict) -> str:
+    """Sem data de pagamento, em aberto; pago e com data de conciliação, conciliado; pago sem ela, pago."""
+    if not item.get("datePayment"):
+        return "em_aberto"
+    if item.get("conciliationDate"):
+        return "conciliado"
+    return "pago"
+
+
 def eh_consumo_ou_doacao(causa: Any) -> bool:
     """O Consolidado Pecuário do Metryx põe em "Consumo e Doação" as baixas de causa "Consumo ..." (U6, mai/2026:
     "Consumo Abate" e "Consumo Acidente") e as de doação. A regra segue o Metryx, não o BI (que só contava "Consumo
@@ -549,33 +564,42 @@ class MontagemMetryx:
     # -- financeiro realizado --
 
     def lancamentos(self) -> None:
-        """Só o que foi pago é realizado; a fazenda é a de destino (D2), e a fiscal fica guardada."""
+        """Os títulos ativos, com a situação (pedido do usuário, 10/11/2026): conciliado, pago ou em aberto. As telas
+        mostram os pagos (conciliados ou não), como o relatório do Metryx, e o filtro de status do MENU põe o em aberto
+        junto. O título excluído no Metryx ("Deletado") não entra, nem com data de pagamento (a Maister tinha 40 assim,
+        R$ 4,12 mi, que entravam no realizado). A fazenda é a de destino (D2), e a fiscal fica guardada."""
         for numero, item in enumerate(self.dados.get("lancamento", [])):
-            ref = f"lancamento:{item.get('idFinancialEntrie')}:{item.get('idPayment')}:{item.get('parcel')}:{numero}"
-            pago = para_data(item.get("datePayment"))
-            vencimento = para_data(item.get("dueDate"))
-            if pago is None:
-                continue                                  # não pago: não é realizado
-            destino = self.fazenda_de(item, "idfarmDestination", "farmDestination")
-            fiscal = self.fazenda_de(item, "idFarmFiscal", "farmFiscal")
-            fazenda = destino or fiscal                   # TODO(D2): fazenda destino e data de pagamento
-            valor = para_decimal(item.get("amountPaid"))
-            if fazenda is None or valor is None or not item.get("type"):
-                self.rejeitar("lancamento", item, ref, "REQUIRED_MISSING", "sem fazenda, valor pago ou tipo")
+            if item.get("status") == STATUS_EXCLUIDO:
                 continue
-            natureza = "C" if str(item["type"]).startswith("Cr") else "D"
-            if valor < 0:                                 # estorno: valor negativo vira a natureza oposta
-                natureza = "D" if natureza == "C" else "C"
-                valor = -valor
-            conta = ContaOrigem(centro=limpar_nome(item.get("costCenter")) or "(vazio)",
-                                subcentro=limpar_nome(item.get("subCenter")) or None)
-            extra = {campo: item.get(campo)
-                     for campo in ("idFinancialEntrie", "idPayment", "parcel", "status", "classe", "activity")}
-            self.lote.lancamentos.append(LancamentoFinanceiro(
-                fazenda=fazenda, fazenda_fiscal=fiscal, conta=conta, natureza=natureza, valor=valor,
-                data_pagamento=pago, data_vencimento=vencimento, descricao=item.get("description"),
-                contraparte=item.get("clientProvider"), documento=item.get("documents"), origem_linha=ref,
-                extra=extra))
+            ref = f"lancamento:{item.get('idFinancialEntrie')}:{item.get('idPayment')}:{item.get('parcel')}:{numero}"
+            self.lancamento(item, ref)
+
+    def lancamento(self, item: dict, ref: str) -> None:
+        situacao = situacao_do_titulo(item)
+        destino = self.fazenda_de(item, "idfarmDestination", "farmDestination")
+        fiscal = self.fazenda_de(item, "idFarmFiscal", "farmFiscal")
+        fazenda = destino or fiscal                       # TODO(D2): fazenda destino e data de pagamento
+        valor = para_decimal(item.get(CAMPO_DO_VALOR[situacao]))
+        vencimento = para_data(item.get("dueDate"))
+        if fazenda is None or valor is None or not item.get("type"):
+            self.rejeitar("lancamento", item, ref, "REQUIRED_MISSING", "sem fazenda, valor ou tipo")
+            return
+        if situacao == "em_aberto" and vencimento is None:
+            self.rejeitar("lancamento", item, ref, "MISSING_DATE", "título em aberto sem data de vencimento")
+            return
+        natureza = "C" if str(item["type"]).startswith("Cr") else "D"
+        if valor < 0:                                     # estorno: valor negativo vira a natureza oposta
+            natureza = "D" if natureza == "C" else "C"
+            valor = -valor
+        conta = ContaOrigem(centro=limpar_nome(item.get("costCenter")) or "(vazio)",
+                            subcentro=limpar_nome(item.get("subCenter")) or None)
+        extra = {campo: item.get(campo)
+                 for campo in ("idFinancialEntrie", "idPayment", "parcel", "status", "classe", "activity")}
+        self.lote.lancamentos.append(LancamentoFinanceiro(
+            fazenda=fazenda, fazenda_fiscal=fiscal, conta=conta, natureza=natureza, valor=valor, situacao=situacao,
+            data_pagamento=para_data(item.get("datePayment")), data_vencimento=vencimento,
+            descricao=item.get("description"), contraparte=item.get("clientProvider"), documento=item.get("documents"),
+            origem_linha=ref, extra=extra))
 
     # -- partições --
 

@@ -1,20 +1,26 @@
 import { useSearchParams } from "react-router";
 import { urlComTipo } from "../../logic/previsto";
 import type { EscolhaDoPrevisto } from "../api/tipos";
-import { SeletorDaVersao } from "./SeletorDaVersao";
+import { EscolhaDasVersoes } from "./EscolhaDasVersoes";
+import { FiltroDoStatus } from "./FiltroDoStatus";
 
 type Props = { escolha: EscolhaDoPrevisto };
 
-// De qual orçamento vem o planejado do financeiro (Previsto × Realizado e Financeiro; pedido do usuário, 29/10/2026):
-// o tipo e, quando há mais de uma, a versão do plano (a mesma das metas das outras páginas), com a versão em uso.
-// As opções vêm prontas da API, só com o que existe nas fazendas do filtro. A escolha fica na URL.
+// O topo das páginas do financeiro (Previsto × Realizado e Financeiro): de qual orçamento vem o planejado (o tipo,
+// pedido do usuário de 29/10/2026), o status dos lançamentos do realizado e a versão do plano de cada fazenda (as
+// mesmas das metas das outras páginas; pedidos de 10/11/2026), com a versão em uso. As opções vêm prontas da API, só
+// com o que existe nas fazendas do filtro. As escolhas ficam na URL.
 export function SeletorDoPrevisto({ escolha }: Props) {
   const [parametros, setParametros] = useSearchParams();
   if (escolha.tipos.length === 0) {
-    return null;
+    return (
+      <div className="seletor-do-previsto">
+        <FiltroDoStatus />
+      </div>
+    );
   }
   return (
-    <SeletorDaVersao escolha={escolha}>
+    <EscolhaDasVersoes escolha={escolha}>
       <label className="campo">
         <span>Planejado do financeiro</span>
         <select value={escolha.tipo ?? ""}
@@ -24,6 +30,7 @@ export function SeletorDoPrevisto({ escolha }: Props) {
           ))}
         </select>
       </label>
-    </SeletorDaVersao>
+      <FiltroDoStatus />
+    </EscolhaDasVersoes>
   );
 }

@@ -128,8 +128,10 @@ def checar_preco(entidade: str, linha: MovAnimal) -> list[Ocorrencia]:
 
 
 def checar_lancamento(linha: LancamentoFinanceiro, hoje: date) -> ResultadoChecagem:
-    if not _data_valida(linha.data_pagamento, True, hoje):
-        return _rejeitar(f"data de pagamento {linha.data_pagamento} fora da faixa", Cod.DATE_OUT_OF_RANGE)
+    # o título em aberto vence no futuro sem erro nenhum; só o que foi pago não pode estar lá
+    pago = linha.situacao != "em_aberto"
+    if not _data_valida(linha.data_do_caixa, pago, hoje):
+        return _rejeitar(f"data do caixa {linha.data_do_caixa} fora da faixa", Cod.DATE_OUT_OF_RANGE)
     if linha.valor >= VALOR_MAXIMO_LANCAMENTO:          # erro de escala na origem (ex.: 5e16 no Metryx)
         return _rejeitar(f"valor {linha.valor:,.2f} implausível (≥ 1 bilhão)", Cod.VALUE_OUT_OF_RANGE)
     return ResultadoChecagem([])

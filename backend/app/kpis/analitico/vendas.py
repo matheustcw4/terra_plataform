@@ -14,7 +14,7 @@ from app.kpis.analitico.lotes_do_mes import (
 )
 from app.kpis.analitico.placar import DoRecorte, TresRecortes
 from app.kpis.analitico.recortes import Recortes
-from app.schemas.analitico import SecaoDeLotes
+from app.schemas.analitico import SecaoDeVendas
 from app.schemas.api import QuadroDoLote
 
 TIPOS = {"abate": (lotes.ABATE, "Vendas abate"), "em_pe": (lotes.VENDA_EM_PE, "Vendas em pé")}
@@ -32,28 +32,35 @@ RESUMO = [
 ]
 
 
-def secoes_de_vendas(s: Session, recortes: Recortes, valores: TresRecortes, limiar: float) -> list[SecaoDeLotes]:
+def secoes_de_vendas(s: Session, recortes: Recortes, valores: TresRecortes, limiar: float) -> list[SecaoDeVendas]:
     secoes = []
     for tipo in TIPOS:
         secoes.append(secao_venda(s, recortes, valores, tipo, limiar))
     return secoes
 
 
-def secao_venda(s: Session, recortes: Recortes, valores: TresRecortes, tipo: str, limiar: float) -> SecaoDeLotes:
+def secao_venda(s: Session, recortes: Recortes, valores: TresRecortes, tipo: str, limiar: float) -> SecaoDeVendas:
     tipo_de_lote, titulo = TIPOS[tipo]
     vendidos = lotes_do_mes(s, recortes, tipo_de_lote)
     quadros = (quadro_do_tipo(valores.mes, tipo), quadro_do_tipo(valores.acumulado, tipo),
                quadro_do_tipo(valores.periodo, tipo))
     resumo = resumo_dos_lotes("VENDAS", quadros, indicadores_da_venda(tipo), limiar)
-    return SecaoDeLotes(tipo=tipo, titulo=titulo, lancamentos=vendidos,
-                        meses=meses_comparados(s, recortes, tipo_de_lote), resumo=resumo,
-                        leitura=leitura_dos_lotes(recortes, titulo, vendidos, resumo, "Nenhuma venda deste tipo"))
+    return SecaoDeVendas(tipo=tipo, titulo=titulo, lancamentos=vendidos,
+                         meses=meses_comparados(s, recortes, tipo_de_lote), resumo=resumo,
+                         leitura=leitura_dos_lotes(recortes, titulo, vendidos, resumo, "Nenhuma venda deste tipo"),
+                         por_sexo=quadros_por_sexo(valores.acumulado, tipo))
 
 
 def quadro_do_tipo(recorte: DoRecorte, tipo: str) -> QuadroDoLote:
     if tipo == "abate":
         return recorte.abate
     return recorte.em_pe
+
+
+def quadros_por_sexo(recorte: DoRecorte, tipo: str) -> list[QuadroDoLote]:
+    if tipo == "abate":
+        return recorte.abate_por_sexo
+    return recorte.em_pe_por_sexo
 
 
 def indicadores_da_venda(tipo: str) -> list[IndicadorDoResumo]:

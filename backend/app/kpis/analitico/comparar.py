@@ -30,7 +30,8 @@ def comparado(previsto: float | None, realizado: float | None, sentido: Sentido,
         if previsto != 0:
             variacao_percentual = variacao / abs(previsto)
     return Comparado(previsto=previsto, realizado=realizado, variacao=variacao,
-                     variacao_percentual=variacao_percentual, status=status(variacao_percentual, sentido, limiar))
+                     variacao_percentual=variacao_percentual, percentual_da_meta=dividir(realizado, previsto),
+                     status=status(variacao_percentual, sentido, limiar))
 
 
 def linha_do_placar(grupo: str, indicador: str, unidade: str, sentido: Sentido, mes: PrevistoERealizado,

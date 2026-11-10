@@ -17,11 +17,14 @@ from app.kpis.movimentacao import movimentacao
 from app.kpis.nascimentos import nascimentos
 from app.kpis.previsto_financeiro import PedidoDoPrevisto
 from app.kpis.previsto_realizado import previsto_realizado
+from app.kpis.situacao_do_lancamento import SITUACOES, SITUACOES_PADRAO
 from app.kpis.transferencias import transferencias
 from app.kpis.vendas import vendas
+from app.kpis.versao_do_plano import escolha_da_versao
 from app.schemas.analitico import BoletimAnalitico
 from app.schemas.api import (
     Compras,
+    EscolhaDaVersao,
     Financeiro,
     Mortes,
     Movimentacao,
@@ -37,20 +40,27 @@ Fazendas = Annotated[list[UUID], Query(min_length=1)]
 Mes = Annotated[str, Query(description="AAAA-MM")]
 Meses = Annotated[list[str] | None, Query(description="AAAA-MM, um por mês marcado no MENU (seleção múltipla); "
                                                       "sem nenhum, valem todos os meses de inicio a fim")]
-# a versão do planejamento (as metas de todas as páginas e o orçamento do planejamento); sem ela, a mais recente
-VersaoDoPlano = Annotated[UUID | None, Query(description="versão do plano; sem ela, a mais recente de cada "
-                                                         "fazenda e safra")]
+# as versões do planejamento marcadas (as metas de todas as páginas e o orçamento), que somam na fazenda, e as
+# fazendas marcadas "nenhum planejamento"; na fazenda sem escolha, a mais recente
+VersoesDoPlano = Annotated[list[UUID] | None, Query(description="versões do plano marcadas (somam na fazenda); na "
+                                                               "fazenda sem escolha, a mais recente de cada safra")]
+SemPlano = Annotated[list[UUID] | None, Query(description="fazendas marcadas como sem planejamento")]
+# a situação dos títulos do realizado do financeiro; sem ela, o que foi pago (conciliado ou não)
+Situacoes = Annotated[list[Literal["conciliado", "pago", "em_aberto"]] | None,
+                      Query(description="situação dos lançamentos do realizado; sem ela, conciliado e pago")]
 # o planejado do financeiro (Previsto × Realizado e Financeiro): o tipo do orçamento; sem ele, o padrão
 TipoDoPrevisto = Annotated[Literal["previsao", "planejamento"] | None,
                            Query(description="orçamento do planejado: previsão financeira ou planejamento")]
 
 
 def filtro_do_pedido(s: SessaoDoUsuario, fazendas: Fazendas, inicio: Mes, fim: Mes, meses: Meses = None,
-                     versao: VersaoDoPlano = None) -> Filtro:
+                     versao: VersoesDoPlano = None, sem_plano: SemPlano = None,
+                     situacao: Situacoes = None) -> Filtro:
     """Confere o pedido de qualquer página: meses válidos, início antes do fim, meses marcados dentro do período e
     só fazendas que o usuário vê."""
     filtro = Filtro(fazendas=fazendas, inicio=mes(inicio), fim=mes(fim), meses_escolhidos=meses_escolhidos(meses),
-                    versao_do_plano=versao)
+                    versoes_do_plano=tuple(versao or ()), fazendas_sem_plano=tuple(sem_plano or ()),
+                    situacoes=situacoes_escolhidas(situacao))
     if filtro.inicio > filtro.fim:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "o início do período é depois do fim")
     for escolhido in filtro.meses_escolhidos:
@@ -105,14 +115,34 @@ def pagina_previsto_realizado(s: SessaoDoUsuario, filtro: FiltroDoPedido,
     return previsto_realizado(s, filtro, PedidoDoPrevisto(previsto))
 
 
+@router.get("/versoes_do_plano")
+def versoes_do_plano(s: SessaoDoUsuario, filtro: FiltroDoPedido) -> EscolhaDaVersao:
+    """No MENU: as versões do plano de cada fazenda do filtro no período (das metas e do orçamento do
+    planejamento), a escolhida em cada uma e as que estão valendo."""
+    return escolha_da_versao(s, filtro)
+
+
 @router.get("/analitico")
 def boletim_do_mes(s: SessaoDoUsuario, fazendas: Fazendas, mes_referencia: Mes,
                    visao: Annotated[Literal["safra", "civil"], Query()] = "safra",
-                   versao: VersaoDoPlano = None) -> BoletimAnalitico:
-    """O "Exportar PDF" no modo Analítico: o mês de referência, o acumulado do período (safra ou ano) até ele e a meta
-    do período inteiro, com as frases que explicam os números."""
+                   versao: VersoesDoPlano = None, sem_plano: SemPlano = None,
+                   situacao: Situacoes = None) -> BoletimAnalitico:
+    """O "Exportar PDF" no modo Boletim Resumido (e no Personalizado): o mês de referência, o acumulado do período
+    (safra ou ano) até ele e a meta do período inteiro, com as frases que explicam os números."""
     conferir_acesso(s, fazendas)
-    return boletim_analitico(s, fazendas, mes(mes_referencia), visao, versao)
+    return boletim_analitico(s, fazendas, mes(mes_referencia), visao, tuple(versao or ()), tuple(sem_plano or ()),
+                             situacoes_escolhidas(situacao))
+
+
+def situacoes_escolhidas(situacoes: list[str] | None) -> tuple[str, ...]:
+    """As situações marcadas, na ordem de `SITUACOES`; nenhuma = o padrão (o que foi pago)."""
+    marcadas = []
+    for situacao in SITUACOES:
+        if situacao in (situacoes or []):
+            marcadas.append(situacao)
+    if not marcadas:
+        return SITUACOES_PADRAO
+    return tuple(marcadas)
 
 
 def meses_escolhidos(textos: list[str] | None) -> tuple[date, ...]:

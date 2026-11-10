@@ -110,9 +110,12 @@ class LancamentoFinanceiro(ColunasTecnicas, Base):
     plano_contas_map_id: Mapped[UUID] = mapped_column(ForeignKey("dim.plano_contas_map.id"))  # conta (de-para)
     natureza: Mapped[str] = mapped_column(CHAR(1))
     valor: Mapped[Decimal] = mapped_column(VALOR)
-    data_pagamento: Mapped[date]
+    situacao: Mapped[str] = mapped_column(Text, server_default=text("'pago'"))   # conciliado | pago | em_aberto
+    data_pagamento: Mapped[date | None]                # o título em aberto não tem
     data_vencimento: Mapped[date | None]
-    competencia: Mapped[date] = mapped_column(Computed("date_trunc('month', data_pagamento::timestamp)::date"))
+    # o mês do caixa: o do pagamento ou, no título em aberto, o do vencimento (migração 0024)
+    competencia: Mapped[date] = mapped_column(
+        Computed("date_trunc('month', coalesce(data_pagamento, data_vencimento)::timestamp)::date"))
     descricao: Mapped[str | None] = mapped_column(Text)
     contraparte: Mapped[str | None] = mapped_column(Text)
     documento: Mapped[str | None] = mapped_column(Text)

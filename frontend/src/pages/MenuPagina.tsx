@@ -3,8 +3,11 @@ import { useArea } from "../core/auth/AreaAutenticada";
 import { BotaoSair } from "../core/auth/BotaoSair";
 import { BotaoExportarPdf } from "../core/ui/BotaoExportarPdf";
 import { Casca } from "../core/ui/Casca";
+import { EscolhaDasVersoes } from "../core/ui/EscolhaDasVersoes";
+import { FiltroDoStatus } from "../core/ui/FiltroDoStatus";
 import { Painel } from "../core/ui/Painel";
 import { gruposDoBoletim } from "../core/ui/paginasDoBoletim";
+import { useVersoesDoPlano } from "../componentes/menu/api";
 import { SeletorMultiplo } from "../componentes/menu/SeletorMultiplo";
 import {
   anoDoMes,
@@ -27,10 +30,12 @@ import {
 import { mesCurto } from "../logic/meses";
 
 // A tela de filtros, como o MENU do BI: cliente, fazendas e meses (os dois de seleção múltipla), forma de visualização
-// (safra ou civil) e safra ou ano, na mesma casca das outras páginas.
+// (safra ou civil) e safra ou ano, na mesma casca das outras páginas; e, desde 10/11/2026, o status dos lançamentos do
+// financeiro e a versão do plano de cada fazenda (os dois também ficam no topo das páginas que usam).
 // O filtro vale para todas as páginas; "Acessar" abre o boletim. "Origem" é temporário (ver logic/filtro.ts).
 export function MenuPagina() {
-  const { escopo, filtro, trocarFiltro } = useArea();
+  const { escopo, filtro, consulta, trocarFiltro } = useArea();
+  const versoes = useVersoesDoPlano(consulta);
   const navegar = useNavigate();
   const { search } = useLocation();
   const daOrigem = fazendasDaOrigem(escopo.fazendas, filtro.origem);
@@ -151,6 +156,13 @@ export function MenuPagina() {
               <SeletorMultiplo nome="Mês" opcoes={opcoesDeMes} marcados={filtro.meses} rotuloDeTodos="Todos"
                 resumo={resumoDosMeses} aoTrocar={trocarMeses} />
             </div>
+          </div>
+        </Painel>
+
+        <Painel titulo="Financeiro e planejamento">
+          <div className="menu-bi-campos">
+            <FiltroDoStatus />
+            {versoes.data && <EscolhaDasVersoes escolha={versoes.data} />}
           </div>
         </Painel>
       </div>

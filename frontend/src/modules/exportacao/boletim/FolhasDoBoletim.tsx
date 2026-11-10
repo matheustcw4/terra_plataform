@@ -3,11 +3,11 @@ import { useArea } from "../../../core/auth/AreaAutenticada";
 import { CAPA } from "../../../core/ui/paginasDoBoletim";
 import { mesDeReferencia, paragrafosDaNota } from "../../../logic/analitico";
 import {
-  blocosComMovimento,
   type FolhaNumerada,
   folhasDoBoletim,
   type Identificacao,
   identificacaoDoBoletim,
+  TITULO_DA_FOLHA,
 } from "../../../logic/boletim";
 import { mesAtual } from "../../../logic/meses";
 import { useBoletimAnalitico } from "../api";
@@ -25,13 +25,13 @@ type Props = {
   notaFinal: string;
 };
 
-// As folhas do modo Analítico, no desenho do boletim de resultados da Terra (folhas de paisagem), todas de uma chamada
-// só à API: a capa, a nota técnica do começo, Resumo, Financeiro, Rebanho, Comercialização e a nota do fim. Se a API
-// falhar, deixa a mensagem num `data-erro` para a exportação parar e mostrar.
+// As folhas do Boletim Resumido, no desenho do gerador oficial do boletim de resultados da Terra (folhas de paisagem),
+// todas de uma chamada só à API: a capa, a nota técnica do começo, Resumo, Financeiro, Rebanho, Comercialização e a
+// nota do fim. Se a API falhar, deixa a mensagem num `data-erro` para a exportação parar e mostrar.
 export function FolhasDoBoletim({ paginas, cidade, notaInicial, notaFinal }: Props) {
   const { escopo, filtro, consulta } = useArea();
   const mes = mesDeReferencia(filtro, escopo.fazendas);
-  const boletim = useBoletimAnalitico(consulta.fazendas, mes, filtro.visao, consulta.versao);
+  const boletim = useBoletimAnalitico(consulta, mes, filtro.visao);
   if (boletim.isError) {
     return <p className="exportacao-falha" data-erro={boletim.error.message}>{boletim.error.message}</p>;
   }
@@ -40,13 +40,13 @@ export function FolhasDoBoletim({ paginas, cidade, notaInicial, notaFinal }: Pro
   }
   const hoje = mesAtual();
   const identificacao = identificacaoDoBoletim(filtro, escopo.fazendas, boletim.data, cidade, hoje);
-  const folhas = folhasDoBoletim(paginas, blocosComMovimento(boletim.data));
+  const folhas = folhasDoBoletim(paginas);
   return (
     <>
       {paginas.includes(CAPA) && (
         <div className="folha-pdf folha-boletim">
-          <CapaDoBoletim identificacao={identificacao} folhas={folhas} mesDaAnalise={hoje}
-            inicio={boletim.data.inicio_do_periodo} mesDeReferencia={boletim.data.mes_referencia} />
+          <CapaDoBoletim identificacao={identificacao} mesDaAnalise={hoje}
+            conteudo={folhas.map((folha) => TITULO_DA_FOLHA[folha.chave])} />
         </div>
       )}
       <NotaDoBoletim texto={notaInicial} identificacao={identificacao} />
@@ -72,10 +72,7 @@ function FolhaDaChave({ folha, total, boletim, identificacao }: FolhaProps) {
   if (folha.chave === "rebanho") {
     return <FolhaRebanho boletim={boletim} identificacao={identificacao} numero={folha.numero} total={total} />;
   }
-  return (
-    <FolhaComercializacao boletim={boletim} identificacao={identificacao} blocos={folha.blocos} numero={folha.numero}
-      total={total} />
-  );
+  return <FolhaComercializacao boletim={boletim} identificacao={identificacao} numero={folha.numero} total={total} />;
 }
 
 // A nota técnica digitada na exportação, numa folha própria; nota vazia não gera folha.
@@ -87,11 +84,13 @@ function NotaDoBoletim({ texto, identificacao }: { texto: string; identificacao:
   return (
     <div className="folha-pdf folha-boletim">
       <FolhaDoBoletim numero={null} total={0} titulo="Nota técnica" identificacao={identificacao}>
-        <section className="boletim-quadro boletim-nota-tecnica">
-          {paragrafos.map((paragrafo, posicao) => (
-            <p key={posicao}>{paragrafo}</p>
-          ))}
-        </section>
+        <main className="boletim-corpo">
+          <section className="boletim-card boletim-nota-tecnica">
+            {paragrafos.map((paragrafo, posicao) => (
+              <p key={posicao}>{paragrafo}</p>
+            ))}
+          </section>
+        </main>
       </FolhaDoBoletim>
     </div>
   );

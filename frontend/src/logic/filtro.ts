@@ -3,7 +3,8 @@ import { mesAtual, mesCurto, mesDaData, somarMeses } from "./meses";
 
 // O filtro do MENU, como no BI: origem (temporário), cliente, fazendas (seleção múltipla; nenhuma = todas, o "GRUPO"),
 // forma de visualização (safra ou civil), a safra ou o ano, e os meses (seleção múltipla, como o filtro de mês do BI;
-// nenhum = todos). Fica na URL (dá para mandar o link) e o navegador lembra o último usado.
+// nenhum = todos). E, desde 10/11/2026, a situação dos títulos do financeiro e a versão do plano de cada fazenda, que
+// também se escolhem nas páginas. Fica na URL (dá para mandar o link) e o navegador lembra o último usado.
 export type Visao = "safra" | "civil";
 
 // TEMPORÁRIO (pedido do usuário, 15/10/2026): escolher de onde vêm os dados enquanto o mesmo cliente nas duas fontes
@@ -15,6 +16,18 @@ export const ORIGENS: { valor: Origem; rotulo: string }[] = [
   { valor: "metryx", rotulo: "Metryx" },
 ];
 
+// A situação dos títulos do realizado do financeiro (pedido do usuário, 10/11/2026). Vazio = o padrão da API: o que
+// foi pago, conciliado ou não. A planilha só tem o pago (as capacidades da fazenda dizem quais ela tem).
+export type Situacao = "conciliado" | "pago" | "em_aberto";
+
+export const SITUACOES: { valor: Situacao; rotulo: string }[] = [
+  { valor: "conciliado", rotulo: "Conciliado" },
+  { valor: "pago", rotulo: "Pago" },
+  { valor: "em_aberto", rotulo: "Em aberto" },
+];
+
+export const SITUACOES_PADRAO: Situacao[] = ["conciliado", "pago"];
+
 export type Filtro = {
   origem: Origem;
   cliente: string; // proprietário (planilha) ou customer (Metryx)
@@ -22,6 +35,9 @@ export type Filtro = {
   visao: Visao;
   ano: number; // safra: o ano em que ela começa (Safra 25/26 = 2025); civil: o próprio ano
   meses: string[]; // "AAAA-MM", em ordem; vazio = todos os meses do período
+  situacoes: Situacao[]; // dos títulos do financeiro, na ordem de SITUACOES; vazio = o padrão (conciliado e pago)
+  versoes: string[]; // as versões do plano marcadas (as de uma fazenda somam); fazenda sem nenhuma = a mais recente
+  semPlano: string[]; // as fazendas marcadas "nenhum planejamento"
 };
 
 // O que as páginas mandam para a API. Com meses salteados, a API soma só os marcados e o estoque final é o do último.
@@ -30,7 +46,9 @@ export type Consulta = {
   inicio: string; // "AAAA-MM"
   fim: string; // "AAAA-MM"
   meses: string[]; // os meses marcados; vazio = todos de inicio a fim
-  versao: string | null; // a versão do planejamento escolhida numa página (vale nas metas de todas); vazio = a mais recente
+  situacoes: Situacao[]; // vazio = o padrão da API
+  versoes: string[]; // vazio = a mais recente de cada fazenda e safra
+  semPlano: string[];
 };
 
 // Fazenda sem origem conhecida aparece nas duas.
@@ -103,7 +121,8 @@ export function filtroDoCliente(fazendas: FazendaDoEscopo[], origem: Origem, cli
   hoje: string = mesAtual()): Filtro {
   const doCliente = fazendasDoCliente(fazendasDaOrigem(fazendas, origem), cliente);
   const ultimo = ultimoMesComDado(doCliente) ?? hoje;
-  return { origem, cliente, fazendas: [], visao: "safra", ano: anoDoMes(ultimo, "safra"), meses: [] };
+  return { origem, cliente, fazendas: [], visao: "safra", ano: anoDoMes(ultimo, "safra"), meses: [], situacoes: [],
+    versoes: [], semPlano: [] };
 }
 
 // Seleção múltipla do MENU (meses e fazendas): os marcados que existem entre as opções, na ordem delas e sem repetir.
@@ -162,7 +181,46 @@ export function filtroDaUrl(parametros: URLSearchParams, fazendas: FazendaDoEsco
   const anoPadrao = anoDoMes(ultimoMesComDado(doCliente) ?? hoje, visao);
   const ano = anosDisponiveis(doCliente, visao, hoje).includes(anoDaUrl) ? anoDaUrl : anoPadrao;
   const meses = mesesEscolhidos(parametros.getAll("mes"), mesesDoPeriodo(visao, ano, hoje));
-  return { origem, cliente: clienteDaUrl, fazendas: marcadas, visao, ano, meses };
+  const situacoes = situacoesEscolhidas(parametros.getAll("status"));
+  const versoes = parametros.getAll("versao");
+  const semPlano = parametros.getAll("sem_plano");
+  return { origem, cliente: clienteDaUrl, fazendas: marcadas, visao, ano, meses, situacoes, versoes, semPlano };
+}
+
+// As situações da URL que existem, na ordem de SITUACOES; as do padrão valem o mesmo que nenhuma.
+export function situacoesEscolhidas(marcadas: string[]): Situacao[] {
+  const escolhidas = SITUACOES.map((opcao) => opcao.valor).filter((valor) => marcadas.includes(valor));
+  if (escolhidas.join() === SITUACOES_PADRAO.join()) {
+    return [];
+  }
+  return escolhidas;
+}
+
+// As situações que valem: as escolhidas ou, sem escolha, as do padrão.
+export function situacoesEmUso(filtro: Filtro): Situacao[] {
+  if (filtro.situacoes.length === 0) {
+    return SITUACOES_PADRAO;
+  }
+  return filtro.situacoes;
+}
+
+// Marca ou desmarca uma situação; a última marcada não sai (sem nenhuma, o financeiro ficaria vazio).
+export function alternarSituacao(filtro: Filtro, situacao: Situacao): Situacao[] {
+  const emUso = situacoesEmUso(filtro);
+  let novas = [...emUso, situacao];
+  if (emUso.includes(situacao)) {
+    novas = emUso.filter((outra) => outra !== situacao);
+  }
+  if (novas.length === 0) {
+    return filtro.situacoes;
+  }
+  return situacoesEscolhidas(novas);
+}
+
+// As situações que as fazendas do filtro têm (pelas capacidades): com uma só, não há o que filtrar.
+export function situacoesDasFazendas(fazendas: FazendaDoEscopo[]): Situacao[] {
+  const existentes = new Set(fazendas.flatMap((fazenda) => fazenda.capacidades.situacoes));
+  return SITUACOES.map((opcao) => opcao.valor).filter((valor) => existentes.has(valor));
 }
 
 // A origem da URL, se o usuário tiver fazenda nela; senão a primeira origem que tiver.
@@ -185,6 +243,15 @@ export function filtroParaUrl(filtro: Filtro): URLSearchParams {
   for (const mes of filtro.meses) {
     parametros.append("mes", mes);
   }
+  for (const situacao of filtro.situacoes) {
+    parametros.append("status", situacao);
+  }
+  for (const versao of filtro.versoes) {
+    parametros.append("versao", versao);
+  }
+  for (const fazenda of filtro.semPlano) {
+    parametros.append("sem_plano", fazenda);
+  }
   return parametros;
 }
 
@@ -205,11 +272,13 @@ export function consultaDoFiltro(filtro: Filtro, fazendas: FazendaDoEscopo[], ho
     inicio: meses[0] ?? primeiroDoPeriodo,
     fim: meses[meses.length - 1] ?? primeiroDoPeriodo,
     meses: filtro.meses,
-    versao: null,
+    situacoes: filtro.situacoes,
+    versoes: filtro.versoes,
+    semPlano: filtro.semPlano,
   };
 }
 
-// ?fazendas=..&fazendas=..&inicio=AAAA-MM&fim=AAAA-MM[&meses=AAAA-MM..][&versao=..]
+// ?fazendas=..&fazendas=..&inicio=AAAA-MM&fim=AAAA-MM[&meses=AAAA-MM..][&situacao=..][&versao=..][&sem_plano=..]
 export function parametrosDaConsulta(consulta: Consulta): URLSearchParams {
   const parametros = new URLSearchParams({ inicio: consulta.inicio, fim: consulta.fim });
   for (const fazenda of consulta.fazendas) {
@@ -218,8 +287,14 @@ export function parametrosDaConsulta(consulta: Consulta): URLSearchParams {
   for (const mes of consulta.meses) {
     parametros.append("meses", mes);
   }
-  if (consulta.versao) {
-    parametros.set("versao", consulta.versao);
+  for (const situacao of consulta.situacoes) {
+    parametros.append("situacao", situacao);
+  }
+  for (const versao of consulta.versoes) {
+    parametros.append("versao", versao);
+  }
+  for (const fazenda of consulta.semPlano) {
+    parametros.append("sem_plano", fazenda);
   }
   return parametros;
 }

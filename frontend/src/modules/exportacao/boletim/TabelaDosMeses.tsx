@@ -1,39 +1,40 @@
-import { mesDoEixo } from "../../../logic/boletim";
+import { mesDaTabela } from "../../../logic/boletim";
 
 export type LinhaDosMeses = {
   nome: string;
   valores: string[]; // já escritos, um por mês
-  classe?: string; // "planejado" (cinza), "acumulado" (faixa bege), "destaque" (marrom)
+  apagado?: boolean; // o planejado, em cinza
 };
 
 type Props = {
+  titulo: string; // a primeira célula do cabeçalho ("Acumulado", "Cab · mês")
   meses: string[]; // "AAAA-MM-DD"
   linhas: LinhaDosMeses[];
-  cabecalho?: "escuro" | "marrom" | "nenhum";
+  marrom?: boolean; // o cabeçalho marrom das tabelas de cabeças por mês da comercialização
 };
 
-// A tabela de meses embaixo dos gráficos do boletim de resultados (Real, Plan., Acum.), com o mês no cabeçalho.
-export function TabelaDosMeses({ meses, linhas, cabecalho = "escuro" }: Props) {
+// A tabela de meses embaixo dos gráficos do boletim (Realizado e Planejado), com o mês no cabeçalho.
+export function TabelaDosMeses({ titulo, meses, linhas, marrom = false }: Props) {
+  let classes = "boletim-tb";
+  if (marrom) {
+    classes += " miuda cabecalho-marrom";
+  }
   return (
-    <table className={`boletim-tabela-meses cabecalho-${cabecalho}`}>
-      {cabecalho !== "nenhum" && (
-        <thead>
-          <tr>
-            <th scope="col">Mês</th>
-            {meses.map((mes) => (
-              <th key={mes} scope="col">
-                {mesDoEixo(mes)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-      )}
+    <table className={classes}>
+      <thead>
+        <tr>
+          <th scope="col" className="esquerda">{titulo}</th>
+          {meses.map((mes) => (
+            <th key={mes} scope="col">{mesDaTabela(mes)}</th>
+          ))}
+        </tr>
+      </thead>
       <tbody>
         {linhas.map((linha) => (
-          <tr key={linha.nome} className={linha.classe}>
-            <th scope="row">{linha.nome}</th>
+          <tr key={linha.nome}>
+            <td className="nome">{linha.nome}</td>
             {linha.valores.map((valor, posicao) => (
-              <td key={meses[posicao]}>{valor}</td>
+              <td key={meses[posicao]} className={linha.apagado ? "apagado" : undefined}>{valor}</td>
             ))}
           </tr>
         ))}

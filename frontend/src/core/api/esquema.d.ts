@@ -208,6 +208,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboards/versoes_do_plano": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Versoes Do Plano
+         * @description No MENU: as versões do plano de cada fazenda do filtro no período (das metas e do orçamento do
+         *     planejamento), a escolhida em cada uma e as que estão valendo.
+         */
+        get: operations["versoes_do_plano_api_v1_dashboards_versoes_do_plano_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/dashboards/analitico": {
         parameters: {
             query?: never;
@@ -217,8 +238,8 @@ export interface paths {
         };
         /**
          * Boletim Do Mes
-         * @description O "Exportar PDF" no modo Analítico: o mês de referência, o acumulado do período (safra ou ano) até ele e a meta
-         *     do período inteiro, com as frases que explicam os números.
+         * @description O "Exportar PDF" no modo Boletim Resumido (e no Personalizado): o mês de referência, o acumulado do período
+         *     (safra ou ano) até ele e a meta do período inteiro, com as frases que explicam os números.
          */
         get: operations["boletim_do_mes_api_v1_dashboards_analitico_get"];
         put?: never;
@@ -503,11 +524,12 @@ export interface components {
             nascimentos: components["schemas"]["SecaoDeLotes"];
             compras: components["schemas"]["SecaoDeCompras"];
             /** Vendas */
-            vendas: components["schemas"]["SecaoDeLotes"][];
+            vendas: components["schemas"]["SecaoDeVendas"][];
             transferencias: components["schemas"]["SecaoTransferencias"];
             mortes: components["schemas"]["SecaoMortes"];
             financeiro: components["schemas"]["SecaoFinanceiro"];
             caixa: components["schemas"]["SecaoCaixa"];
+            resumo: components["schemas"]["SecaoResumo"];
             plano: components["schemas"]["EscolhaDaVersao"];
         };
         /**
@@ -525,6 +547,11 @@ export interface components {
             financeiro: boolean;
             /** Planejado */
             planejado: boolean;
+            /**
+             * Situacoes
+             * @default []
+             */
+            situacoes: string[];
         };
         /** CargaRecente */
         CargaRecente: {
@@ -650,6 +677,8 @@ export interface components {
             variacao: number | null;
             /** Variacao Percentual */
             variacao_percentual: number | null;
+            /** Percentual Da Meta */
+            percentual_da_meta: number | null;
             /** Status */
             status: string | null;
         };
@@ -717,13 +746,11 @@ export interface components {
         };
         /**
          * EscolhaDaVersao
-         * @description A versão do planejamento das metas de animais e do rebanho médio previsto (todas as páginas com meta).
+         * @description A versão do planejamento das metas de animais e do rebanho médio previsto (as páginas com meta e o MENU).
          */
         EscolhaDaVersao: {
-            /** Versoes */
-            versoes: components["schemas"]["VersaoDoPrevisto"][];
-            /** Versao */
-            versao: string | null;
+            /** Fazendas */
+            fazendas: components["schemas"]["VersoesDaFazenda"][];
             /** Em Uso */
             em_uso: string[];
         };
@@ -736,10 +763,8 @@ export interface components {
             tipos: components["schemas"]["TipoDoPrevisto"][];
             /** Tipo */
             tipo: ("previsao" | "planejamento") | null;
-            /** Versoes */
-            versoes: components["schemas"]["VersaoDoPrevisto"][];
-            /** Versao */
-            versao: string | null;
+            /** Fazendas */
+            fazendas: components["schemas"]["VersoesDaFazenda"][];
             /** Em Uso */
             em_uso: string[];
         };
@@ -1288,6 +1313,13 @@ export interface components {
             /** Classificacao */
             classificacao: string;
         };
+        /** ParteDoDesembolso */
+        ParteDoDesembolso: {
+            /** Nome */
+            nome: string;
+            /** Valor */
+            valor: number;
+        };
         /** PedidoDeAcesso */
         PedidoDeAcesso: {
             /** Fazendas */
@@ -1472,6 +1504,23 @@ export interface components {
             /** Leitura */
             leitura: string[];
         };
+        /** SecaoDeVendas */
+        SecaoDeVendas: {
+            /** Tipo */
+            tipo: string;
+            /** Titulo */
+            titulo: string;
+            /** Lancamentos */
+            lancamentos: components["schemas"]["LoteDoMes"][];
+            /** Meses */
+            meses: components["schemas"]["MesDoLoteComparado"][];
+            /** Resumo */
+            resumo: components["schemas"]["LinhaDoPlacar"][];
+            /** Leitura */
+            leitura: string[];
+            /** Por Sexo */
+            por_sexo: components["schemas"]["QuadroDoLote"][];
+        };
         /** SecaoEstoque */
         SecaoEstoque: {
             /** Mes */
@@ -1543,6 +1592,25 @@ export interface components {
             linhas: components["schemas"]["LinhaDoPlacar"][];
             /** Leitura */
             leitura: string[];
+        };
+        /**
+         * SecaoResumo
+         * @description O que só a folha de resumo mostra, já somado: as cabeças vendidas (abate + em pé) e compradas contra a meta, os
+         *     sete maiores grupos de desembolso e o resto em "Outros", e o status do resultado pela regra do boletim (verde
+         *     quando o realizado é maior ou igual ao planejado; o semáforo do BI usa o %, que inverte com o planejado
+         *     negativo).
+         */
+        SecaoResumo: {
+            vendas: components["schemas"]["Comparado"];
+            compras: components["schemas"]["Comparado"];
+            /** Desembolso Por Grupo */
+            desembolso_por_grupo: components["schemas"]["ParteDoDesembolso"][];
+            /** Desembolso Total */
+            desembolso_total: number;
+            /** Status Do Resultado Mes */
+            status_do_resultado_mes: string | null;
+            /** Status Do Resultado Acumulado */
+            status_do_resultado_acumulado: string | null;
         };
         /** SecaoTransferencias */
         SecaoTransferencias: {
@@ -1672,6 +1740,26 @@ export interface components {
             /** Rotulo */
             rotulo: string;
         };
+        /**
+         * VersoesDaFazenda
+         * @description As versões do plano de uma fazenda do filtro no período (pedido do usuário, 10/11/2026: a escolha é por
+         *     fazenda), da mais recente para a mais antiga; nenhuma = a fazenda não tem plano no período.
+         */
+        VersoesDaFazenda: {
+            /**
+             * Fazenda Id
+             * Format: uuid
+             */
+            fazenda_id: string;
+            /** Fazenda */
+            fazenda: string;
+            /** Versoes */
+            versoes: components["schemas"]["VersaoDoPrevisto"][];
+            /** Escolhidas */
+            escolhidas: string[];
+            /** Sem Plano */
+            sem_plano: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -1786,8 +1874,12 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
             };
             header?: never;
             path?: never;
@@ -1826,8 +1918,12 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
             };
             header?: never;
             path?: never;
@@ -1865,8 +1961,12 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
             };
             header?: never;
             path?: never;
@@ -1904,8 +2004,12 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
             };
             header?: never;
             path?: never;
@@ -1943,8 +2047,12 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
             };
             header?: never;
             path?: never;
@@ -1982,8 +2090,12 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
             };
             header?: never;
             path?: never;
@@ -2023,8 +2135,12 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
             };
             header?: never;
             path?: never;
@@ -2064,8 +2180,12 @@ export interface operations {
                 fim: string;
                 /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
                 meses?: string[] | null;
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
             };
             header?: never;
             path?: never;
@@ -2093,6 +2213,49 @@ export interface operations {
             };
         };
     };
+    versoes_do_plano_api_v1_dashboards_versoes_do_plano_get: {
+        parameters: {
+            query: {
+                fazendas: string[];
+                /** @description AAAA-MM */
+                inicio: string;
+                /** @description AAAA-MM */
+                fim: string;
+                /** @description AAAA-MM, um por mês marcado no MENU (seleção múltipla); sem nenhum, valem todos os meses de inicio a fim */
+                meses?: string[] | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EscolhaDaVersao"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     boletim_do_mes_api_v1_dashboards_analitico_get: {
         parameters: {
             query: {
@@ -2100,8 +2263,12 @@ export interface operations {
                 /** @description AAAA-MM */
                 mes_referencia: string;
                 visao?: "safra" | "civil";
-                /** @description versão do plano; sem ela, a mais recente de cada fazenda e safra */
-                versao?: string | null;
+                /** @description versões do plano marcadas (somam na fazenda); na fazenda sem escolha, a mais recente de cada safra */
+                versao?: string[] | null;
+                /** @description fazendas marcadas como sem planejamento */
+                sem_plano?: string[] | null;
+                /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
+                situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
             };
             header?: never;
             path?: never;

@@ -57,6 +57,19 @@ class CentroCusto(Base):
     ativo: Mapped[bool] = mapped_column(server_default=text("true"))
 
 
+class CentroCustoFonte(Base):
+    """A exceção de uma fonte às marcas do centro de custo (migração 0022): NULL = vale a marca do centro."""
+    __tablename__ = "centro_custo_fonte"
+    __table_args__ = {"schema": "dim"}
+
+    fonte: Mapped[str] = mapped_column(Text, primary_key=True)
+    centro_custo_id: Mapped[int] = mapped_column(SmallInteger, ForeignKey("dim.centro_custo.id"), primary_key=True)
+    entra_desembolso: Mapped[bool | None]
+    entra_custeio: Mapped[bool | None]
+    eh_reposicao: Mapped[bool | None]
+    motivo: Mapped[str] = mapped_column(Text)
+
+
 class Subcentro(Base):
     __tablename__ = "subcentro"
     __table_args__ = {"schema": "dim"}

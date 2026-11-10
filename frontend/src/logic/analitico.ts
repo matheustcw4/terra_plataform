@@ -3,7 +3,7 @@ import { consultaDoFiltro, rotuloDoAno, type Filtro, type Visao } from "./filtro
 import { dinheiro, numero, percentual } from "./formatar";
 import { mesPorExtenso, nomesDaCapa } from "./exportacao";
 
-// O boletim analítico (o "Exportar PDF" no modo Analítico). A API manda os números e as frases prontos; aqui só se
+// O boletim analítico (as folhas A4 do "Exportar PDF" no modo Personalizado). A API manda os números e as frases prontos; aqui só se
 // formata o que vai em cada célula.
 
 // O que todas as folhas A4 (as do analítico, do personalizado e as da nota técnica) repetem no cabeçalho.

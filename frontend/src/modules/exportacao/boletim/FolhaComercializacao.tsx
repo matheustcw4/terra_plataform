@@ -1,155 +1,137 @@
-import type { BoletimAnalitico, LinhaDoPlacar, SecaoDeLotes } from "../../../core/api/tipos";
-import { valorComUnidade } from "../../../logic/analitico";
+import type { ReactNode } from "react";
+import type { BoletimAnalitico, LinhaDoPlacar, QuadroDoLote, SecaoDeLotes } from "../../../core/api/tipos";
 import {
   ateAReferencia,
-  type BlocoDeComercializacao,
   cabecasOuTraco,
-  celulaEmMilhoes,
   type Identificacao,
   linhaDoIndicador,
+  naUnidade,
+  quadroDoSexo,
   reaisCurtos,
-  secaoDoBloco,
+  secaoDeVenda,
+  temMovimento,
+  unidadeDosValores,
   variacaoComSinal,
-  variacaoDaLinha,
+  vendeuOsDoisSexos,
 } from "../../../logic/boletim";
-import { dinheiro, percentual } from "../../../logic/formatar";
+import { dinheiro, numero, percentual } from "../../../logic/formatar";
+import { mesCurto } from "../../../logic/meses";
 import { Colunas } from "./Colunas";
-import { FolhaDoBoletim, LegendaDoBoletim } from "./FolhaDoBoletim";
-import { ComStatus, Indicador } from "./Indicador";
+import { FolhaDoBoletim, TituloDaParte } from "./FolhaDoBoletim";
+import { ComStatus, LegendaDoBoletim } from "./Indicador";
 import { TabelaDosMeses } from "./TabelaDosMeses";
 
-type Props = {
-  boletim: BoletimAnalitico;
-  identificacao: Identificacao;
-  blocos: BlocoDeComercializacao[];
-  numero: number;
-  total: number;
-};
+type Props = { boletim: BoletimAnalitico; identificacao: Identificacao; numero: number; total: number };
 
-type JeitoDoBloco = { titulo: string; valor: string; grafico: string; cor: string; indicadores: string[] };
-
-// Como cada bloco se chama e se escreve: o valor do lote é faturamento na venda e investimento na compra. O placar
-// mostra os cinco indicadores que decidem o negócio (os outros estão na página do painel).
-const DO_BLOCO: Record<BlocoDeComercializacao, JeitoDoBloco> = {
-  abate: { titulo: "Venda abate", valor: "Faturamento", grafico: "Faturamento por mês · R$ mi",
-    cor: "var(--cor-realizado)",
-    indicadores: ["Cabeças", "Peso médio", "Rendimento de carcaça", "Preço da @", "Faturamento"] },
-  em_pe: { titulo: "Venda em pé", valor: "Faturamento", grafico: "Faturamento por mês · R$ mi",
-    cor: "var(--cor-realizado)", indicadores: ["Cabeças", "Peso médio", "Preço do kg", "Preço da @", "Faturamento"] },
-  compras: { titulo: "Compras e reposição", valor: "Investimento", grafico: "Desembolso de compras por mês · R$ mi",
-    cor: "var(--cor-marrom)", indicadores: ["Cabeças", "Peso médio", "Preço do kg", "Preço da @", "Investimento"] },
-};
-
-// A folha da Comercialização: até dois blocos (venda abate, venda em pé, compras), cada um com os números do
-// acumulado, o placar realizado × planejado e o valor mês a mês. Sem venda nem compra no período, a folha diz isso.
-export function FolhaComercializacao({ boletim, identificacao, blocos, numero: numeroDaFolha, total }: Props) {
+// A folha da Comercialização, como a do gerador oficial: a venda abate (com a venda em pé numa faixa embaixo) e as
+// compras e reposição, lado a lado, cada uma com os números do acumulado, o placar, o valor mês a mês e as cabeças.
+export function FolhaComercializacao({ boletim, identificacao, numero: numeroDaFolha, total }: Props) {
   return (
     <FolhaDoBoletim numero={numeroDaFolha} total={total} titulo="Comercialização" identificacao={identificacao}>
-      {blocos.length === 0 && (
-        <p className="boletim-vazio grande">Nenhuma venda nem compra de animais, realizada ou planejada, no período.</p>
-      )}
-      <div className="boletim-linha-2">
-        {blocos.map((bloco) => (
-          <BlocoDeLotes key={bloco} bloco={bloco} boletim={boletim} />
-        ))}
-      </div>
+      <main className="boletim-comercializacao">
+        <VendaAbate boletim={boletim} />
+        <ComprasEReposicao boletim={boletim} />
+      </main>
     </FolhaDoBoletim>
   );
 }
 
-function BlocoDeLotes({ bloco, boletim }: { bloco: BlocoDeComercializacao; boletim: BoletimAnalitico }) {
-  const secao = secaoDoBloco(boletim, bloco);
-  const jeito = DO_BLOCO[bloco];
-  const meses = ateAReferencia(secao.meses, boletim.mes_referencia);
-  const datas = meses.map((mes) => mes.mes);
+function VendaAbate({ boletim }: { boletim: BoletimAnalitico }) {
+  const abate = secaoDeVenda(boletim, "abate");
+  const cabecas = linhaDoIndicador(abate.resumo, "Cabeças")?.acumulado;
+  const faturamento = linhaDoIndicador(abate.resumo, "Faturamento")?.acumulado;
+  const arroba = linhaDoIndicador(abate.resumo, "Preço da @")?.acumulado;
   return (
-    <section className="boletim-quadro boletim-bloco">
-      <h2 className="boletim-subtitulo">{jeito.titulo}</h2>
-      <NumerosDoBloco bloco={bloco} boletim={boletim} secao={secao} />
-      <PlacarDoBloco linhas={linhasDoPlacar(secao.resumo, jeito.indicadores)} />
-      <div className="boletim-quadro-topo">
-        <h2>{jeito.grafico}</h2>
-        <LegendaDoBoletim itens={[{ nome: "Realizado", cor: jeito.cor }, { nome: "Planejado", cor: "var(--cor-planejado)" }]} />
+    <section className="boletim-card boletim-quadro">
+      <TituloDaParte numero="08">Venda abate</TituloDaParte>
+      <div className="boletim-grade-3 pequena">
+        <Chip rotulo="Cabeças" valor={numero(cabecas?.realizado ?? null)}>
+          plan. {numero(cabecas?.previsto ?? null)}
+        </Chip>
+        <Chip rotulo="Faturamento" valor={reaisCurtos(faturamento?.realizado ?? null)}>
+          <ComStatus status={faturamento?.status}>{variacaoComSinal(faturamento?.variacao_percentual ?? null)}</ComStatus>
+        </Chip>
+        <Chip rotulo="Valor da @" valor={dinheiro(arroba?.realizado ?? null, 2)}>
+          plan. {numero(arroba?.previsto ?? null, 2)}
+        </Chip>
       </div>
-      <Colunas meses={datas} altura={105} series={[
-        { nome: "Realizado", valores: meses.map((mes) => mes.valor), cor: jeito.cor },
-        { nome: "Planejado", valores: meses.map((mes) => mes.valor_previsto), cor: "var(--cor-planejado)" },
-      ]} />
-      <TabelaDosMeses meses={datas} cabecalho="marrom" linhas={[
-        { nome: "Cab real", valores: meses.map((mes) => cabecasOuTraco(mes.realizado)) },
-        { nome: "Cab plan.", valores: meses.map((mes) => cabecasOuTraco(mes.previsto)), classe: "planejado" },
-        { nome: "R$ mi real", valores: meses.map((mes) => celulaEmMilhoes(mes.valor)) },
-        { nome: "R$ mi plan.", valores: meses.map((mes) => celulaEmMilhoes(mes.valor_previsto)), classe: "planejado" },
-      ]} />
-      {secao.leitura.length > 0 && <p className="boletim-nota">{secao.leitura.join(" ")}</p>}
+      {vendeuOsDoisSexos(abate.por_sexo) && <TabelaPorSexo quadros={abate.por_sexo} />}
+      {!vendeuOsDoisSexos(abate.por_sexo) && <TabelaDaVenda resumo={abate.resumo} />}
+      <ValorPorMes titulo="Faturamento por mês" secao={abate} mesDeReferencia={boletim.mes_referencia}
+        cor="var(--cor-realizado)" />
+      <FaixaDaVendaEmPe secao={secaoDeVenda(boletim, "em_pe")} />
     </section>
   );
 }
 
-type NumerosProps = { bloco: BlocoDeComercializacao; boletim: BoletimAnalitico; secao: SecaoDeLotes };
-
-function NumerosDoBloco({ bloco, boletim, secao }: NumerosProps) {
-  const cabecas = linhaDoIndicador(secao.resumo, "Cabeças")?.acumulado;
-  const valor = linhaDoIndicador(secao.resumo, bloco === "compras" ? "Investimento" : "Faturamento")?.acumulado;
-  const arroba = linhaDoIndicador(secao.resumo, "Preço da @")?.acumulado;
+function Chip({ rotulo, valor, children }: { rotulo: string; valor: string; children: ReactNode }) {
   return (
-    <div className="boletim-linha-3 compacta">
-      <Indicador rotulo="Cabeças" valor={cabecasOuTraco(cabecas?.realizado ?? null)} pequeno>
-        plan. {cabecasOuTraco(cabecas?.previsto ?? null)} ·{" "}
-        <ComStatus status={cabecas?.status}>{variacaoComSinal(cabecas?.variacao_percentual ?? null)}</ComStatus>
-      </Indicador>
-      <Indicador rotulo={DO_BLOCO[bloco].valor} valor={reaisCurtos(valor?.realizado ?? null)} pequeno>
-        plan. {reaisCurtos(valor?.previsto ?? null)} ·{" "}
-        <ComStatus status={valor?.status}>{variacaoComSinal(valor?.variacao_percentual ?? null)}</ComStatus>
-      </Indicador>
-      {bloco === "compras" && (
-        <Indicador rotulo="@ compra · ágio" valor={dinheiro(arroba?.realizado ?? null, 2)} pequeno>
-          ágio {percentual(boletim.compras.agio, 1)} sobre a @ vendida ({dinheiro(boletim.compras.preco_arroba_venda, 2)})
-        </Indicador>
-      )}
-      {bloco !== "compras" && (
-        <Indicador rotulo="Valor da @" valor={dinheiro(arroba?.realizado ?? null, 2)} pequeno>
-          plan. {dinheiro(arroba?.previsto ?? null, 2)} ·{" "}
-          <ComStatus status={arroba?.status}>{variacaoComSinal(arroba?.variacao_percentual ?? null)}</ComStatus>
-        </Indicador>
-      )}
+    <div className="boletim-chip">
+      <span className="boletim-lbl">{rotulo}</span>
+      <div>
+        <span className="boletim-big">{valor}</span> <span className="boletim-sub">{children}</span>
+      </div>
     </div>
   );
 }
 
-// Os indicadores escolhidos, na ordem da lista (o que a API não mandou fica de fora).
-function linhasDoPlacar(resumo: LinhaDoPlacar[], indicadores: string[]): LinhaDoPlacar[] {
-  const linhas: LinhaDoPlacar[] = [];
-  for (const indicador of indicadores) {
-    const linha = linhaDoIndicador(resumo, indicador);
-    if (linha !== null) {
-      linhas.push(linha);
-    }
+// As linhas da venda: o nome na tabela, o campo do quadro por sexo, o indicador do resumo e como se escreve.
+type LinhaDaVenda = { nome: string; campo: keyof QuadroDoLote["realizado"]; indicador: string; formato: Formato };
+type Formato = "cabecas" | "kg" | "rendimento" | "preco" | "reais";
+
+const LINHAS_DA_VENDA: LinhaDaVenda[] = [
+  { nome: "Cabeças", campo: "cabecas", indicador: "Cabeças", formato: "cabecas" },
+  { nome: "Peso médio", campo: "peso_medio_kg", indicador: "Peso médio", formato: "kg" },
+  { nome: "Rend. carcaça", campo: "rendimento_carcaca", indicador: "Rendimento de carcaça", formato: "rendimento" },
+  { nome: "Valor da @ (R$)", campo: "preco_arroba", indicador: "Preço da @", formato: "preco" },
+  { nome: "Faturamento (R$)", campo: "valor", indicador: "Faturamento", formato: "reais" },
+];
+
+function escrito(valor: number | null | undefined, formato: Formato): string {
+  if (valor === null || valor === undefined) {
+    return "—";
   }
-  return linhas;
+  if (formato === "kg") {
+    return `${numero(valor, 1)} kg`;
+  }
+  if (formato === "rendimento") {
+    return percentual(valor, 1);
+  }
+  if (formato === "preco") {
+    return numero(valor, 2);
+  }
+  return numero(valor);
 }
 
-// O placar do lote no acumulado: cada indicador realizado × planejado, com a variação na unidade que se lê melhor.
-function PlacarDoBloco({ linhas }: { linhas: LinhaDoPlacar[] }) {
+// Com os dois sexos: Fêmea, Macho e Geral, cada um realizado e planejado.
+function TabelaPorSexo({ quadros }: { quadros: QuadroDoLote[] }) {
+  const sexos = [quadroDoSexo(quadros, "FÊMEA"), quadroDoSexo(quadros, "MACHO"), quadroDoSexo(quadros, "GERAL")];
   return (
-    <table className="boletim-tabela-placar">
+    <table className="boletim-tb">
       <thead>
         <tr>
-          <th scope="col">Indicador</th>
-          <th scope="col">Realizado</th>
-          <th scope="col">Planejado</th>
-          <th scope="col">Var.</th>
+          <th scope="col" />
+          <th scope="colgroup" colSpan={2} className="faixa-mes">Fêmea</th>
+          <th scope="colgroup" colSpan={2} className="faixa-mes">Macho</th>
+          <th scope="colgroup" colSpan={2} className="faixa-acumulado">Geral</th>
+        </tr>
+        <tr>
+          <th scope="col" className="esquerda">Indicador</th>
+          <th scope="col">Real</th>
+          <th scope="col">Plan.</th>
+          <th scope="col">Real</th>
+          <th scope="col">Plan.</th>
+          <th scope="col">Real</th>
+          <th scope="col">Plan.</th>
         </tr>
       </thead>
       <tbody>
-        {linhas.map((linha) => (
-          <tr key={linha.indicador} className={linha.unidade === "R$" ? "total" : undefined}>
-            <th scope="row">{linha.indicador}</th>
-            <td>{comUnidade(linha.acumulado.realizado, linha.unidade)}</td>
-            <td className="planejado">{comUnidade(linha.acumulado.previsto, linha.unidade)}</td>
-            <td>
-              <ComStatus status={linha.acumulado.status}>{variacaoDaLinha(linha)}</ComStatus>
-            </td>
+        {LINHAS_DA_VENDA.map((linha) => (
+          <tr key={linha.nome} className={linha.formato === "reais" ? "total" : undefined}>
+            <td className="nome">{linha.nome}</td>
+            {sexos.map((quadro, posicao) => (
+              <CelulasDoSexo key={posicao} quadro={quadro} linha={linha} />
+            ))}
           </tr>
         ))}
       </tbody>
@@ -157,11 +139,151 @@ function PlacarDoBloco({ linhas }: { linhas: LinhaDoPlacar[] }) {
   );
 }
 
-// "553,1 kg", "R$ 356,04", "57,6%", "1.723"
-function comUnidade(valor: number | null, unidade: string): string {
-  const texto = valorComUnidade(valor, unidade);
-  if (valor === null || unidade === "cab" || unidade === "%" || unidade.startsWith("R$")) {
-    return texto;
+function CelulasDoSexo({ quadro, linha }: { quadro: QuadroDoLote | null; linha: LinhaDaVenda }) {
+  return (
+    <>
+      <td>{escrito(quadro?.realizado[linha.campo], linha.formato)}</td>
+      <td className="apagado">{escrito(quadro?.planejado[linha.campo], linha.formato)}</td>
+    </>
+  );
+}
+
+// Com um sexo só: Realizado, Planejado e a variação.
+function TabelaDaVenda({ resumo }: { resumo: LinhaDoPlacar[] }) {
+  return (
+    <table className="boletim-tb">
+      <thead>
+        <tr>
+          <th scope="col" className="esquerda">Indicador</th>
+          <th scope="col">Realizado</th>
+          <th scope="col">Planejado</th>
+          <th scope="col">Var.</th>
+        </tr>
+      </thead>
+      <tbody>
+        {LINHAS_DA_VENDA.map((linha) => (
+          <LinhaDoResumo key={linha.nome} nome={linha.nome} formato={linha.formato}
+            linha={linhaDoIndicador(resumo, linha.indicador)} />
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+type LinhaDoResumoProps = { nome: string; formato: Formato; linha: LinhaDoPlacar | null };
+
+function LinhaDoResumo({ nome, formato, linha }: LinhaDoResumoProps) {
+  return (
+    <tr className={formato === "reais" ? "total" : undefined}>
+      <td className="nome">{nome}</td>
+      <td>{escrito(linha?.acumulado.realizado, formato)}</td>
+      <td className={formato === "reais" ? undefined : "apagado"}>{escrito(linha?.acumulado.previsto, formato)}</td>
+      <td>{variacaoComSinal(linha?.acumulado.variacao_percentual ?? null)}</td>
+    </tr>
+  );
+}
+
+type ValorPorMesProps = { titulo: string; secao: SecaoDeLotes; mesDeReferencia: string; cor: string };
+
+// O valor do lote mês a mês (faturamento ou desembolso de compras) e a tabela das cabeças por mês.
+function ValorPorMes({ titulo, secao, mesDeReferencia, cor }: ValorPorMesProps) {
+  const meses = ateAReferencia(secao.meses, mesDeReferencia);
+  const realizado = meses.map((mes) => mes.valor);
+  const previsto = meses.map((mes) => mes.valor_previsto);
+  const unidade = unidadeDosValores([realizado, previsto]);
+  return (
+    <>
+      <div className="boletim-quadro-topo">
+        <span className="boletim-lbl marinho">{titulo} · {unidade.rotulo}</span>
+        <LegendaDoBoletim itens={[{ nome: "Realizado", cor }, { nome: "Planejado", cor: "var(--cor-planejado)" }]} />
+      </div>
+      <Colunas eixo={meses.map((mes) => mesCurto(mes.mes))} altura={170} series={[
+        { nome: "Realizado", valores: realizado, cor, rotulo: (valor) => naUnidade(valor, unidade) },
+        { nome: "Planejado", valores: previsto, cor: "var(--cor-planejado)", rotulo: (valor) => naUnidade(valor, unidade),
+          corDoRotulo: "var(--boletim-cinza)" },
+      ]} />
+      <TabelaDosMeses titulo="Cab · mês" meses={meses.map((mes) => mes.mes)} marrom linhas={[
+        { nome: "Real", valores: meses.map((mes) => cabecasOuTraco(mes.realizado)) },
+        { nome: "Plan.", valores: meses.map((mes) => cabecasOuTraco(mes.previsto)), apagado: true },
+      ]} />
+    </>
+  );
+}
+
+// A venda em pé numa faixa só, embaixo da venda abate: o que vendeu contra o plano, ou que não houve venda.
+function FaixaDaVendaEmPe({ secao }: { secao: SecaoDeLotes }) {
+  if (!temMovimento(secao)) {
+    return (
+      <div className="boletim-faixa-de-texto boletim-ate-o-fim">
+        <b>Venda em pé:</b> sem vendas no período.
+      </div>
+    );
   }
-  return `${texto} ${unidade}`;
+  const cabecas = linhaDoIndicador(secao.resumo, "Cabeças")?.acumulado;
+  const peso = linhaDoIndicador(secao.resumo, "Peso médio")?.acumulado;
+  const precoDoKg = linhaDoIndicador(secao.resumo, "Preço do kg")?.acumulado;
+  const arroba = linhaDoIndicador(secao.resumo, "Preço da @")?.acumulado;
+  const faturamento = linhaDoIndicador(secao.resumo, "Faturamento")?.acumulado;
+  return (
+    <div className="boletim-faixa-de-texto boletim-ate-o-fim">
+      <b>Venda em pé:</b> {numero(cabecas?.realizado ?? null)} cab (plan. {numero(cabecas?.previsto ?? null)}) ·{" "}
+      {escrito(peso?.realizado, "kg")} · R$ {escrito(precoDoKg?.realizado, "preco")}/kg · @ R${" "}
+      {escrito(arroba?.realizado, "preco")} (plan. {escrito(arroba?.previsto, "preco")}) ·{" "}
+      {dinheiro(faturamento?.realizado ?? null)} (plan. {dinheiro(faturamento?.previsto ?? null)}).
+    </div>
+  );
+}
+
+function ComprasEReposicao({ boletim }: { boletim: BoletimAnalitico }) {
+  const compras = boletim.compras;
+  const cabecas = linhaDoIndicador(compras.resumo, "Cabeças");
+  const peso = linhaDoIndicador(compras.resumo, "Peso médio");
+  const precoDoKg = linhaDoIndicador(compras.resumo, "Preço do kg");
+  const arroba = linhaDoIndicador(compras.resumo, "Preço da @")?.acumulado;
+  const investimento = linhaDoIndicador(compras.resumo, "Investimento");
+  return (
+    <section className="boletim-card boletim-quadro">
+      <TituloDaParte numero="09">Compras e reposição</TituloDaParte>
+      <div className="boletim-grade-3 pequena">
+        <Chip rotulo="Cabeças" valor={numero(cabecas?.acumulado.realizado ?? null)}>
+          plan. {numero(cabecas?.acumulado.previsto ?? null)}
+        </Chip>
+        <Chip rotulo="Investimento" valor={reaisCurtos(investimento?.acumulado.realizado ?? null)}>
+          <ComStatus status={investimento?.acumulado.status}>
+            {variacaoComSinal(investimento?.acumulado.variacao_percentual ?? null)}
+          </ComStatus>
+        </Chip>
+        <Chip rotulo="@ compra · ágio" valor={dinheiro(arroba?.realizado ?? null, 2)}>
+          <b>{percentual(compras.agio, 1)}</b>
+        </Chip>
+      </div>
+      <table className="boletim-tb">
+        <thead>
+          <tr>
+            <th scope="col" className="esquerda">Indicador</th>
+            <th scope="col">Realizado</th>
+            <th scope="col">Planejado</th>
+            <th scope="col">Var.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <LinhaDoResumo nome="Cabeças compradas" formato="cabecas" linha={cabecas} />
+          <LinhaDoResumo nome="Peso médio" formato="kg" linha={peso} />
+          <LinhaDoResumo nome="Preço do kg (R$)" formato="preco" linha={precoDoKg} />
+          <tr>
+            <td className="nome">@ vendida (abate + em pé)</td>
+            <td>{escrito(compras.preco_arroba_venda, "preco")}</td>
+            <td className="apagado">—</td>
+            <td className="apagado">—</td>
+          </tr>
+          <LinhaDoResumo nome="Investimento (R$)" formato="reais" linha={investimento} />
+        </tbody>
+      </table>
+      <ValorPorMes titulo="Desembolso de compras por mês" secao={compras} mesDeReferencia={boletim.mes_referencia}
+        cor="var(--cor-marrom)" />
+      {compras.leitura.length > 0 && (
+        <div className="boletim-faixa-de-texto boletim-ate-o-fim">{compras.leitura.join(" ")}</div>
+      )}
+    </section>
+  );
 }

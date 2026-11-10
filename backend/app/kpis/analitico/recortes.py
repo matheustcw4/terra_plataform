@@ -8,6 +8,7 @@ from datetime import date
 from uuid import UUID
 
 from app.kpis.filtro import Filtro, meses_do_filtro
+from app.kpis.situacao_do_lancamento import SITUACOES_PADRAO
 
 
 @dataclass(frozen=True)
@@ -17,22 +18,27 @@ class Recortes:
     inicio_do_periodo: date
     fim_do_periodo: date
     visao: str
-    versao_do_plano: UUID | None = None    # a versão do planejamento escolhida na tela
+    versoes_do_plano: tuple[UUID, ...] = ()   # as versões do planejamento marcadas na tela
+    fazendas_sem_plano: tuple[UUID, ...] = ()  # as fazendas marcadas "nenhum planejamento"
+    situacoes: tuple[str, ...] = SITUACOES_PADRAO   # dos títulos do realizado do financeiro
 
     @property
     def mes(self) -> Filtro:
         return Filtro(fazendas=self.fazendas, inicio=self.mes_referencia, fim=self.mes_referencia,
-                      versao_do_plano=self.versao_do_plano)
+                      versoes_do_plano=self.versoes_do_plano,
+                      fazendas_sem_plano=self.fazendas_sem_plano, situacoes=self.situacoes)
 
     @property
     def acumulado(self) -> Filtro:
         return Filtro(fazendas=self.fazendas, inicio=self.inicio_do_periodo, fim=self.mes_referencia,
-                      versao_do_plano=self.versao_do_plano)
+                      versoes_do_plano=self.versoes_do_plano,
+                      fazendas_sem_plano=self.fazendas_sem_plano, situacoes=self.situacoes)
 
     @property
     def periodo(self) -> Filtro:
         return Filtro(fazendas=self.fazendas, inicio=self.inicio_do_periodo, fim=self.fim_do_periodo,
-                      versao_do_plano=self.versao_do_plano)
+                      versoes_do_plano=self.versoes_do_plano,
+                      fazendas_sem_plano=self.fazendas_sem_plano, situacoes=self.situacoes)
 
     def meses_do_periodo(self) -> list[date]:
         return meses_do_filtro(self.periodo)
@@ -41,11 +47,13 @@ class Recortes:
         return meses_do_filtro(self.acumulado)
 
     def so_do_mes(self, mes: date) -> Filtro:
-        return Filtro(fazendas=self.fazendas, inicio=mes, fim=mes, versao_do_plano=self.versao_do_plano)
+        return Filtro(fazendas=self.fazendas, inicio=mes, fim=mes, versoes_do_plano=self.versoes_do_plano,
+                      fazendas_sem_plano=self.fazendas_sem_plano, situacoes=self.situacoes)
 
 
 def recortes_do_boletim(fazendas: list[UUID], mes_referencia: date, visao: str,
-                        versao_do_plano: UUID | None = None) -> Recortes:
+                        versoes_do_plano: tuple[UUID, ...] = (), fazendas_sem_plano: tuple[UUID, ...] = (),
+                        situacoes: tuple[str, ...] = SITUACOES_PADRAO) -> Recortes:
     """Safra: de julho a junho; civil: de janeiro a dezembro. O período é o que contém o mês de referência."""
     if visao == "civil":
         inicio = date(mes_referencia.year, 1, 1)
@@ -57,4 +65,5 @@ def recortes_do_boletim(fazendas: list[UUID], mes_referencia: date, visao: str,
         inicio = date(ano_da_safra, 7, 1)
         fim = date(ano_da_safra + 1, 6, 1)
     return Recortes(fazendas=fazendas, mes_referencia=mes_referencia, inicio_do_periodo=inicio, fim_do_periodo=fim,
-                    visao=visao, versao_do_plano=versao_do_plano)
+                    visao=visao, versoes_do_plano=versoes_do_plano, fazendas_sem_plano=fazendas_sem_plano,
+                    situacoes=situacoes)

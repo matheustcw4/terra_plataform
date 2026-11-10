@@ -31,11 +31,12 @@ from app.kpis.previsto_financeiro import (
     PrevistoEscolhido,
     escolher_o_previsto,
 )
+from app.kpis.situacao_do_lancamento import LANCAMENTOS_DO_FILTRO
 from app.schemas.api import Comparacao, GrupoDoPrevisto, LinhaDoPrevisto, PrevistoRealizado
 
-# cenário -> view com a classificação da conta já resolvida (lista fechada: por isso pode entrar no SQL); no
-# planejado, o orçamento do tipo e da versão escolhidos na tela (previsto_financeiro.py)
-VIEW_DO_CENARIO = {"realizado": "fato.v_lancamento_financeiro", "planejado": ORCAMENTO_ESCOLHIDO}
+# cenário -> os lançamentos (das situações do recorte) ou o orçamento (do tipo e das versões escolhidos na tela,
+# previsto_financeiro.py), com a classificação da conta já resolvida (lista fechada: por isso pode entrar no SQL)
+VIEW_DO_CENARIO = {"realizado": LANCAMENTOS_DO_FILTRO, "planejado": ORCAMENTO_ESCOLHIDO}
 
 RECEITAS = "A - RECEITAS"
 DESEMBOLSO = "B - DESEMBOLSO"

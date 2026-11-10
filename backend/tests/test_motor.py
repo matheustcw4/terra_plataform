@@ -143,6 +143,28 @@ def _dre(engine_super) -> list[tuple]:
                                      "FROM fato.v_lancamento_financeiro")).all())
 
 
+def _marcas_por_fonte(engine_super) -> list[tuple]:
+    with engine_super.connect() as c:
+        return sorted(c.execute(text("SELECT fonte, centro_custo, entra_desembolso, entra_custeio, eh_reposicao "
+                                     "FROM fato.v_lancamento_financeiro")).all())
+
+
+def test_o_mesmo_centro_conta_como_o_relatorio_de_cada_fonte(engine_etl, engine_super):
+    """Migração 0022: no Metryx, a compra de animais não entra no desembolso (fica como reposição) e os financiamentos
+    entram no custeio, como o relatório financeiro do Metryx; na planilha, como o BI de planilhas."""
+    contas = [ContaOrigem(centro="Rebanho Investimento"), ContaOrigem(centro="Financiamentos débitos")]
+    planilha = _financeiro(lote_base(), contas)
+    metryx = _financeiro(lote_base("metryx", cliente="m1", fazenda="m1|F", fonte_mapa="metryx_realizado"), contas)
+    motor(engine_etl).executar(AdapterMemoria("planilha", {"u1": planilha}))
+    motor(engine_etl).executar(AdapterMemoria("metryx", {"u2": metryx}))
+    assert _marcas_por_fonte(engine_super) == [
+        ("metryx", "Financiamentos débitos", True, True, False),
+        ("metryx", "Rebanho Investimento", False, False, True),
+        ("planilha", "Financiamentos débitos", True, False, False),
+        ("planilha", "Rebanho Investimento", True, False, False),
+    ]
+
+
 def test_conta_fora_do_plano_entra_como_a_classificar(engine_etl, engine_super):
     """Decisão Q1: nada some do caixa. A conta desconhecida carrega como 'A classificar' (o total bate com a fonte)."""
     lote = _financeiro(lote_base(), [ContaOrigem(centro="  pastagens "),          # nome canônico (sem acento/caixa)

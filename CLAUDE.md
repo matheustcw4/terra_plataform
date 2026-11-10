@@ -47,20 +47,26 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   uma página, consulte o layout em `docs/referencias/pbix_ciclo/layout_paginas.md` (gerado do PBIX por
   `python -m validacao.layout_do_bi <pbix>`). Os filtros ficam **só na página MENU** (no BI eles se repetem ocultos em
   todas as páginas por limitação do Power BI): Origem (temporário), Cliente, Fazenda, Safra/Cívil, Safra ou Ano,
-  Mês. O mês é de **seleção múltipla**, como no BI (pedido do usuário, 15/10/2026): as somas usam só os meses
+  Mês e, no quadro "Financeiro e planejamento" (10/11/2026), o status dos lançamentos e a versão do plano de cada
+  fazenda (os dois também ficam no topo das páginas que usam; abaixo). O mês é de **seleção múltipla**, como no BI (pedido do usuário, 15/10/2026): as somas usam só os meses
   marcados (podem ser salteados), e o estoque final é o do último mês marcado (`app/kpis/filtro.py`). A fazenda
   também é de **seleção múltipla** (pedido do usuário, 16/10/2026): nenhuma ou todas marcadas = "GRUPO"; com algumas,
   o topo mostra os nomes separados por " | " (mais de 3: a quantidade) e a capa, todos os nomes.
   **Exceção** (pedido do usuário, 29/10/2026): nas páginas **Previsto × Realizado** e **Financeiro**, o topo da página
   escolhe de qual orçamento vem o planejado do financeiro: o **tipo** (previsão financeira, o `previsao-financeiro` do
-  Metryx e o DRE planejado da planilha; ou planejamento, o fluxo de caixa do plano do Metryx) e, quando alguma
-  fazenda tem mais de uma, a **versão do plano** (padrão: a mais recente de cada fazenda e safra). As opções vêm da
-  API (`previsto` na resposta; `app/kpis/previsto_financeiro.py`), sem lógica por fonte no front; a escolha fica na URL
-  (`previsto`, `versao`), vale nas duas páginas e vai junto no PDF. **E a versão do planejamento** (pedido do usuário,
-  04/11/2026): toda página com meta (Movimentação, Vendas, Compras, Nascimentos, Mortes, Transferências, além das
-  duas acima) mostra a versão em uso e, quando alguma fazenda tem mais de uma, deixa escolher (`SeletorDaVersao`;
-  `plano` na resposta, `app/kpis/versao_do_plano.py`). O parâmetro `versao` vem no recorte de todas as páginas e no
-  PDF analítico, que mostra a versão no cabeçalho das folhas.
+  Metryx e o DRE planejado da planilha; ou planejamento, o fluxo de caixa do plano do Metryx) e o **status dos
+  lançamentos** do realizado (pedido do usuário, 10/11/2026: conciliado, pago e em aberto, de seleção múltipla; sem
+  escolha, os pagos; só aparece quando as fazendas têm mais de uma situação, pela capacidade `situacoes`;
+  `FiltroDoStatus`, `app/kpis/situacao_do_lancamento.py`). As opções vêm da API (`previsto` na resposta;
+  `app/kpis/previsto_financeiro.py`), sem lógica por fonte no front; a escolha fica na URL (`previsto`, `status`),
+  vale nas duas páginas e vai junto no PDF. **E a versão do planejamento** (pedido do usuário, 04/11/2026; por
+  fazenda desde 10/11/2026): toda página com meta (Movimentação, Vendas, Compras, Nascimentos, Mortes,
+  Transferências, além das duas acima) e o MENU mostram a versão em uso e um botão que abre a janela com todas as
+  fazendas do filtro, cada uma com caixas de seleção múltipla: "Mais recente" (o padrão), as versões dela (as
+  marcadas somam; decisão do usuário) e "Nenhum planejamento" (`EscolhaDasVersoes`, `JanelaDasVersoes`; `plano` na
+  resposta e `GET /dashboards/versoes_do_plano` no MENU, `app/kpis/versao_do_plano.py`; as funções
+  `app.versoes_do_planejado` e `app.versoes_do_orcamento`, migração 0025). A escolha é do filtro (`versao` e
+  `sem_plano` na URL), vem no recorte de todas as páginas e no PDF, que mostra a versão no cabeçalho das folhas.
 - "Cliente" no filtro = **proprietário** (planilha, coluna PROPRIETÁRIO) ou **customer** (Metryx); o adapter grava os
   dois em `core.fazenda.proprietario`.
 - RLS de verdade:
@@ -75,7 +81,10 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
 - **O número tem que bater** com os BIs atuais (salvo os bugs catalogados P1–P15). A forma do cálculo é livre.
   **Clientes Metryx: o número bate SEMPRE com os relatórios do próprio Metryx** (inventário, Consolidado Pecuário,
   DMG; pedido do usuário, 20/10/2026). Onde o BI Metryx diverge do Metryx, vale o Metryx, e a regra do BI vira defeito
-  catalogado que a plataforma não reproduz (relatório de validação §20). Estoque Metryx: a base é o SQL `fSaldoGado`
+  catalogado que a plataforma não reproduz (relatório de validação §20). Onde o relatório do Metryx e o BI de planilhas
+  contam um centro de custo de jeitos diferentes (a compra de animais no desembolso, os financiamentos no custeio), a
+  exceção da fonte fica em `dim.centro_custo_fonte` (migração 0022; decisão do usuário, 10/11/2026), que as views dos
+  lançamentos e do orçamento usam: nenhum KPI olha a fonte. Estoque Metryx: a base é o SQL `fSaldoGado`
   em `docs/referencias/pbix_metryx/power_query.csv`, menos nos bezerros mamando (`adapters/metryx/saldo.py`).
 - Equivalência testada em CI: a mesma fazenda sintética, em `.xlsm` e em JSON Metryx, precisa gerar o mesmo canônico e os mesmos KPIs.
 
@@ -130,14 +139,19 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   Pendências de lançamento (quarentena + avisos da última carga, por fazenda, sob RLS: `app.pendencias_de_carga`) e
   Importar planilhas (menu Dados: o envio dos `.xlsm`, a fila do worker e o resultado de cada arquivo).
 - **Capa e exportação em PDF:** botão "Exportar PDF" em todas as páginas e no MENU, com seleção múltipla das páginas
-  e a cidade da capa (não é gravada em lugar nenhum); nos modos Padrão e Personalizado a capa usa a arte da consultoria
-  (`frontend/src/assets/bi/capa-fundo.png`); o PDF sai de `frontend/src/modules/exportacao/` (`html-to-image` + `jsPDF`,
-  carregados só ao exportar). **Três modos** (pedidos do usuário, 20/10/2026): o **Padrão** (as páginas do painel), o
-  **Analítico** (o **boletim de resultados** da Terra em folhas de paisagem 16:9, no desenho da apresentação; pedido
-  do usuário, 10/11/2026: capa marinho e marrom com o ano ou a safra, Resumo · Previsto × Realizado com a lateral
-  marinho, Financeiro, Rebanho e Comercialização, uma folha a cada dois blocos de venda e compra, e o que não teve
-  lote nem meta resumido em "Sem movimento no período"; `modules/exportacao/boletim/`, lógica em
-  `src/logic/boletim.ts`; colunas e barras em HTML, não em SVG) e o **Personalizado** (os assuntos do boletim em folhas
+  e a cidade da capa (não é gravada em lugar nenhum); os três modos usam a capa do boletim de resultados
+  (`modules/exportacao/boletim/CapaDoBoletim.tsx`, com o conteúdo de cada modo; 10/11/2026); o PDF sai de
+  `frontend/src/modules/exportacao/` (`html-to-image` + `jsPDF`, carregados só ao exportar). **Três modos** (pedidos
+  do usuário, 20/10/2026): o **Padrão** (as páginas do painel), o **Boletim Resumido** (chave `analitico`; até
+  10/11/2026 se chamava Analítico: o **boletim de resultados** da Terra em folhas de paisagem 16:9, no desenho do **gerador oficial**
+  `gerar_boletim.py` que o usuário mandou; versão 2, 10/11/2026; a versão 1, feita a partir da apresentação, está na
+  tag git `boletim-v1`): capa marinho e marrom com o ano ou a safra, 01 Resumo · Previsto × Realizado com a lateral
+  marinho, 02 Financeiro, 03 Rebanho (com os quadros "Sem nascimentos" e "Sem transferências" quando não houve) e 04
+  Comercialização numa folha só (venda abate com a tabela Fêmea / Macho / Geral quando os dois sexos venderam, e a
+  venda em pé numa faixa; compras e reposição com o ágio). Fontes Archivo larga e Arimo, dos pacotes
+  `@fontsource-variable`; o logo e o símbolo oficiais em `src/assets/boletim/`; o resultado com a regra do gerador
+  (verde quando o realizado chega ao planejado: `resumo.status_do_resultado_*` da API). `modules/exportacao/boletim/`,
+  lógica em `src/logic/boletim.ts`; colunas e barras em HTML, não em SVG) e o **Personalizado** (os assuntos do boletim em folhas
   A4, no visual novo; a pessoa marca os assuntos e o que mostrar em cada um: leitura, previsto × realizado,
   lançamentos, gráficos, números do período, notas; os blocos se encaixam nas folhas, quebrando entre quadros;
   `modules/exportacao/analitico/`). Nos três modos há dois campos de **nota técnica** (início e fim do PDF; pedido do
@@ -170,9 +184,10 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - usuários na tela de admin; o primeiro admin pelo `python -m app.comandos` (`criar-usuario`, `dar-acesso`); a
     equipe da consultoria pela planilha de levantamento (`importar-equipe`, `app/services/equipe.py`).
 - **Base de integração e adapters prontos** (ver `README.md` e o §0 de `docs/02_PROXIMOS_PASSOS.md`):
-  - Postgres no compose; migrações 0001–0021 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
+  - Postgres no compose; migrações 0001–0025 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
     login, pendências, recálculo do estoque pela API, série nova do estoque começa no início da fazenda, cadastro de
-    funções e o RLS dele, tipo do orçamento, versões do planejado, fila da importação de planilhas e o RLS dela);
+    funções e o RLS dele, tipo do orçamento, versões do planejado, fila da importação de planilhas e o RLS dela, a
+    exceção de cada fonte às marcas do centro de custo e o RLS dela, a situação do lançamento e a versão por fazenda);
   - contrato canônico, motor (guarda de volume, arquivo em dobro, recorte `desde`), CLI `python -m app.etl`;
   - **adapter de planilhas**: as planilhas chegam pela tela **Importar planilhas** (09/11/2026, D8; todo usuário,
     só nas fazendas a que tem acesso, e fazenda nova só o admin; `ingest.importacao`, `app/etl/importacao.py`,
@@ -182,8 +197,8 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - **adapter Metryx** (cliente HTTP com allow-list, token cifrado, normalizador com a regra de saldo do BI),
     ajustado ao payload real (A29–A32 do relatório de validação §17), com a área de pasto do `utilizacao-pasto` para a
     lotação cab/ha (16/10/2026, §18); a UA do Metryx fica de fora até a API trazê-la; e o **planejamento** (27/10/2026,
-    `adapters/metryx/planejamento.py`): metas de compra, venda, nascimento, morte e desmame, rebanho médio previsto
-    pela evolução do rebanho e DRE previsto, com todas as versões (`plVersionCode` dá a ordem, `plVersionName` o
+    `adapters/metryx/planejamento.py`): metas de compra, venda, nascimento, morte e desmame, rebanho previsto pela
+    evolução do rebanho (o saldo do fim do mês, como o relatório financeiro do Metryx; 10/11/2026) e DRE previsto, com todas as versões (`plVersionCode` dá a ordem, `plVersionName` o
     nome; o BI soma todas): numa fazenda e safra vale a versão escolhida na tela ou, sem escolha, a mais recente
     (`app.versoes_do_planejado`, migração 0019; 04/11/2026), com o mês pelo `month` e pela safra, porque o `date` da API erra o ano de junho (defeito P19, relatório
     §22). A ponte do datalake traz o previsto menos compras e vendas (a stg perdeu a versão e as decimais). O
@@ -191,10 +206,13 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     (`adapters/metryx/rebanho.py`, 27/10/2026); o endpoint `rebanho-medio-pecuario` do BI conta animais a mais e fica
     só no bruto (defeito P18, relatório de validação §21). O `previsao-fluxo-caixa-planejamento` entra como orçamento
     de tipo `planejamento`, com todas as versões (29/10/2026; migração 0018: `fato.orcamento_financeiro.tipo` e
-    `dim.versao_plano.ordem`); o subcentro genérico "Subcentro de Custo" fica de fora da conta;
+    `dim.versao_plano.ordem`); o subcentro genérico "Subcentro de Custo" fica de fora da conta; a natureza vem só do
+    `type`, com o valor absoluto (a despesa do plano vem negativa com `type` Débito; tratá-la como estorno punha a meta
+    do desembolso negativa, 10/11/2026); nos lançamentos, a situação do título (conciliado, pago ou em aberto, este
+    pelo vencimento e pelo valor a pagar; o excluído no Metryx não entra; migração 0024);
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 185 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
-    boletim analítico e a importação pela tela) + 90 testes do front (Vitest);
+  - 194 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
+    boletim analítico e a importação pela tela) + 96 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,
     `layout_do_bi`, `lotacao_sem_area`). A lotação fica igual ao BI mesmo quando um mês com rebanho não tem área, o

@@ -1,10 +1,12 @@
 """A versão do planejamento que entra nas metas de animais e no rebanho médio previsto (pedido do usuário, 04/11/2026).
 
-O Metryx guarda várias versões do plano por fazenda e safra, e a carga traz todas. Em cada fazenda e safra (jul a jun)
-entra uma só, para não somar versões do mesmo plano (o BI soma todas): a escolhida na tela (parâmetro `versao`, que
-vem no recorte de toda página), se ela tem planejado ali; senão, a mais recente. Quem decide é a função
-`app.versoes_do_planejado` (migração 0019); aqui ficam a condição que os KPIs põem no WHERE e as opções que a tela
-mostra. O orçamento do planejamento segue a mesma escolha (previsto_financeiro.py).
+O Metryx guarda várias versões do plano por fazenda e safra, e a carga traz todas. Sem escolha, em cada fazenda e
+safra (jul a jun) entra só a mais recente, para não somar versões do mesmo plano (o BI soma todas). A tela escolhe por
+fazenda, de seleção múltipla (pedido do usuário, 10/11/2026; parâmetros `versao` e `sem_plano`, que vêm no recorte de
+toda página): na fazenda com versões marcadas, entram todas as marcadas, somadas (decisão do usuário); na marcada
+"nenhum planejamento", nada do planejado. Quem decide é a função `app.versoes_do_planejado` (migrações 0019 e 0025);
+aqui ficam a condição que os KPIs põem no WHERE e as opções que a tela mostra, por fazenda. O orçamento segue a mesma
+escolha (`app.versoes_do_orcamento`, previsto_financeiro.py).
 """
 
 from collections import defaultdict
@@ -14,26 +16,38 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.kpis.filtro import Filtro, meses_do_filtro
-from app.schemas.api import EscolhaDaVersao, VersaoDoPrevisto
+from app.schemas.api import EscolhaDaVersao, VersaoDoPrevisto, VersoesDaFazenda
 
-VERSOES_COM_PLANEJADO = """
-    SELECT p.fazenda_id, f.nome AS fazenda, p.versao_plano_id AS id, vp.nome, vp.ordem
-    FROM (
-        SELECT m.fazenda_id, m.versao_plano_id FROM fato.mov_animal m
-        WHERE m.cenario = 'planejado' AND m.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
-          AND m.competencia = ANY (CAST(:meses AS date[]))
-        UNION
-        SELECT r.fazenda_id, r.versao_plano_id FROM fato.rebanho_medio_mensal r
-        WHERE r.cenario = 'planejado' AND r.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
-          AND r.competencia = ANY (CAST(:meses AS date[]))
-    ) p
-    JOIN dim.versao_plano vp ON vp.id = p.versao_plano_id
-    JOIN core.fazenda f ON f.id = p.fazenda_id
+# as versões com meta (de animais ou de rebanho médio) nos meses do filtro
+VERSOES_DAS_METAS = """
+    SELECT m.fazenda_id, m.versao_plano_id FROM fato.mov_animal m
+    WHERE m.cenario = 'planejado' AND m.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
+      AND m.competencia = ANY (CAST(:meses AS date[]))
+    UNION
+    SELECT r.fazenda_id, r.versao_plano_id FROM fato.rebanho_medio_mensal r
+    WHERE r.cenario = 'planejado' AND r.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
+      AND r.competencia = ANY (CAST(:meses AS date[]))
+"""
+# as versões do orçamento do planejamento nos meses do filtro (são as mesmas versões do plano de cada fazenda)
+VERSOES_DO_ORCAMENTO = """
+    SELECT o.fazenda_id, o.versao_plano_id FROM fato.orcamento_financeiro o
+    WHERE o.tipo = 'planejamento' AND o.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
+      AND o.competencia = ANY (CAST(:meses AS date[]))
+"""
+# Todas as fazendas do filtro, com as versões do plano de cada uma nos meses (das metas e do orçamento do
+# planejamento: a escolha vale nas duas); a fazenda sem plano no período vem numa linha só, sem versão.
+VERSOES_POR_FAZENDA = f"""
+    SELECT f.id AS fazenda_id, f.nome AS fazenda, vp.id, vp.nome, vp.ordem
+    FROM core.fazenda f
+    LEFT JOIN ({VERSOES_DAS_METAS} UNION {VERSOES_DO_ORCAMENTO}) p ON p.fazenda_id = f.id
+    LEFT JOIN dim.versao_plano vp ON vp.id = p.versao_plano_id
+    WHERE f.id = ANY (CAST(:fazendas AS uuid[]))
     ORDER BY f.nome, vp.ordem DESC NULLS LAST, vp.nome
 """
 VERSOES_EM_USO = """
     SELECT DISTINCT f.nome AS fazenda, vp.nome, vp.ordem
-    FROM app.versoes_do_planejado(CAST(:fazendas AS uuid[]), CAST(:versao_do_plano AS uuid)) v
+    FROM app.versoes_do_planejado(CAST(:fazendas AS uuid[]), CAST(:versoes_do_plano AS uuid[]),
+                                  CAST(:fazendas_sem_plano AS uuid[])) v
     JOIN dim.versao_plano vp ON vp.id = v.versao_plano_id
     JOIN core.fazenda f ON f.id = v.fazenda_id
     WHERE v.safra = ANY (CAST(:safras AS integer[]))
@@ -46,34 +60,33 @@ def so_a_versao_que_vale(apelido: str) -> str:
     inteiro; do planejado, só a versão que vale na fazenda e na safra da linha."""
     return (f"({apelido}.cenario = 'realizado' OR ({apelido}.fazenda_id, "
             f"extract(year FROM {apelido}.competencia - interval '6 months')::integer, {apelido}.versao_plano_id) IN "
-            "(SELECT * FROM app.versoes_do_planejado(CAST(:fazendas AS uuid[]), CAST(:versao_do_plano AS uuid))))")
+            "(SELECT * FROM app.versoes_do_planejado(CAST(:fazendas AS uuid[]), "
+            "CAST(:versoes_do_plano AS uuid[]), CAST(:fazendas_sem_plano AS uuid[]))))")
 
 
 def escolha_da_versao(s: Session, filtro: Filtro) -> EscolhaDaVersao:
-    """As versões com meta nos meses do filtro, a escolhida e as que estão valendo."""
-    linhas = list(s.execute(text(VERSOES_COM_PLANEJADO), filtro.parametros()).mappings())
-    versoes = versoes_para_escolher(linhas, len(filtro.fazendas) > 1)
-    versao = None
-    if filtro.versao_do_plano in {versao_da_lista.id for versao_da_lista in versoes}:
-        versao = filtro.versao_do_plano
-    return EscolhaDaVersao(versoes=versoes, versao=versao, em_uso=versoes_em_uso(s, filtro))
+    """As versões de cada fazenda do filtro, a escolhida em cada uma e as que estão valendo nas metas."""
+    return EscolhaDaVersao(fazendas=versoes_por_fazenda(s, filtro), em_uso=versoes_em_uso(s, filtro))
 
 
-def versoes_para_escolher(linhas: list, varias_fazendas: bool) -> list[VersaoDoPrevisto]:
-    """Das linhas (fazenda_id, fazenda, id, nome), em ordem, as versões das fazendas que têm mais de uma: nas outras
-    não há o que escolher."""
-    por_fazenda: dict = defaultdict(set)
-    for linha in linhas:
-        por_fazenda[linha["fazenda_id"]].add(linha["id"])
-    versoes = []
-    vistas = set()
-    for linha in linhas:
-        if len(por_fazenda[linha["fazenda_id"]]) < 2 or linha["id"] in vistas:
-            continue
-        vistas.add(linha["id"])
-        rotulo = rotulo_da_versao(linha["fazenda"], linha["nome"], varias_fazendas)
-        versoes.append(VersaoDoPrevisto(id=linha["id"], rotulo=rotulo))
-    return versoes
+def versoes_por_fazenda(s: Session, filtro: Filtro) -> list[VersoesDaFazenda]:
+    """Todas as fazendas do filtro, em ordem, com as versões do plano no período (da mais recente para a mais antiga;
+    nenhuma = sem plano), as marcadas de cada uma e se ela foi marcada "nenhum planejamento" (pedido do usuário,
+    10/11/2026). A tela lista todas, para mostrar o que vale em cada fazenda."""
+    nome_da_fazenda: dict = {}
+    versoes_da_fazenda: dict = defaultdict(list)
+    for linha in s.execute(text(VERSOES_POR_FAZENDA), filtro.parametros()).mappings():
+        nome_da_fazenda[linha["fazenda_id"]] = linha["fazenda"]
+        versoes = versoes_da_fazenda[linha["fazenda_id"]]
+        if linha["id"] is not None and linha["id"] not in {versao.id for versao in versoes}:
+            versoes.append(VersaoDoPrevisto(id=linha["id"], rotulo=linha["nome"] or "Sem nome"))
+    fazendas = []
+    for fazenda_id, nome in nome_da_fazenda.items():
+        versoes = versoes_da_fazenda[fazenda_id]
+        marcadas = [versao.id for versao in versoes if versao.id in filtro.versoes_do_plano]
+        fazendas.append(VersoesDaFazenda(fazenda_id=fazenda_id, fazenda=nome, versoes=versoes, escolhidas=marcadas,
+                                         sem_plano=fazenda_id in filtro.fazendas_sem_plano))
+    return fazendas
 
 
 def versoes_em_uso(s: Session, filtro: Filtro) -> list[str]:

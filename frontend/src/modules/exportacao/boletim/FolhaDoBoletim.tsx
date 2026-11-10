@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import logoBranco from "../../../assets/bi/terra-logo-branco.png";
+import logoBranco from "../../../assets/boletim/logo_terra_branco.png";
 import { doisDigitos, type Identificacao, LEMA_DA_TERRA, rotuloDaPagina, SITE_DA_TERRA } from "../../../logic/boletim";
 
 type Props = {
@@ -7,12 +7,14 @@ type Props = {
   total: number;
   titulo: string;
   identificacao: Identificacao;
+  nota?: string; // a observação do rodapé, antes da cidade e da data
   children: ReactNode;
 };
 
-// Uma folha do boletim de resultados (do Financeiro em diante): a faixa marinho com o logo, o selo marrom com o
-// número e o título, e à direita quem e quando; embaixo, a tira com o site, o lema da Terra e a cidade e a data.
-export function FolhaDoBoletim({ numero, total, titulo, identificacao, children }: Props) {
+// Uma folha do boletim de resultados (do Financeiro em diante), como no gerador oficial: a faixa marinho com o logo, o
+// fio, o selo marrom com o número e o título, e à direita a fazenda, o período e a página; embaixo, a tira com o site,
+// o lema da Terra e a cidade e a data.
+export function FolhaDoBoletim({ numero, total, titulo, identificacao, nota, children }: Props) {
   let direita = `${identificacao.titulo} · ${identificacao.rotuloDoPeriodo} · ${identificacao.periodo}`;
   if (numero !== null) {
     direita += ` · ${rotuloDaPagina(numero, total)}`;
@@ -20,68 +22,42 @@ export function FolhaDoBoletim({ numero, total, titulo, identificacao, children 
   return (
     <section className="boletim-folha" aria-label={titulo}>
       <header className="boletim-faixa">
-        <img className="boletim-faixa-logo" src={logoBranco} alt="Terra Desenvolvimento Agropecuário" />
-        {numero !== null && <span className="boletim-selo">{doisDigitos(numero)}</span>}
-        <h1>{titulo}</h1>
-        <p className="boletim-faixa-direita">{direita}</p>
+        <div className="boletim-faixa-esquerda">
+          <img className="boletim-faixa-logo" src={logoBranco} alt="Terra Desenvolvimento Agropecuário" />
+          <span className="boletim-faixa-fio" />
+          <div className="boletim-faixa-titulo">
+            {numero !== null && <span className="boletim-selo">{doisDigitos(numero)}</span>}
+            <h1>{titulo}</h1>
+          </div>
+        </div>
+        <span className="boletim-faixa-direita">{direita}</span>
       </header>
-      <div className="boletim-corpo">{children}</div>
-      <RodapeDoBoletim identificacao={identificacao} />
+      {children}
+      <RodapeDoBoletim identificacao={identificacao} nota={nota} />
     </section>
   );
 }
 
-export function RodapeDoBoletim({ identificacao }: { identificacao: Identificacao }) {
+function RodapeDoBoletim({ identificacao, nota }: { identificacao: Identificacao; nota?: string }) {
+  let direita = identificacao.localEData;
+  if (nota !== undefined && nota !== "") {
+    direita = `${nota} · ${identificacao.localEData}`;
+  }
   return (
     <footer className="boletim-rodape">
       <strong>{SITE_DA_TERRA}</strong>
       <em>{LEMA_DA_TERRA}</em>
-      <span>{identificacao.localEData}</span>
+      <span>{direita}</span>
     </footer>
   );
 }
 
-type QuadroProps = {
-  titulo: string;
-  direita?: ReactNode; // o que fica à direita do título (o total, a legenda)
-  nota?: ReactNode; // a frase de leitura, embaixo
-  className?: string;
-  children: ReactNode;
-};
-
-// Um quadro branco da folha, com o título em caixa alta e, embaixo, a frase que explica o número.
-export function QuadroDoBoletim({ titulo, direita, nota, className, children }: QuadroProps) {
-  let classes = "boletim-quadro";
-  if (className !== undefined) {
-    classes += ` ${className}`;
-  }
+// O título de uma parte da folha (04 Movimentação, 05 Mortes...): o número no selo marrom e o nome.
+export function TituloDaParte({ numero, children }: { numero: string; children: ReactNode }) {
   return (
-    <section className={classes}>
-      <header className="boletim-quadro-topo">
-        <h2>{titulo}</h2>
-        {direita !== undefined && <div className="boletim-quadro-direita">{direita}</div>}
-      </header>
-      <div className="boletim-quadro-conteudo">{children}</div>
-      {nota !== undefined && <p className="boletim-nota">{nota}</p>}
-    </section>
-  );
-}
-
-// O título de uma parte dentro da folha (Movimentação, Mortes...), com o quadradinho marrom.
-export function SubtituloDoBoletim({ children }: { children: ReactNode }) {
-  return <h3 className="boletim-subtitulo">{children}</h3>;
-}
-
-// A legenda das séries ("● Realizado ● Planejado").
-export function LegendaDoBoletim({ itens }: { itens: { nome: string; cor: string }[] }) {
-  return (
-    <span className="boletim-legenda">
-      {itens.map((item) => (
-        <span key={item.nome}>
-          <i style={{ background: item.cor }} />
-          {item.nome}
-        </span>
-      ))}
-    </span>
+    <h2 className="boletim-colt">
+      <i>{numero}</i>
+      {children}
+    </h2>
   );
 }

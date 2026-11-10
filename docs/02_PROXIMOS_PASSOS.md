@@ -242,8 +242,8 @@ boletim (PDF) ficam para depois (pedido do usuário, 15/10/2026).
 **Capa e exportação em PDF (15/10/2026), feitas:**
 - **Botão "Exportar PDF"** em todas as páginas do boletim e no MENU. O diálogo tem as páginas com seleção múltipla
   (capa e as 9 páginas do boletim, todas marcadas de início; Pendências fica de fora) e a cidade da capa.
-- **Capa:** a arte da capa da consultoria (`frontend/src/assets/bi/capa-fundo.png`, sem o "SAFRA" impresso, para
-  servir também ao ano civil). Mostra:
+- **Capa** (desde 10/11/2026, a do boletim de resultados nos três modos; ver "Boletim de resultados, versão 2"). A
+  primeira, a arte da capa da consultoria, mostrava:
   - SAFRA 24/25 (ou ANO 2025), conforme o filtro;
   - a fazenda escolhida ou as fazendas do grupo, separadas por " | ";
   - "Análise: <mês de hoje>";
@@ -324,8 +324,95 @@ paisagem da Fazenda CMI (2026), as telas e o PDF ganharam o visual do "boletim d
 - **SVG no PDF:** o `html-to-image` copia o `<svg>` sem o estilo calculado dos filhos; o que vinha de classe saía
   preto (o velocímetro) ou cinza (os rótulos das colunas). Agora o estilo vai em atributo (`ROTULO` em
   `estiloDosGraficos.ts`), e as colunas e barras do boletim são HTML.
-- **Personalizado:** continua em A4, com o visual novo (a faixa marinho no topo das folhas e a leitura em bege); a
-  capa dos modos Padrão e Personalizado continua a arte da consultoria.
+- **Personalizado:** continua em A4, com o visual novo (a faixa marinho no topo das folhas e a leitura em bege).
+
+**Boletim de resultados, versão 2 (10/11/2026), feito:** o usuário mandou o gerador oficial do boletim
+(`gerar_boletim.py`, com um JSON de exemplo e os logos oficiais; monta o HTML e imprime com o Playwright) e pediu uma
+versão nova baseada nele. A versão 1 ficou guardada na tag git `boletim-v1` (commit local `6a1279e`).
+- **O desenho é o do gerador**, peça por peça: cores exatas (oxford `#182945`, marrom `#856454`, planejado `#d3c7bd`),
+  fontes Archivo larga (font-stretch 125%) nos números e títulos e Arimo no texto, dos pacotes
+  `@fontsource-variable/archivo` e `@fontsource-variable/arimo` (o PDF não depende do Google Fonts), o logo e o
+  símbolo oficiais (`src/assets/boletim/`), a faixa do topo, os cartões, as tabelas, as colunas com o número em cima
+  e as barras deitadas nos tons do gerador.
+- **Comercialização numa folha só** (a v1 punha dois blocos por folha): venda abate à esquerda, com a tabela Fêmea /
+  Macho / Geral quando os dois sexos venderam (ou tinham meta) e Realizado × Planejado × Variação com um sexo só, e a
+  venda em pé numa faixa embaixo ("sem vendas no período" quando não houve); compras e reposição à direita, com a @ de
+  compra, o ágio e a @ vendida.
+- **Rebanho:** mortes por faixa em caixinhas que ficam vermelhas acima da meta, causas e mortes por mês (o mês acima
+  da meta em vermelho) e o acumulado; nascimentos (por sexo, % da meta e mês a mês) ou "Sem nascimentos no período";
+  transferências ou "Sem transferências no período".
+- **API** (`GET /dashboards/analitico`): `resumo` (vendas = abate + em pé e compras contra a meta, os 7 maiores grupos
+  de desembolso e "Outros (N grupos)", e o status do resultado pela regra do gerador: verde quando o realizado chega
+  ao planejado, com o planejado negativo também), `percentual_da_meta` em todo comparativo ("96,2% da meta") e a venda
+  por sexo (`vendas[].por_sexo`).
+- **Diferenças de propósito em relação ao gerador:** nos gráficos com mais de 6 meses o planejado fica sem número (os
+  dois números se encostavam); categorias e causas que a fonte manda em maiúsculas saem em letra normal ("Tristeza
+  parasitária"); a variação do investimento das compras não tem cor, porque a API não dá lado certo para comprar mais
+  ou menos.
+- **Conferido no navegador:** Fazenda CMI (ano 2026, jan a out) e Serra Dourada do Metryx (safra 25/26, com
+  nascimentos, venda dos dois sexos, venda em pé e transferências), as cinco folhas com 900 px.
+- **A mesma capa nos três modos** (pedido do usuário, 10/11/2026): Padrão e Personalizado deixaram a arte antiga da
+  consultoria (`Capa.tsx` e `assets/bi/capa-fundo.png` saíram). O "Conteúdo" da capa lista o que vem depois em
+  cada modo (as folhas, as páginas do painel ou os assuntos); com mais de 5 itens as linhas ficam mais baixas. No
+  Padrão, o planejamento em uso vem da consulta da Movimentação.
+
+**Financeiro do Metryx, status dos lançamentos e versão por fazenda (10/11/2026), feitos:** pedidos do usuário,
+depois de conferir a U6 contra o relatório financeiro do Metryx (safra 26/27 até outubro, com as versões 26/27 Bonito,
+Parte IV, Parte V e Parte VI).
+- **A meta do desembolso dava −58,29 R$/cab/mês:** no `previsao-fluxo-caixa-planejamento`, a despesa vem com valor
+  negativo e `type` Débito, e o adapter tratava o negativo como estorno (virava crédito). A natureza passou a vir só do
+  `type`, com o valor absoluto. Impacto: U6 26/27 de −58,45 para 206,32 (R$ 8,15 mi de despesa prevista sumida); U6
+  25/26 de 3,02 para 74,13 (R$ 20,7 mi); Maister 26/27 de −41,96 para 94,45 (R$ 36,9 mi); a Serra Dourada não mudou.
+  O tipo `previsao` (o DRE previsto) não tinha o problema.
+- **As regras do relatório do Metryx** (decisão do usuário: "siga o Metryx"), com a U6 batendo:
+
+  | U6, safra 26/27 até out/26 | Relatório | Antes | Agora |
+  |---|---|---|---|
+  | Desembolso de outubro | 1.056.116,33 | 2.178.517,40 | 1.056.116,35 |
+  | Desembolso/cab/mês | 192,92 | 228,43 | 192,92 |
+  | Custeio/cab/mês | 115,61 | 115,29 | 115,61 |
+  | Previsto desembolso de outubro | 718.839,77 | — | 718.839,77 |
+  | Previsto desembolso/cab/mês | 197,01 | 204,49 | 197,03 |
+  | Previsto custeio/cab/mês | 119,78 | 124,33 | 119,79 |
+
+  - o desembolso não conta a compra de animais (Rebanho Investimento), que fica como reposição de gado na "Relação
+    desembolso total", e o custeio conta os financiamentos (custeio = desembolso − investimentos). O BI de planilhas
+    conta os dois do outro jeito, e as marcas de `dim.centro_custo` valem para as duas fontes: a exceção do Metryx
+    fica em `dim.centro_custo_fonte` (migrações 0022–0023), que as views dos lançamentos e do orçamento usam antes das
+    marcas do subcentro e do centro. O BI Metryx conta a compra no desembolso (DCM): é regra do BI que a plataforma
+    não segue;
+  - o rebanho previsto do mês é o saldo do fim do mês na evolução do plano (era a média entre o começo e o fim), que
+    é o que o relatório usa para dividir o previsto por cabeça. A fazenda sintética do teste de equivalência começa
+    com 90 bezerros, para o fim de julho continuar em 110, como a planilha;
+  - **ficou de fora:** o crédito de outubro do relatório (R$ 665.702,52) não sai de nenhuma soma dos créditos de hoje
+    (rebanho R$ 663.281,07, financeiras R$ 12.083,81, outros R$ 201,70; falta R$ 2.421,45 sobre o rebanho): o mais
+    provável é que um lançamento tenha mudado no Metryx depois do relatório. A receita prevista bate no total (R$
+    426.620,00), mas a "Venda de Rebanho" do plano vem no centro "Comunicação e energia da fazenda" e cai em "A
+    classificar": falta classificar esse de-para na tela de administração.
+- **Status dos lançamentos** (migração 0024): o título ativo do Metryx entra conciliado (pago e com data de
+  conciliação), pago (sem ela) ou em aberto (sem pagamento: pelo vencimento e pelo valor a pagar; o mês do caixa,
+  `competencia`, passa a ser o do pagamento ou, sem ele, o do vencimento). O excluído ("Deletado") não entra mais, nem
+  com data de pagamento (a Maister tinha 40 assim, R$ 4,12 mi, que entravam no realizado; a Serra Dourada, 1, R$ 13
+  mil). A planilha só traz o pago. O MENU (quadro "Financeiro e planejamento") e o topo do Previsto × Realizado e do
+  Financeiro têm as caixas Conciliado, Pago e Em aberto, de seleção múltipla; sem escolha, os pagos (o número de
+  antes). A escolha é do filtro (`status` na URL, `situacao` na API) e vai no PDF; o filtro só aparece quando as
+  fazendas têm mais de uma situação (capacidade `situacoes` do `/escopo`).
+- **Versão do plano por fazenda, de seleção múltipla** (migração 0025: `app.versoes_do_planejado` e
+  `app.versoes_do_orcamento` recebem as versões marcadas e as fazendas sem planejamento): com todas as fazendas de um
+  cliente no filtro, cada uma tem a sua escolha. As páginas com meta, as do financeiro e o MENU mostram a versão em
+  uso e um botão que abre uma janela com todas as fazendas do filtro, numa tabela compacta (a fazenda à esquerda, as
+  caixas à direita): "Mais recente (nome)" (o padrão), as versões da fazenda e "Nenhum planejamento"; com uma versão
+  só, a caixa dela vale como "tem planejamento" (desmarcar = nenhum); a fazenda sem plano no período diz isso. As
+  versões marcadas numa fazenda **somam** (decisão do usuário: um mês que duas cobrem conta as duas); a fazenda
+  marcada "nenhum planejamento" fica sem metas, sem rebanho previsto e sem orçamento (dos dois tipos; no tipo
+  previsão, que não tem as versões do plano, marcar versões não muda nada). A lista junta as versões das metas e as
+  do orçamento do planejamento (são as mesmas versões do plano de cada fazenda), e a escolha vale nas duas. A janela
+  vai direto no `<body>` (portal): dentro do topo da página, a regra `.seletor-do-previsto .campo` (base de 300 px)
+  esticava cada linha. Na U6 26/27: ADMINISTRATIVO (3 versões), U6 BONITO (2), Parte IV, V e VI (1 cada) e
+  CONFINAMENTO (nenhuma). Atenção: no ADMINISTRATIVO a versão mais recente ("Versao p/ financiament") só tem junho de
+  2027, e por ser a mais recente vale a safra inteira; os outros meses ficam sem meta até a pessoa escolher outra.
+- **"Boletim Resumido"**: o modo Analítico do "Exportar PDF" passou a se chamar assim (é o boletim curto de quatro
+  folhas, o da Fazenda CMI); a chave interna continua `analitico`.
 
 **Boletim personalizado (20/10/2026), feito:** o terceiro modo do "Exportar PDF", para a pessoa escolher o que vai no
 boletim (pedido do usuário). Os números e as frases são os mesmos do analítico (`GET /dashboards/analitico`).
@@ -420,9 +507,13 @@ Previsto × Realizado e Financeiro escolhem qual comparar com o realizado.
 - **Canônico** (migração 0018): `fato.orcamento_financeiro.tipo` = `previsao` (o DRE previsto: o `previsao-financeiro`
   do Metryx e o DRE planejado da planilha) ou `planejamento` (o fluxo de caixa do plano); `dim.versao_plano.ordem`
   (maior = mais recente). As partições do orçamento são por tipo, e as duas cargas não se apagam.
-- **Adapter** (`planejamento.py`): o fluxo entra de todas as versões; natureza pelo `type`; valor negativo (a versão 1
-  da Serra Dourada tem R$ 417 mil assim em "Nutrição - Previsão de Compras") é estorno e inverte a natureza; o
-  subcentro genérico "Subcentro de Custo" (692 de 713 itens na Serra Dourada) fica de fora da conta, e o item cai no
+- **Adapter** (`planejamento.py`): o fluxo entra de todas as versões; natureza **só** pelo `type`, com o valor
+  absoluto. Até 10/11/2026 o valor negativo era tratado como estorno e invertia a natureza, mas no plano a despesa
+  vem negativa com `type` Débito (U6: 275 itens, R$ 29,5 mi; Maister: 1.629, R$ 67,0 mi; Serra Dourada: 9, R$ 417
+  mil): a despesa virava crédito e a meta do desembolso por cabeça saía negativa (U6, safra 26/27: −58,45 R$/cab/mês;
+  com a correção, 206,32; Maister 26/27: de −41,96 para 94,45; U6 25/26: de 3,02 para 74,13). O previsto de outubro
+  de 2026 da U6 bate com o relatório do Metryx (crédito R$ 426.620,00 e desembolso sem o Rebanho Investimento R$
+  718.839,77). O subcentro genérico "Subcentro de Custo" (692 de 713 itens na Serra Dourada) fica de fora da conta, e o item cai no
   centro de custo.
 - **Tela** (`app/kpis/previsto_financeiro.py`, `SeletorDoPrevisto`): "Planejado do financeiro" mostra só os tipos que
   as fazendas do filtro têm (padrão: a previsão financeira, se houver, como o BI); "Versão do planejamento" aparece

@@ -8,7 +8,7 @@ import { useArea } from "../../core/auth/AreaAutenticada";
 import { Aviso } from "../../core/ui/Aviso";
 import { GraficoDeBarras } from "../../core/ui/GraficoDeBarras";
 import { Moldura } from "../../core/ui/Moldura";
-import { SeletorDaVersao } from "../../core/ui/SeletorDaVersao";
+import { EscolhaDasVersoes } from "../../core/ui/EscolhaDasVersoes";
 import { Linha, Painel } from "../../core/ui/Painel";
 import { numero, percentual } from "../../logic/formatar";
 import { doRecorte } from "../../logic/recortes";
@@ -31,7 +31,7 @@ export function MortesPagina() {
     <Moldura caminho="/mortes">
       {pagina.isPending && <Aviso>Carregando…</Aviso>}
       {pagina.isError && <Aviso tipo="erro">Não foi possível carregar a página: {pagina.error.message}</Aviso>}
-      {pagina.data && <SeletorDaVersao escolha={pagina.data.plano} />}
+      {pagina.data && <EscolhaDasVersoes escolha={pagina.data.plano} />}
       {pagina.data && (
         <div className={pagina.isPlaceholderData ? "pagina atualizando" : "pagina"}>
           <Conteudo dados={pagina.data} />

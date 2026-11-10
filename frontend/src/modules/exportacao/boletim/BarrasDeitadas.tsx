@@ -1,71 +1,87 @@
 import { maiorValor } from "../../../logic/boletim";
 
 export type BarraDeitada = {
-  rotulo: string;
+  nome: string;
   valor: number;
-  texto: string; // o valor já escrito ("11,0 mi", "7")
-  extra?: string; // a participação, à direita do valor
+  texto: string; // o valor já escrito ("11,04 mi", "7")
+  participacao?: string; // "45,9%", na coluna da direita
 };
 
 type Props = {
   barras: BarraDeitada[]; // da maior para a menor
+  colunas: string; // as larguras do nome, da barra e do valor ("150px 1fr 60px"), como no gerador
   tom?: "marinho" | "marrom";
   escala?: number; // a maior barra de todas, quando a lista vem dividida em colunas (a mesma escala nas duas)
   primeira?: number; // a posição da primeira barra na lista inteira (o tom continua clareando na segunda coluna)
 };
 
-// As barras deitadas do boletim de resultados (desembolso por grupo, estoque por categoria, causa da morte): o nome, a
-// barra na escala da maior e o valor. As primeiras ficam escuras e as de baixo vão clareando, como na apresentação.
-export function BarrasDeitadas({ barras, tom = "marinho", escala, primeira = 0 }: Props) {
+// As barras deitadas do boletim (desembolso por grupo, estoque por categoria, causa da morte), como as do gerador
+// oficial (`hbarras`): o nome, a barra na escala da maior e o valor; as primeiras escuras, as de baixo mais claras.
+export function BarrasDeitadas({ barras, colunas, tom = "marinho", escala, primeira = 0 }: Props) {
+  if (barras.length === 0) {
+    return <span className="boletim-sub">Sem dados no período.</span>;
+  }
   let maior = maiorValor([barras.map((barra) => barra.valor)]);
   if (escala !== undefined) {
     maior = escala;
   }
+  let gradeDasColunas = colunas;
+  if (barras.some((barra) => barra.participacao !== undefined)) {
+    gradeDasColunas = `${colunas} 46px`;
+  }
   return (
-    <ul className="boletim-barras">
+    <div className="boletim-barras" style={{ gridTemplateColumns: gradeDasColunas }}>
       {barras.map((barra, posicao) => (
-        <li key={barra.rotulo}>
-          <span className="boletim-barras-nome">{barra.rotulo}</span>
-          <span className="boletim-barras-trilho">
-            <span className="boletim-barras-barra"
-              style={{ width: `${larguraDaBarra(barra.valor, maior)}%`,
-                background: corDaBarra(primeira + posicao, tom) }} />
-          </span>
-          <strong className="boletim-barras-valor">{barra.texto}</strong>
-          {barra.extra !== undefined && <span className="boletim-barras-extra">{barra.extra}</span>}
-        </li>
+        <LinhaDaBarra key={barra.nome} barra={barra} largura={larguraDaBarra(barra.valor, maior)}
+          cor={corDaBarra(primeira + posicao, tom)} />
       ))}
-    </ul>
+    </div>
+  );
+}
+
+function LinhaDaBarra({ barra, largura, cor }: { barra: BarraDeitada; largura: number; cor: string }) {
+  return (
+    <>
+      <span>{barra.nome}</span>
+      <div className="boletim-barras-barra" style={{ width: `${largura.toFixed(1)}%`, background: cor }} />
+      <span className="boletim-barras-valor">{barra.texto}</span>
+      {barra.participacao !== undefined && <span className="boletim-barras-participacao">{barra.participacao}</span>}
+    </>
   );
 }
 
 // a barra muito pequena ainda aparece como um traço
 function larguraDaBarra(valor: number, maior: number): number {
-  if (maior <= 0 || valor <= 0) {
-    return 0;
+  if (maior <= 0) {
+    return 0.4;
   }
-  return Math.max((valor / maior) * 100, 0.8);
+  return Math.max(0.4, (valor / maior) * 100);
 }
 
-type Tons = { escuro: string; medio: string; claro: string; suave: string };
-
-const TONS: Record<"marinho" | "marrom", Tons> = {
-  marinho: { escuro: "var(--cor-marinho)", medio: "var(--cor-marinho-medio)", claro: "var(--cor-marinho-claro)",
-    suave: "var(--cor-marinho-claro)" },
-  marrom: { escuro: "var(--cor-marrom)", medio: "var(--cor-marrom-claro)", claro: "var(--cor-marrom-claro)",
-    suave: "var(--cor-bege)" },
-};
-
+// os tons do gerador: no marinho, as 2 primeiras escuras, até a 5ª média, até a 9ª clara e o resto cinza; no marrom
+// (as causas da morte), a 1ª escura, até a 4ª média e o resto clara
 function corDaBarra(posicao: number, tom: "marinho" | "marrom"): string {
-  const cores = TONS[tom];
+  if (tom === "marrom") {
+    return corMarrom(posicao);
+  }
   if (posicao < 2) {
-    return cores.escuro;
+    return "var(--cor-marinho)";
   }
-  if (posicao < 3) {
-    return cores.medio;
+  if (posicao < 5) {
+    return "var(--cor-marinho-medio)";
   }
-  if (posicao < 6) {
-    return cores.claro;
+  if (posicao < 9) {
+    return "var(--cor-marinho-claro)";
   }
-  return cores.suave;
+  return "var(--boletim-eixo)";
+}
+
+function corMarrom(posicao: number): string {
+  if (posicao < 1) {
+    return "var(--cor-marrom)";
+  }
+  if (posicao < 4) {
+    return "var(--cor-marrom-claro)";
+  }
+  return "var(--cor-marrom-suave)";
 }
