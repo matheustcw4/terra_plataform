@@ -114,6 +114,13 @@ const DESENHOS: Record<string, ReactNode> = {
     </>
   ),
   voltar: <path d="M15 6l-6 6 6 6" />,
+  integracao: (
+    <>
+      <path d="M9 3v5M15 3v5" />
+      <path d="M6 8h12v3a6 6 0 0 1-12 0z" />
+      <path d="M12 17v4" />
+    </>
+  ),
   atualizar: (
     <>
       <path d="M20 12a8 8 0 1 1-2.3-5.7" />

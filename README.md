@@ -36,7 +36,7 @@ fonte ──► adapter.descobrir() ─► extrair() ─► normalizar() ──�
 
 ## Rodar as cargas
 
-No dia a dia, as planilhas chegam pela tela **Importar planilhas** do painel (menu Dados): a API guarda o arquivo na
+No dia a dia, as planilhas chegam pela tela **Integrações** do painel (menu Dados, aba Planilhas): a API guarda o arquivo na
 fila (`ingest.importacao`) e o worker carrega, um por vez, conferindo se quem enviou tem acesso à fazenda da planilha
 (fazenda nova, só o admin). Sem worker no desenvolvimento, a fila anda pela linha de comando. As fontes são só
 essas duas, a tela e o Metryx: o Google Drive deixou de ser fonte em 10/11/2026. A carga em massa de uma pasta local

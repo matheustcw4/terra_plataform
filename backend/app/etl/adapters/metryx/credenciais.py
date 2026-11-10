@@ -49,6 +49,7 @@ class Credencial:
     cliente_id: UUID
     metryx_customer_id: str
     token: str = field(repr=False)
+    cliente_nome: str = ""                 # o nome do cadastro: a descrição da unidade (a tela de integrações)
 
     def __repr__(self) -> str:   # nunca expor o token
         return f"Credencial(customer={self.metryx_customer_id}, id={self.id})"
@@ -56,16 +57,17 @@ class Credencial:
 
 def credenciais_ativas(engine: Engine, customers: list[str] | None = None) -> list[Credencial]:
     with sessao(engine) as s:
-        q = select(MetryxCredencial).where(MetryxCredencial.status == "ativa")
+        q = (select(MetryxCredencial, Cliente.nome).join(Cliente, Cliente.id == MetryxCredencial.cliente_id)
+             .where(MetryxCredencial.status == "ativa"))
         if customers:
             q = q.where(MetryxCredencial.metryx_customer_id.in_(customers))
-        linhas = s.scalars(q.order_by(MetryxCredencial.criado_em.desc())).all()
+        linhas = s.execute(q.order_by(MetryxCredencial.criado_em.desc())).all()
     vistos, out = set(), []
-    for c in linhas:                       # um token por cliente: o mais recente
+    for c, nome in linhas:                 # um token por cliente: o mais recente
         if c.metryx_customer_id in vistos:
             continue
         vistos.add(c.metryx_customer_id)
-        out.append(Credencial(c.id, c.cliente_id, c.metryx_customer_id, decifrar(c.token_cifrado)))
+        out.append(Credencial(c.id, c.cliente_id, c.metryx_customer_id, decifrar(c.token_cifrado), nome))
     return out
 
 

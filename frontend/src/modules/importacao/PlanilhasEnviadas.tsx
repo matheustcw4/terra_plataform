@@ -1,20 +1,15 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import type { Importacao } from "../../core/api/tipos";
-import { useArea } from "../../core/auth/AreaAutenticada";
-import { BotaoSair } from "../../core/auth/BotaoSair";
 import { Aviso } from "../../core/ui/Aviso";
-import { Casca } from "../../core/ui/Casca";
-import { gruposDoBoletim, IMPORTACAO } from "../../core/ui/paginasDoBoletim";
 import { algumaEmAndamento, terminouAlguma } from "../../logic/importacao";
 import { useImportacoes } from "./api";
 import { EnvioDePlanilhas } from "./EnvioDePlanilhas";
 import { ListaDeImportacoes } from "./ListaDeImportacoes";
 
-// Importação de planilhas (no lugar da pasta do Google Drive): a pessoa envia os RELATÓRIO*.xlsm e o servidor os
-// carrega, um por vez. Não usa o filtro do MENU: a fazenda vem de dentro da planilha.
-export function ImportacaoPagina() {
-  const { escopo } = useArea();
+// A aba Planilhas das integrações: a pessoa envia os RELATÓRIO*.xlsm e o servidor os carrega, um por vez, e a lista
+// mostra o resultado de cada um. Não usa o filtro do MENU: a fazenda vem de dentro da planilha.
+export function PlanilhasEnviadas({ ehAdmin }: { ehAdmin: boolean }) {
   const cliente = useQueryClient();
   const lista = useImportacoes();
   const leituraAnterior = useRef<Importacao[]>([]);
@@ -30,32 +25,23 @@ export function ImportacaoPagina() {
     leituraAnterior.current = lista.data;
   }, [lista.data, cliente]);
 
-  const controles = (
-    <>
-      <span className="topo-usuario">{escopo.usuario.nome}</span>
-      <BotaoSair />
-    </>
-  );
   return (
-    <Casca secao="Dados" grupos={gruposDoBoletim(escopo.usuario.eh_admin)} titulo={IMPORTACAO.rotulo}
-      icone={IMPORTACAO.icone} subtitulo="As planilhas das fazendas entram por aqui" controles={controles}>
-      <div className="pagina">
-        <section className="painel-grafico">
-          <h2>ENVIAR PLANILHAS</h2>
-          <Explicacao ehAdmin={escopo.usuario.eh_admin} />
-          <EnvioDePlanilhas />
-        </section>
-        <section className="painel-grafico tabela-rolavel">
-          <h2>
-            IMPORTAÇÕES RECENTES
-            {lista.data && algumaEmAndamento(lista.data) && <span className="selo selo-andamento">carregando</span>}
-          </h2>
-          {lista.isPending && <Aviso>Carregando…</Aviso>}
-          {lista.isError && <Aviso tipo="erro">Não foi possível carregar a lista: {lista.error.message}</Aviso>}
-          {lista.data && <ListaDeImportacoes lista={lista.data} />}
-        </section>
-      </div>
-    </Casca>
+    <>
+      <section className="painel-grafico">
+        <h2>ENVIAR PLANILHAS</h2>
+        <Explicacao ehAdmin={ehAdmin} />
+        <EnvioDePlanilhas />
+      </section>
+      <section className="painel-grafico tabela-rolavel">
+        <h2>
+          IMPORTAÇÕES RECENTES
+          {lista.data && algumaEmAndamento(lista.data) && <span className="selo selo-andamento">carregando</span>}
+        </h2>
+        {lista.isPending && <Aviso>Carregando…</Aviso>}
+        {lista.isError && <Aviso tipo="erro">Não foi possível carregar a lista: {lista.error.message}</Aviso>}
+        {lista.data && <ListaDeImportacoes lista={lista.data} />}
+      </section>
+    </>
   );
 }
 

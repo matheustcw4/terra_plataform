@@ -414,8 +414,25 @@ Parte IV, Parte V e Parte VI).
 - **"Boletim Resumido"**: o modo Analítico do "Exportar PDF" passou a se chamar assim (é o boletim curto de quatro
   folhas, o da Fazenda CMI); a chave interna continua `analitico`.
 
+**Integrações (10/11/2026), feito:** pedido do usuário ("seria bom ter uma aba ou algum lugar pra ver o log de
+atualização"). A tela "Importar planilhas" virou **Integrações** (`/integracoes`, menu Dados; o endereço antigo
+redireciona):
+- **aba Planilhas** (todo usuário): o envio e o resultado de cada arquivo, como antes (`modules/importacao/`);
+- **uma aba por API** (só o admin; hoje, o Metryx em `/integracoes/metryx`): se está ligada e quando roda (a agenda em
+  palavras), e as 30 cargas mais recentes, a mais nova aberta, com quem pediu, a duração, a situação de cada cliente
+  (com o motivo, quando não carregou) e os erros e avisos agrupados pelo código, com o texto em pt-BR e uma das
+  mensagens (`GET /admin/integracoes`, `GET /admin/integracoes/{fonte}/cargas`; `app/services/integracoes.py`,
+  `modules/integracoes/`, `logic/integracoes.ts`). Uma API nova entra na lista `APIS` do serviço;
+- só o admin: os jobs e as unidades das cargas não têm leitura para o usuário comum (RLS da migração 0007);
+- a carga que nem consegue listar os clientes (a `METRYX_CHAVE_CIFRA` errada, que impede decifrar os tokens) agora fecha
+  o job com o erro (`MotorCarga._descobrir`); antes, ele ficava "processando" para sempre e o erro só aparecia no log;
+- as unidades do Metryx levam o nome do cliente (o adapter grava a cada carga; a migração 0026 nomeou as que já
+  existiam, as da ponte do datalake com "(datalake do BI)");
+- cada carga nova de um cliente troca os avisos da anterior (como em Pendências): numa carga antiga, a lista de avisos
+  vem vazia e a tela explica por quê.
+
 **O Google Drive deixou de ser fonte (10/11/2026), feito:** pedido do usuário ("não vamos mais autenticar os dados do
-Google Drive"). Os dados só se atualizam pela tela **Importar planilhas** e pelo Metryx:
+Google Drive"). Os dados só se atualizam pela tela de importação das planilhas e pelo Metryx:
 - saíram o `PLANILHAS_DIR`, a `AGENDA_PLANILHAS` e a tarefa `cargas.planilhas`; um `.env` antigo com eles não quebra
   nada (a configuração ignora o que não conhece);
 - o "Atualizar agora" é só o Metryx: a situação (`GET /admin/atualizacao`) traz `disponivel`, que é o Metryx ligado

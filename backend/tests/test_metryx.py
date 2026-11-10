@@ -119,6 +119,8 @@ def test_carga_da_api(engine_etl, engine_super):
                                                                                  "pago:2025-07-01:1500.50")
     assert contar(engine_super, "SELECT count(*) FROM raw.payload") == 1
     assert contar(engine_super, "SELECT count(*) FROM integracao.metryx_credencial WHERE ultima_validacao_em IS NOT NULL") == 1
+    # a unidade leva o nome do cliente: é o que a tela de integrações mostra no histórico das cargas
+    assert contar(engine_super, "SELECT descricao FROM ingest.unidade_origem WHERE fonte = 'metryx'") == "Cliente Teste"
 
 
 def test_endpoint_proibido_mantem_os_dados_dele(engine_etl, engine_super):

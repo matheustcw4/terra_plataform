@@ -2629,6 +2629,87 @@
           }
         ]
       }
+    },
+    "/api/v1/admin/integracoes": {
+      "get": {
+        "tags": [
+          "integracoes"
+        ],
+        "summary": "Listar Integracoes",
+        "operationId": "listar_integracoes_api_v1_admin_integracoes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IntegracaoPorApi"
+                  },
+                  "type": "array",
+                  "title": "Response Listar Integracoes Api V1 Admin Integracoes Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/integracoes/{fonte}/cargas": {
+      "get": {
+        "tags": [
+          "integracoes"
+        ],
+        "summary": "Cargas Da Integracao",
+        "operationId": "cargas_da_integracao_api_v1_admin_integracoes__fonte__cargas_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fonte",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Fonte"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CargaDaIntegracao"
+                  },
+                  "title": "Response Cargas Da Integracao Api V1 Admin Integracoes  Fonte  Cargas Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2727,6 +2808,44 @@
         "type": "object",
         "title": "AlteracaoDeUsuario",
         "description": "Só os campos enviados mudam."
+      },
+      "AvisoDaCarga": {
+        "properties": {
+          "nivel": {
+            "type": "string",
+            "enum": [
+              "erro",
+              "aviso"
+            ],
+            "title": "Nivel"
+          },
+          "codigo": {
+            "type": "string",
+            "title": "Codigo"
+          },
+          "problema": {
+            "type": "string",
+            "title": "Problema"
+          },
+          "quantidade": {
+            "type": "integer",
+            "title": "Quantidade"
+          },
+          "exemplo": {
+            "type": "string",
+            "title": "Exemplo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nivel",
+          "codigo",
+          "problema",
+          "quantidade",
+          "exemplo"
+        ],
+        "title": "AvisoDaCarga",
+        "description": "Os erros e avisos de uma carga, agrupados pelo código."
       },
       "Body_importar_planilha_api_v1_importacoes_post": {
         "properties": {
@@ -2866,6 +2985,87 @@
         ],
         "title": "Capacidades",
         "description": "Que dados a fazenda tem (o front mostra ou esconde telas por isso, nunca pela fonte)."
+      },
+      "CargaDaIntegracao": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pendente",
+              "processando",
+              "concluido",
+              "concluido_com_avisos",
+              "erro"
+            ],
+            "title": "Status"
+          },
+          "iniciado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Iniciado Em"
+          },
+          "finalizado_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finalizado Em"
+          },
+          "pedida_por": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pedida Por"
+          },
+          "unidades": {
+            "items": {
+              "$ref": "#/components/schemas/UnidadeDaCarga"
+            },
+            "type": "array",
+            "title": "Unidades"
+          },
+          "avisos": {
+            "items": {
+              "$ref": "#/components/schemas/AvisoDaCarga"
+            },
+            "type": "array",
+            "title": "Avisos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "iniciado_em",
+          "finalizado_em",
+          "pedida_por",
+          "unidades",
+          "avisos"
+        ],
+        "title": "CargaDaIntegracao",
+        "description": "Uma carga de uma API: quando rodou, quem pediu, o que fez com cada cliente e o que avisou."
       },
       "CargaRecente": {
         "properties": {
@@ -4112,6 +4312,40 @@
           "rendimento_carcaca"
         ],
         "title": "IndicadoresDoLote"
+      },
+      "IntegracaoPorApi": {
+        "properties": {
+          "fonte": {
+            "type": "string",
+            "title": "Fonte"
+          },
+          "rotulo": {
+            "type": "string",
+            "title": "Rotulo"
+          },
+          "ligada": {
+            "type": "boolean",
+            "title": "Ligada"
+          },
+          "quando": {
+            "type": "string",
+            "title": "Quando"
+          },
+          "variavel_da_agenda": {
+            "type": "string",
+            "title": "Variavel Da Agenda"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fonte",
+          "rotulo",
+          "ligada",
+          "quando",
+          "variavel_da_agenda"
+        ],
+        "title": "IntegracaoPorApi",
+        "description": "Uma API que alimenta o painel (hoje, o Metryx). As planilhas não entram: chegam pela tela de importação."
       },
       "LinhaDoEstoque": {
         "properties": {
@@ -6398,6 +6632,49 @@
           "plano"
         ],
         "title": "Transferencias"
+      },
+      "UnidadeDaCarga": {
+        "properties": {
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "carregada",
+              "carregada_com_avisos",
+              "inalterada",
+              "ignorada",
+              "erro"
+            ],
+            "title": "Status"
+          },
+          "erro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erro"
+          },
+          "avisos": {
+            "type": "integer",
+            "title": "Avisos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nome",
+          "status",
+          "erro",
+          "avisos"
+        ],
+        "title": "UnidadeDaCarga",
+        "description": "Um cliente (ou um arquivo) dentro de uma carga."
       },
       "UsuarioDoAdmin": {
         "properties": {

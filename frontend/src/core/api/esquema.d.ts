@@ -464,6 +464,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/integracoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Integracoes */
+        get: operations["listar_integracoes_api_v1_admin_integracoes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integracoes/{fonte}/cargas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cargas Da Integracao */
+        get: operations["cargas_da_integracao_api_v1_admin_integracoes__fonte__cargas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -493,6 +527,25 @@ export interface components {
             ativo?: boolean | null;
             /** Senha */
             senha?: string | null;
+        };
+        /**
+         * AvisoDaCarga
+         * @description Os erros e avisos de uma carga, agrupados pelo código.
+         */
+        AvisoDaCarga: {
+            /**
+             * Nivel
+             * @enum {string}
+             */
+            nivel: "erro" | "aviso";
+            /** Codigo */
+            codigo: string;
+            /** Problema */
+            problema: string;
+            /** Quantidade */
+            quantidade: number;
+            /** Exemplo */
+            exemplo: string;
         };
         /** Body_importar_planilha_api_v1_importacoes_post */
         Body_importar_planilha_api_v1_importacoes_post: {
@@ -552,6 +605,32 @@ export interface components {
              * @default []
              */
             situacoes: string[];
+        };
+        /**
+         * CargaDaIntegracao
+         * @description Uma carga de uma API: quando rodou, quem pediu, o que fez com cada cliente e o que avisou.
+         */
+        CargaDaIntegracao: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pendente" | "processando" | "concluido" | "concluido_com_avisos" | "erro";
+            /** Iniciado Em */
+            iniciado_em: string | null;
+            /** Finalizado Em */
+            finalizado_em: string | null;
+            /** Pedida Por */
+            pedida_por: string | null;
+            /** Unidades */
+            unidades: components["schemas"]["UnidadeDaCarga"][];
+            /** Avisos */
+            avisos: components["schemas"]["AvisoDaCarga"][];
         };
         /** CargaRecente */
         CargaRecente: {
@@ -936,6 +1015,22 @@ export interface components {
             peso_medio_kg: number | null;
             /** Rendimento Carcaca */
             rendimento_carcaca: number | null;
+        };
+        /**
+         * IntegracaoPorApi
+         * @description Uma API que alimenta o painel (hoje, o Metryx). As planilhas não entram: chegam pela tela de importação.
+         */
+        IntegracaoPorApi: {
+            /** Fonte */
+            fonte: string;
+            /** Rotulo */
+            rotulo: string;
+            /** Ligada */
+            ligada: boolean;
+            /** Quando */
+            quando: string;
+            /** Variavel Da Agenda */
+            variavel_da_agenda: string;
         };
         /**
          * LinhaDoEstoque
@@ -1652,6 +1747,23 @@ export interface components {
             /** Serie Mensal */
             serie_mensal: components["schemas"]["MesDeTransferencia"][];
             plano: components["schemas"]["EscolhaDaVersao"];
+        };
+        /**
+         * UnidadeDaCarga
+         * @description Um cliente (ou um arquivo) dentro de uma carga.
+         */
+        UnidadeDaCarga: {
+            /** Nome */
+            nome: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "carregada" | "carregada_com_avisos" | "inalterada" | "ignorada" | "erro";
+            /** Erro */
+            erro: string | null;
+            /** Avisos */
+            avisos: number;
         };
         /** UsuarioDoAdmin */
         UsuarioDoAdmin: {
@@ -2823,6 +2935,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PedidoDeAtualizacao"];
+                };
+            };
+        };
+    };
+    listar_integracoes_api_v1_admin_integracoes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegracaoPorApi"][];
+                };
+            };
+        };
+    };
+    cargas_da_integracao_api_v1_admin_integracoes__fonte__cargas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fonte: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CargaDaIntegracao"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

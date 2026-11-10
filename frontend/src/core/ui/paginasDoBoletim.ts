@@ -23,10 +23,11 @@ export function paginaDoCaminho<Pagina extends { caminho: string }>(caminho: str
   return paginas.find((pagina) => caminho === pagina.caminho || caminho.startsWith(`${pagina.caminho}/`)) ?? null;
 }
 
-// A tela de importação de planilhas (fora do boletim e do PDF; não usa o filtro do MENU).
-export const IMPORTACAO = { caminho: "/importacao", rotulo: "Importar planilhas", icone: "enviar" };
+// As integrações (fora do boletim e do PDF; não usam o filtro do MENU): o envio das planilhas e o histórico das
+// cargas das APIs, como o Metryx (pedido do usuário, 10/11/2026; antes, "Importar planilhas").
+export const INTEGRACOES = { caminho: "/integracoes", rotulo: "Integrações", icone: "integracao" };
 
-// O menu lateral do boletim: as páginas, os dados (importar planilhas e as pendências) à parte e, no fim, o MENU
+// O menu lateral do boletim: as páginas, os dados (integrações e pendências) à parte e, no fim, o MENU
 // (filtros) e a administração (só para o admin; a API também recusa as rotas /admin para os outros).
 export function gruposDoBoletim(ehAdmin: boolean): GrupoDoMenu[] {
   const geral = [{ caminho: "/menu", rotulo: "Filtros (MENU)", icone: "filtro" }];
@@ -35,7 +36,7 @@ export function gruposDoBoletim(ehAdmin: boolean): GrupoDoMenu[] {
   }
   return [
     { titulo: "Boletim", itens: PAGINAS_DO_BOLETIM.filter((pagina) => pagina.noPdf) },
-    { titulo: "Dados", itens: [IMPORTACAO, ...PAGINAS_DO_BOLETIM.filter((pagina) => !pagina.noPdf)] },
+    { titulo: "Dados", itens: [INTEGRACOES, ...PAGINAS_DO_BOLETIM.filter((pagina) => !pagina.noPdf)] },
     { titulo: "Geral", itens: geral },
   ];
 }

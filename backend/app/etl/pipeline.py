@@ -102,13 +102,26 @@ class MotorCarga:
                  usuario_id: UUID | None = None) -> ResultadoJob:
         job_id = self._abrir_job(adapter.fonte, forcar, usuario_id)
         if unidades is None:
-            unidades = adapter.descobrir()
+            unidades = self._descobrir(adapter, job_id)
+        if unidades is None:
+            self._fechar_job(job_id, "erro", [])
+            return ResultadoJob(job_id, "erro", [])
         resultados = []
         for unidade in unidades:
             resultados.append(self.processar_unidade(adapter, unidade, job_id=job_id, forcar=forcar))
         status = status_do_job(resultados)
         self._fechar_job(job_id, status, resultados)
         return ResultadoJob(job_id, status, resultados)
+
+    def _descobrir(self, adapter: SourceAdapter, job_id: UUID) -> list[UnidadeOrigem] | None:
+        """As unidades da fonte, ou None quando nem a lista sai (a chave dos tokens errada, o banco fora): o erro fica
+        no job, que fecha, e a tela de integrações mostra o motivo. Sem isto, o job ficava "processando" para sempre."""
+        try:
+            return adapter.descobrir()
+        except Exception as exc:  # noqa: BLE001 — a falha vira o resultado do job, como a de uma unidade
+            log.exception("falha ao listar as unidades de %s", adapter.fonte)
+            self._registrar_erro(job_id, None, Cod.EXTRACT_FAILED, exc)
+            return None
 
     def processar_unidade(self, adapter: SourceAdapter, unidade: UnidadeOrigem, *, job_id: UUID | None = None,
                           forcar: bool = False) -> ResultadoUnidade:

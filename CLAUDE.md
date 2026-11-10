@@ -137,7 +137,11 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   Vendas (abate e em pé), Compras, Nascimentos, Mortes e Transferências, com paridade contra o BI (relatório
   §12–§16), e
   Pendências de lançamento (quarentena + avisos da última carga, por fazenda, sob RLS: `app.pendencias_de_carga`) e
-  Importar planilhas (menu Dados: o envio dos `.xlsm`, a fila do worker e o resultado de cada arquivo).
+  **Integrações** (menu Dados; até 10/11/2026, "Importar planilhas"): a aba Planilhas, de todo usuário, com o envio
+  dos `.xlsm`, a fila do worker e o resultado de cada arquivo, e uma aba por API, só do admin (hoje, o Metryx), com
+  o histórico das cargas, cliente por cliente, e os erros e avisos agrupados pelo código (`/integracoes/metryx`;
+  `GET /admin/integracoes` e `/admin/integracoes/{fonte}/cargas`, `app/services/integracoes.py`; API nova entra em
+  `APIS`). A carga que nem lista os clientes (a chave dos tokens errada) fecha o job com o erro, para aparecer ali.
 - **Capa e exportação em PDF:** botão "Exportar PDF" em todas as páginas e no MENU, com seleção múltipla das páginas
   e a cidade da capa (não é gravada em lugar nenhum); os três modos usam a capa do boletim de resultados
   (`modules/exportacao/boletim/CapaDoBoletim.tsx`, com o conteúdo de cada modo; 10/11/2026); o PDF sai de
@@ -185,12 +189,13 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - usuários na tela de admin; o primeiro admin pelo `python -m app.comandos` (`criar-usuario`, `dar-acesso`); a
     equipe da consultoria pela planilha de levantamento (`importar-equipe`, `app/services/equipe.py`).
 - **Base de integração e adapters prontos** (ver `README.md` e o §0 de `docs/02_PROXIMOS_PASSOS.md`):
-  - Postgres no compose; migrações 0001–0025 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
+  - Postgres no compose; migrações 0001–0026 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
     login, pendências, recálculo do estoque pela API, série nova do estoque começa no início da fazenda, cadastro de
     funções e o RLS dele, tipo do orçamento, versões do planejado, fila da importação de planilhas e o RLS dela, a
-    exceção de cada fonte às marcas do centro de custo e o RLS dela, a situação do lançamento e a versão por fazenda);
+    exceção de cada fonte às marcas do centro de custo e o RLS dela, a situação do lançamento, a versão por fazenda e
+    o nome do cliente nas unidades do Metryx);
   - contrato canônico, motor (guarda de volume, arquivo em dobro, recorte `desde`), CLI `python -m app.etl`;
-  - **adapter de planilhas**: as planilhas chegam pela tela **Importar planilhas** (09/11/2026, D8; todo usuário,
+  - **adapter de planilhas**: as planilhas chegam pela tela **Integrações**, aba Planilhas (09/11/2026, D8; todo usuário,
     só nas fazendas a que tem acesso, e fazenda nova só o admin; `ingest.importacao`, `app/etl/importacao.py`,
     `adapters/planilha/enviada.py`, migrações 0020–0021). **O Google Drive deixou de ser fonte** (pedido do
     usuário, 10/11/2026): as planilhas chegam só pela tela e o Metryx pela API; não há `PLANILHAS_DIR` nem agenda
@@ -213,8 +218,8 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     do desembolso negativa, 10/11/2026); nos lançamentos, a situação do título (conciliado, pago ou em aberto, este
     pelo vencimento e pelo valor a pagar; o excluído no Metryx não entra; migração 0024);
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 191 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
-    boletim analítico e a importação pela tela) + 96 testes do front (Vitest);
+  - 196 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
+    boletim analítico, a importação pela tela e as integrações) + 102 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,
     `layout_do_bi`, `lotacao_sem_area`). A lotação fica igual ao BI mesmo quando um mês com rebanho não tem área, o

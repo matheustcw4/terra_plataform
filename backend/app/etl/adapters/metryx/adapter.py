@@ -62,8 +62,10 @@ class AdapterMetryx:
             self._credenciais[credencial.metryx_customer_id] = credencial
         unidades = []
         for cliente_metryx, credencial in sorted(self._credenciais.items()):
-            unidades.append(UnidadeOrigem(chave=f"{PREFIXO}{cliente_metryx}",
-                                          descricao=f"Metryx cliente {cliente_metryx}",
+            descricao = f"Metryx cliente {cliente_metryx}"
+            if credencial.cliente_nome:
+                descricao = credencial.cliente_nome
+            unidades.append(UnidadeOrigem(chave=f"{PREFIXO}{cliente_metryx}", descricao=descricao,
                                           metadados={"credencial_id": str(credencial.id)}))
         return unidades
 

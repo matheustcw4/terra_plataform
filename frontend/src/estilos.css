@@ -1667,7 +1667,11 @@ h2 .selo {
   background: var(--cor-superficie-2);
 }
 
-.abas button {
+.abas button,
+.abas a {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
   font: inherit;
   font-size: 13px;
   font-weight: 500;
@@ -1683,15 +1687,99 @@ h2 .selo {
     color var(--mov-rapida) var(--mov-padrao);
 }
 
-.abas button:hover {
+.abas button:hover,
+.abas a:hover {
   color: var(--cor-texto);
 }
 
-.abas button.active {
+.abas button.active,
+.abas a.active {
   background: var(--cor-superficie);
   box-shadow: 0 1px 2px rgba(16, 32, 56, 0.12);
   color: var(--cor-azul);
   font-weight: 600;
+}
+
+/* integrações: o histórico das cargas de cada API (a mais nova aberta) */
+.cargas-da-api {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.carga-da-api {
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.carga-da-api summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.carga-da-api summary .selo {
+  margin-left: 0;
+}
+
+.carga-da-api-clientes {
+  margin-left: auto;
+  color: var(--cor-texto-apagado);
+}
+
+.carga-da-api-detalhe {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 14px 14px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.carga-da-api-detalhe .importacao-mensagem {
+  color: var(--cor-erro);
+}
+
+.avisos-da-carga {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.avisos-da-carga li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.avisos-da-carga .selo {
+  flex: none;
+  margin-left: 0;
+}
+
+.avisos-da-carga-texto {
+  min-width: 0;
+}
+
+/* a mensagem de uma das ocorrências, inteira: é nela que está o motivo (o endpoint, o 401, a chave errada) */
+.avisos-da-carga-exemplo {
+  display: block;
+  color: var(--cor-texto-apagado);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.abas-das-integracoes {
+  margin-bottom: 4px;
 }
 
 /* --- administração: de-paras, usuários, funções e acesso --- */

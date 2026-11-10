@@ -31,7 +31,7 @@ As agendas são no formato do cron (minuto hora dia mês dia-da-semana), no hor�
 se outra estiver rodando, a das importações e a do Metryx são puladas (a agenda tenta de novo depois); a do estoque
 espera. O resultado de cada carga fica em `ingest.job` e os avisos aparecem na aba Pendências.
 
-As fontes são duas: as planilhas, que chegam só pela tela **Importar planilhas**, e o Metryx, pela API (o Google
+As fontes são duas: as planilhas, que chegam só pela tela **Integrações** (aba Planilhas), e o Metryx, pela API (o Google
 Drive deixou de ser fonte em 10/11/2026). Fora da agenda, o admin pode pedir a carga do Metryx pelo painel: o botão
 **"Atualizar agora"** (o ↻ no topo) põe `cargas.atualizar_agora` na fila. Ele só aparece com `AGENDA_METRYX` ligada:
 sem o Metryx não há o que puxar. Por isso a API recebe o `REDIS_URL` e o `AGENDA_METRYX`, e o worker, o
@@ -101,7 +101,7 @@ terra run --rm -v /caminho/da/planilha:/dados/equipe:ro migracao \
 
 ### As planilhas
 
-As planilhas chegam pela tela **Importar planilhas** do painel (menu Dados; decisão D8, 09/11/2026), no lugar da
+As planilhas chegam pela tela **Integrações** do painel (menu Dados, aba Planilhas; decisão D8, 09/11/2026), no lugar da
 pasta sincronizada com o Google Drive. A pessoa envia o `RELATÓRIO - código - fazenda.xlsm`; a API guarda o arquivo
 em `ingest.importacao` e avisa o worker, que carrega um por vez, pelo mesmo motor de antes (o nome do arquivo continua
 sendo a chave dele: enviar de novo com o mesmo nome é uma versão nova). Cada técnico só importa as fazendas a que tem
@@ -218,6 +218,7 @@ subida do volume do banco (`docker/postgres/init`), com as senhas do `.env.produ
 | a planilha enviada fica "Na fila" | o worker está parado, ou outra carga está rodando | `terra ps` e `terra logs worker`; com o worker de pé, a agenda das importações pega em até 5 min |
 | a planilha enviada "Não carregou" | a mensagem diz o motivo (sem acesso à fazenda, fazenda nova, planilha com erro) | corrija e envie de novo; acesso, em Administração → Usuários e acesso |
 | a carga devolve `ocupada` | outra carga estava rodando | normal: a próxima passada pega |
+| o Metryx não atualizou | a carga deu erro (a chave dos tokens, o token vencido, a API fora do ar) | o admin vê o motivo em Integrações → Metryx, cliente por cliente; o detalhe técnico, em `terra logs worker` |
 | a API não sobe | a migração falhou | `terra logs migracao` |
 
 ## 9. Testar a produção no Windows antes do deploy
@@ -341,6 +342,6 @@ terra ps                      # api "healthy" e web de pé
 
 Os usuários, as senhas e os acessos vêm junto com a cópia: o que foi criado só no servidor se perde na troca.
 
-Sem o Metryx ligado no servidor, o botão **"Atualizar agora"** não aparece. A tela **Importar planilhas** funciona aqui (o worker sobe com o resto), o que serve para a equipe
+Sem o Metryx ligado no servidor, o botão **"Atualizar agora"** não aparece. A aba Planilhas da tela **Integrações** funciona aqui (o worker sobe com o resto), o que serve para a equipe
 testá-la; o que for importado no servidor também se perde na próxima troca do banco.
 

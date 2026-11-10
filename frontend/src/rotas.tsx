@@ -4,7 +4,7 @@ import { Redirecionar } from "./core/ui/Redirecionar";
 import { rotasDoAdmin } from "./modules/admin/AdminModule";
 import { rotasDasCompras } from "./modules/compras/ComprasModule";
 import { rotasDaExportacao } from "./modules/exportacao/ExportacaoModule";
-import { rotasDaImportacao } from "./modules/importacao/ImportacaoModule";
+import { rotasDasIntegracoes } from "./modules/integracoes/IntegracoesModule";
 import { rotasDoFinanceiro } from "./modules/financeiro/FinanceiroModule";
 import { rotasDoPrevisto } from "./modules/previsto/PrevistoModule";
 import { rotasDasMortes } from "./modules/mortes/MortesModule";
@@ -36,7 +36,7 @@ export const rotas = createBrowserRouter([
       ...rotasDasMortes,
       ...rotasDasTransferencias,
       ...rotasDaQualidade,
-      ...rotasDaImportacao,
+      ...rotasDasIntegracoes,
       ...rotasDaExportacao,
       ...rotasDoAdmin,
     ],
