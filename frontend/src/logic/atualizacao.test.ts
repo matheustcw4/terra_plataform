@@ -13,9 +13,9 @@ const PEDIDA_EM = "2026-10-16T10:00:00-04:00";
 function situacao(agora: string, rodando: boolean, iniciadoEm: string | null): SituacaoDaAtualizacao {
   let ultima = null;
   if (iniciadoEm !== null) {
-    ultima = { fonte: "planilha", status: "concluido", iniciado_em: iniciadoEm, finalizado_em: iniciadoEm };
+    ultima = { fonte: "metryx", status: "concluido", iniciado_em: iniciadoEm, finalizado_em: iniciadoEm };
   }
-  return { rodando, agora, ultima };
+  return { disponivel: true, rodando, agora, ultima };
 }
 
 describe("estado do Atualizar agora", () => {

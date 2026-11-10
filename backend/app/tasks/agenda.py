@@ -1,11 +1,11 @@
 """Quando cada carga roda: as agendas vêm da configuração (.env), no formato do cron, e viram o `beat_schedule`.
 
     AGENDA_IMPORTACOES="*/5 * * * *"   a cada 5 minutos, as planilhas enviadas pela tela que ainda esperam
-    AGENDA_PLANILHAS=""                desligada: as planilhas chegam pela tela (a pasta é só para carga em massa)
     AGENDA_METRYX=""                   desligada (vazia)
     AGENDA_ESTOQUE="30 0 1 * *"        dia 1 de cada mês, 00:30
 
-Os cinco campos são os do cron: minuto, hora, dia do mês, mês e dia da semana.
+Os cinco campos são os do cron: minuto, hora, dia do mês, mês e dia da semana. As planilhas não têm agenda: chegam
+só pela tela de importação (o Google Drive deixou de ser fonte em 10/11/2026).
 """
 
 from celery.schedules import crontab
@@ -15,7 +15,6 @@ from app.core.config import Settings
 # (nome da agenda, tarefa do Celery, campo da configuração com o horário)
 CARGAS = [
     ("importacoes", "cargas.importacoes", "agenda_importacoes"),
-    ("planilhas", "cargas.planilhas", "agenda_planilhas"),
     ("metryx", "cargas.metryx", "agenda_metryx"),
     ("estoque", "cargas.estoque", "agenda_estoque"),
 ]

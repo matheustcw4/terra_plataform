@@ -57,7 +57,7 @@ def motor(engine_etl):
 
 
 def planilha(engine_etl, pasta):
-    return motor(engine_etl).executar(AdapterPlanilha(pasta, estabilidade_s=0), forcar=True)
+    return motor(engine_etl).executar(AdapterPlanilha(pasta), forcar=True)
 
 
 def historico(engine_etl):

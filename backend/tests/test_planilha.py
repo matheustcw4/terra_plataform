@@ -22,7 +22,7 @@ HOJE, ATE = date(2025, 10, 1), date(2025, 9, 1)
 
 
 def carregar(pasta, **kw):
-    return MotorCarga(_engine(), hoje=HOJE, estoque_ate=ATE).executar(AdapterPlanilha(pasta, estabilidade_s=0), **kw)
+    return MotorCarga(_engine(), hoje=HOJE, estoque_ate=ATE).executar(AdapterPlanilha(pasta), **kw)
 
 
 _ENGINE = {}
@@ -301,7 +301,7 @@ def test_total_que_nao_bate_com_o_valor_por_cabeca_vira_aviso_na_linha(engine_et
     aponta a linha para alguém corrigir a planilha."""
     compras = [["COMPRA", datetime(2025, 7, 5), "Leilão", "Bezerro Mamando", 500, 270, 270000, None, 1442695]]
     gerar_planilha(tmp_path, linhas={"fCompras": compras})
-    MotorCarga(engine_etl, hoje=date(2025, 10, 1)).executar(AdapterPlanilha(tmp_path, estabilidade_s=0))
+    MotorCarga(engine_etl, hoje=date(2025, 10, 1)).executar(AdapterPlanilha(tmp_path))
     with engine_super.connect() as c:
         aviso = c.execute(text("SELECT origem_linha, mensagem FROM ingest.ocorrencia "
                                "WHERE codigo = 'TOTAL_INCONSISTENT'")).one()

@@ -76,6 +76,7 @@ services:
       JWT_MINUTOS: ${JWT_MINUTOS:-480}
       CORS_ORIGENS: https://${DOMINIO}
       REDIS_URL: redis://redis:6379/0        # o "Atualizar agora" e a importação de planilhas avisam o worker
+      AGENDA_METRYX: ${AGENDA_METRYX-}       # sem o Metryx ligado, o "Atualizar agora" não aparece
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')"]
       interval: 15s

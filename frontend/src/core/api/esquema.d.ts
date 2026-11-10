@@ -1621,6 +1621,8 @@ export interface components {
         };
         /** SituacaoDaAtualizacao */
         SituacaoDaAtualizacao: {
+            /** Disponivel */
+            disponivel: boolean;
             /** Rodando */
             rodando: boolean;
             /**

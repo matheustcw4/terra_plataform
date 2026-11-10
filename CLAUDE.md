@@ -163,8 +163,9 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
 - **Operação:** cargas agendadas com Celery + Redis (`app/tasks/`: beat dispara, worker executa uma por vez, trava
   consultiva no Postgres; agendas `AGENDA_*` no formato do cron; Metryx desligado até a autorização; fila com nome
   próprio, `terra`), botão **"Atualizar agora"** só para o admin no topo de todas as telas (`POST /admin/atualizacao`
-  põe `cargas.atualizar_agora` na fila: planilhas e, com `AGENDA_METRYX` ligada, o Metryx; a tela acompanha pela trava
-  e pelo `ingest.job` mais recente e, no fim, relê os números) e deploy na VPS
+  põe `cargas.atualizar_agora` na fila: a carga do Metryx, e por isso o botão só aparece com `AGENDA_METRYX` ligada,
+  pelo `disponivel` da situação; a tela acompanha pela trava e pelo `ingest.job` mais recente e, no fim, relê os
+  números) e deploy na VPS
   (`docker-compose.prod.yml`, imagens `backend/Dockerfile` e `docker/web/Dockerfile` com Caddy, backup diário; guia
   em `docs/03_DEPLOY_VPS.md`, validado subindo tudo no Docker Desktop).
 - **Administração (só admin):** de-para de categorias (classificar recalcula o estoque), de-para de contas (o DRE
@@ -191,9 +192,10 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - contrato canônico, motor (guarda de volume, arquivo em dobro, recorte `desde`), CLI `python -m app.etl`;
   - **adapter de planilhas**: as planilhas chegam pela tela **Importar planilhas** (09/11/2026, D8; todo usuário,
     só nas fazendas a que tem acesso, e fazenda nova só o admin; `ingest.importacao`, `app/etl/importacao.py`,
-    `adapters/planilha/enviada.py`, migrações 0020–0021); a pasta (`PLANILHAS_DIR` = `G:\Meu Drive\Relatórios`,
-    somente leitura) ficou para a carga em massa pela linha de comando. O adapter foi validado nos 230
-    `.xlsm` reais;
+    `adapters/planilha/enviada.py`, migrações 0020–0021). **O Google Drive deixou de ser fonte** (pedido do
+    usuário, 10/11/2026): as planilhas chegam só pela tela e o Metryx pela API; não há `PLANILHAS_DIR` nem agenda
+    de planilhas, e a carga em massa de uma pasta local (uma cópia dos arquivos) continua só pela linha de comando
+    (`python -m app.etl planilhas --pasta DIR`). O adapter foi validado nos 230 `.xlsm` reais;
   - **adapter Metryx** (cliente HTTP com allow-list, token cifrado, normalizador com a regra de saldo do BI),
     ajustado ao payload real (A29–A32 do relatório de validação §17), com a área de pasto do `utilizacao-pasto` para a
     lotação cab/ha (16/10/2026, §18); a UA do Metryx fica de fora até a API trazê-la; e o **planejamento** (27/10/2026,
@@ -211,7 +213,7 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     do desembolso negativa, 10/11/2026); nos lançamentos, a situação do título (conciliado, pago ou em aberto, este
     pelo vencimento e pelo valor a pagar; o excluído no Metryx não entra; migração 0024);
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 194 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
+  - 191 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
     boletim analítico e a importação pela tela) + 96 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,

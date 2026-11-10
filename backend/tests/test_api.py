@@ -108,7 +108,7 @@ def fazenda_com_financeiro(engine_etl, engine_super, tmp_path):
 def carregar_planilha(engine_etl, engine_super, pasta, linhas=None, categorias_extras=()):
     gerar_planilha(pasta, linhas=linhas, categorias_extras=categorias_extras)
     MotorCarga(engine_etl, hoje=date(2025, 10, 1), estoque_ate=date(2025, 9, 1)).executar(
-        AdapterPlanilha(pasta, estabilidade_s=0))
+        AdapterPlanilha(pasta))
     with engine_super.connect() as c:
         return c.execute(text("SELECT entidade_id FROM core.fonte_vinculo WHERE entidade = 'fazenda'")).scalar_one()
 

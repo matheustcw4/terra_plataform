@@ -1,8 +1,8 @@
 """Cruzamento plataforma × BI atual, por fazenda × mês, com os dados reais dos datalakes.
 
-    python -m validacao.cruzar [--sem-carga] [--ponte-planilha] [--ate AAAA-MM]
+    python -m validacao.cruzar [--sem-carga] [--pasta DIR | --ponte-planilha] [--ate AAAA-MM]
 
-Planilhas: adapter REAL lendo os .xlsm de PLANILHAS_DIR (ou a ponte das stg_* com --ponte-planilha).
+Planilhas: adapter REAL lendo os .xlsm de uma cópia local da pasta (`--pasta`) ou a ponte das stg_* (`--ponte-planilha`).
 Metryx: a ponte monta o JSON da API a partir das stg_* e usa o normalizador de produção.
 
 1. cria/migra o banco `terra_validacao` (descartável) e carrega as pontes (stg_* -> motor real -> canônico);
@@ -93,13 +93,20 @@ GROUP BY 1, 2, 3, 4
 """
 
 
+def pasta_das_planilhas() -> str:
+    """A cópia local das planilhas (`--pasta DIR`), que o adapter lê como na carga em massa."""
+    if "--pasta" not in sys.argv:
+        raise SystemExit("passe --pasta DIR (a cópia local das planilhas) ou --ponte-planilha")
+    return sys.argv[sys.argv.index("--pasta") + 1]
+
+
 def preparar_e_carregar() -> None:
     criar_banco(BANCO)
     command.upgrade(alembic_cfg(BANCO), "head")
     s = get_settings()
     etl = create_engine(s.url_etl(BANCO))
     motor = MotorCarga(etl, hoje=HOJE, estoque_ate=HOJE)
-    planilhas = PontePlanilha() if "--ponte-planilha" in sys.argv else AdapterPlanilha(estabilidade_s=0)
+    planilhas = PontePlanilha() if "--ponte-planilha" in sys.argv else AdapterPlanilha(pasta_das_planilhas())
     for ponte in (planilhas, PonteMetryx()):
         r = motor.executar(ponte)
         cont = defaultdict(int)

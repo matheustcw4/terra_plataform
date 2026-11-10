@@ -1,7 +1,7 @@
 """Linha de comando do motor de carga (roda como app_etl).
 
     python -m app.etl importacoes   (as planilhas enviadas pela tela que estão na fila; o worker faz o mesmo)
-    python -m app.etl planilhas [--pasta DIR] [--arquivo NOME ...] [--forcar]   (carga em massa de uma pasta)
+    python -m app.etl planilhas --pasta DIR [--arquivo NOME ...] [--forcar]   (carga em massa de uma pasta local)
     python -m app.etl planilhas-historico [--ate AAAA-MM] [--prop-faz CHAVE ...]   (carga única; depois de `planilhas`)
     python -m app.etl metryx [--cliente ID ...] [--forcar]
     python -m app.etl metryx-credencial --cliente ID --nome "Nome do cliente"   (lê o token sem ecoar)
@@ -59,8 +59,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m app.etl", description="Cargas do Projeto Terra")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("importacoes", help="carrega as planilhas enviadas pela tela que estão na fila")
-    p = sub.add_parser("planilhas", help="carrega os RELATÓRIO*.xlsm da pasta")
-    p.add_argument("--pasta")
+    p = sub.add_parser("planilhas", help="carga em massa dos RELATÓRIO*.xlsm de uma pasta local (no dia a dia, a tela)")
+    p.add_argument("--pasta", required=True)
     p.add_argument("--arquivo", action="append")
     p.add_argument("--forcar", action="store_true")
     p.add_argument("--ignorar-guarda", action="store_true")
@@ -107,9 +107,12 @@ def main(argv: list[str] | None = None) -> int:
     motor = MotorCarga(engine, ignorar_guarda=getattr(a, "ignorar_guarda", False))
     if a.cmd == "planilhas-historico":
         return _historico(engine, motor, date.fromisoformat(a.ate + "-01"), a.prop_faz)
-    if a.cmd in ("planilhas", "reprocessar") and getattr(a, "fonte", "planilha") == "planilha":
+    if a.cmd == "planilhas":
         from app.etl.adapters.planilha.adapter import AdapterPlanilha
-        adapter = AdapterPlanilha(getattr(a, "pasta", None), arquivos=getattr(a, "arquivo", None))
+        adapter = AdapterPlanilha(a.pasta, arquivos=a.arquivo)
+    elif a.cmd == "reprocessar" and a.fonte == "planilha":
+        from app.etl.adapters.planilha.adapter import AdapterPlanilha
+        adapter = AdapterPlanilha(".")          # o reprocessamento usa o bruto guardado, não relê a pasta
     else:
         from app.etl.adapters.metryx.adapter import AdapterMetryx
         adapter = AdapterMetryx(engine, customers=getattr(a, "cliente", None))

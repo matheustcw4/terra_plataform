@@ -22,10 +22,8 @@ class Settings(BaseSettings):
     app_user_password: str = ""
     app_etl_password: str = ""
 
-    # Fontes
-    # pasta dos RELATÓRIO*.xlsm, só para a carga em massa (`python -m app.etl planilhas`): no dia a dia, as planilhas
-    # chegam pela tela de importação
-    planilhas_dir: str | None = None
+    # Fontes: as planilhas chegam só pela tela de importação e o Metryx pela API (pedido do usuário, 10/11/2026: o
+    # Google Drive deixou de ser fonte)
     metryx_base_url: str = "https://web-srv.metryx.app:8444/mtxserver"
     metryx_chave_cifra: str | None = None     # chave Fernet que cifra os tokens Metryx no banco (nunca no git)
     datalake_plan_url: str | None = None      # conninfo do datalake do BI de planilhas (só leitura; carga do histórico)
@@ -34,7 +32,6 @@ class Settings(BaseSettings):
     # America/Cuiaba; vazia desliga a carga.
     redis_url: str = "redis://127.0.0.1:56379/0"     # o Redis do docker-compose de desenvolvimento (terra_redis)
     agenda_importacoes: str = "*/5 * * * *"       # a rede de segurança da fila da tela (a API já avisa a cada envio)
-    agenda_planilhas: str = ""                    # desligada: a pasta do Drive deu lugar à tela de importação
     agenda_metryx: str = ""                       # desligada: chamar a API real do Metryx depende de autorização
     agenda_estoque: str = "30 0 1 * *"            # dia 1, 00:30: estende o estoque de todas as fazendas ao mês novo
 
@@ -47,6 +44,12 @@ class Settings(BaseSettings):
     database_url_migracao: str | None = Field(default=None)
     database_url_api: str | None = Field(default=None)
     database_url_etl: str | None = Field(default=None)
+
+    @property
+    def metryx_ligado(self) -> bool:
+        """A agenda do Metryx preenchida é a autorização para chamar a API real (CLAUDE.md, Segurança): o "Atualizar
+        agora" segue a mesma regra da agenda."""
+        return bool(self.agenda_metryx.strip())
 
     def _url(self, usuario: str, senha: str, banco: str | None = None) -> str:
         host = f"{self.postgres_host}:{self.postgres_port}"

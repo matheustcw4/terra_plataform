@@ -4,9 +4,10 @@ import { usePedirAtualizacao, useSituacaoDaAtualizacao } from "../api/atualizaca
 import { dicaDaAtualizacao, estadoDaAtualizacao, type EstadoDaAtualizacao } from "../../logic/atualizacao";
 import { Icone } from "./Icone";
 
-// "Atualizar agora", só para o admin, no topo de todas as telas: pede ao worker as cargas (planilhas e, com a agenda
-// ligada, o Metryx), gira enquanto ele trabalha e, quando a carga pedida termina, faz todas as páginas relerem os
-// números.
+// "Atualizar agora", só para o admin, no topo de todas as telas: pede ao worker a carga do Metryx, gira enquanto ele
+// trabalha e, quando a carga pedida termina, faz todas as páginas relerem os números. As planilhas não passam por
+// aqui: chegam pela tela de importação. Com o Metryx desligado não há o que puxar, e o botão não aparece (a API diz
+// pelo `disponivel`).
 export function BotaoAtualizarAgora() {
   const cliente = useQueryClient();
   const [pedidaEm, trocarPedidaEm] = useState<string | null>(null);
@@ -31,6 +32,10 @@ export function BotaoAtualizarAgora() {
       // 409: já tem carga rodando; a situação relida mostra o botão girando
       onSettled: () => situacao.refetch(),
     });
+  }
+
+  if (situacao.data?.disponivel !== true) {
+    return null;
   }
 
   const ocupado = pedir.isPending || estado === "na_fila" || estado === "rodando";

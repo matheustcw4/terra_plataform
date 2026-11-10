@@ -149,6 +149,7 @@ class CargaRecente(BaseModel):
 
 
 class SituacaoDaAtualizacao(BaseModel):
+    disponivel: bool                        # o botão tem o que fazer: o Metryx ligado (sem ele, a tela esconde o botão)
     rodando: bool                           # alguma carga está com a trava agora (da agenda ou pedida)
     agora: datetime                         # o relógio do banco, para a tela comparar com o pedido
     ultima: CargaRecente | None             # a carga mais recente, de qualquer fonte

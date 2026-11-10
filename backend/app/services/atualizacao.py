@@ -1,8 +1,12 @@
 """O botão "Atualizar agora" do admin: põe a tarefa `cargas.atualizar_agora` na fila do worker e diz como está a carga
 (rodando agora? quando foi a última?).
 
-A API não carrega nada: quem lê as planilhas e o Metryx é o worker, uma carga por vez (trava das cargas). Por isso o
-pedido é recusado quando já tem carga rodando, e a tela acompanha pela trava e pelo `ingest.job` mais recente.
+O botão puxa só o Metryx, e só com a agenda dele ligada (a autorização para chamar a API real): as planilhas chegam
+pela tela de importação, que carrega cada envio na hora (o Google Drive deixou de ser fonte em 10/11/2026). Com o
+Metryx desligado, a tela não mostra o botão.
+
+A API não carrega nada: quem lê o Metryx é o worker, uma carga por vez (trava das cargas). Por isso o pedido é recusado
+quando já tem carga rodando, e a tela acompanha pela trava e pelo `ingest.job` mais recente.
 """
 
 import logging
@@ -13,6 +17,7 @@ from kombu.exceptions import OperationalError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.schemas.admin import CargaRecente, PedidoDeAtualizacao, SituacaoDaAtualizacao
 from app.tasks.fila import celery
 from app.tasks.trava import carga_rodando
@@ -28,6 +33,12 @@ ULTIMA_CARGA = """
 """
 JA_RODANDO = "já tem uma carga rodando; os dados atualizam quando ela terminar"
 FILA_FORA = "a fila das cargas (Redis) não respondeu; confira se o Redis e o worker estão no ar"
+METRYX_DESLIGADO = "o Metryx está desligado (AGENDA_METRYX vazia); as planilhas chegam pela tela de importação"
+
+
+def disponivel() -> bool:
+    """O botão só tem o que fazer com o Metryx ligado. (Os testes trocam esta função.)"""
+    return get_settings().metryx_ligado
 
 
 def situacao(s: Session) -> SituacaoDaAtualizacao:
@@ -35,11 +46,14 @@ def situacao(s: Session) -> SituacaoDaAtualizacao:
     ultima = None
     if linha is not None:
         ultima = CargaRecente(**linha)
-    return SituacaoDaAtualizacao(rodando=carga_rodando(s), agora=s.scalar(text("SELECT now()")), ultima=ultima)
+    agora = s.scalar(text("SELECT now()"))
+    return SituacaoDaAtualizacao(disponivel=disponivel(), rodando=carga_rodando(s), agora=agora, ultima=ultima)
 
 
 def pedir(s: Session, admin_id: UUID) -> PedidoDeAtualizacao:
     """Põe a atualização na fila. `pedida_em` é o relógio do banco: a carga que começar depois disto é a pedida."""
+    if not disponivel():
+        raise HTTPException(status.HTTP_409_CONFLICT, METRYX_DESLIGADO)
     if carga_rodando(s):
         raise HTTPException(status.HTTP_409_CONFLICT, JA_RODANDO)
     pedida_em = s.scalar(text("SELECT now()"))

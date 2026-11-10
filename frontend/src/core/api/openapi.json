@@ -6304,6 +6304,10 @@
       },
       "SituacaoDaAtualizacao": {
         "properties": {
+          "disponivel": {
+            "type": "boolean",
+            "title": "Disponivel"
+          },
           "rodando": {
             "type": "boolean",
             "title": "Rodando"
@@ -6326,6 +6330,7 @@
         },
         "type": "object",
         "required": [
+          "disponivel",
           "rodando",
           "agora",
           "ultima"

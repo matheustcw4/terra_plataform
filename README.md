@@ -38,14 +38,15 @@ fonte ──► adapter.descobrir() ─► extrair() ─► normalizar() ──�
 
 No dia a dia, as planilhas chegam pela tela **Importar planilhas** do painel (menu Dados): a API guarda o arquivo na
 fila (`ingest.importacao`) e o worker carrega, um por vez, conferindo se quem enviou tem acesso à fazenda da planilha
-(fazenda nova, só o admin). Sem worker no desenvolvimento, a fila anda pela linha de comando. A pasta
-(`PLANILHAS_DIR`) ficou para a carga em massa.
+(fazenda nova, só o admin). Sem worker no desenvolvimento, a fila anda pela linha de comando. As fontes são só
+essas duas, a tela e o Metryx: o Google Drive deixou de ser fonte em 10/11/2026. A carga em massa de uma pasta local
+(uma cópia dos arquivos) continua pela linha de comando, para a manutenção.
 
 ```bash
 cd backend
 .venv/Scripts/python -m app.etl importacoes               # as planilhas enviadas pela tela que estão na fila
-.venv/Scripts/python -m app.etl planilhas                 # carga em massa: os RELATÓRIO*.xlsm de PLANILHAS_DIR (pula o que não mudou)
-.venv/Scripts/python -m app.etl planilhas --arquivo "RELATÓRIO - 85 - ITAPAJÉ - BELA VISTA.xlsm"
+.venv/Scripts/python -m app.etl planilhas --pasta DIR     # carga em massa: os RELATÓRIO*.xlsm de uma pasta local (pula o que não mudou)
+.venv/Scripts/python -m app.etl planilhas --pasta DIR --arquivo "RELATÓRIO - 85 - ITAPAJÉ - BELA VISTA.xlsm"
 .venv/Scripts/python -m app.etl planilhas-historico --ate 2026-06   # carga única do histórico (snapshot do BI), após `planilhas`
 .venv/Scripts/python -m app.etl metryx-credencial --cliente <idCustomer> --nome "Cliente"   # pede o token sem ecoar
 .venv/Scripts/python -m app.etl metryx                    # clientes com credencial ativa
@@ -55,7 +56,7 @@ cd backend
 Validação contra os BIs atuais (banco descartável `terra_validacao`; relatório em `docs/validacao/`):
 
 ```bash
-.venv/Scripts/python -m validacao.cruzar --ate 2026-07      # adapter real nos .xlsm de PLANILHAS_DIR + Metryx
+.venv/Scripts/python -m validacao.cruzar --pasta DIR --ate 2026-07   # adapter real nos .xlsm de uma cópia local + Metryx
 .venv/Scripts/python -m validacao.classificar               # separa diferença de arquivo alterado após o snapshot
 .venv/Scripts/python -m validacao.cruzar_kpis --sorteios 300 # KPIs da página Movimentação × medidas do BI
 .venv/Scripts/python -m validacao.cruzar_compras_e_vendas --sorteios 300   # Vendas e Compras × medidas do BI
@@ -66,7 +67,7 @@ Validação contra os BIs atuais (banco descartável `terra_validacao`; relatór
 
 | Adapter | Onde | Fonte | Unidade de origem |
 |---|---|---|---|
-| Planilhas | `backend/app/etl/adapters/planilha/` | `.xlsm` enviado pela tela (`enviada.py`) ou, na carga em massa, em `PLANILHAS_DIR` (somente leitura, calamine) | um arquivo (a chave é o nome) |
+| Planilhas | `backend/app/etl/adapters/planilha/` | `.xlsm` enviado pela tela (`enviada.py`) ou, na carga em massa, de uma pasta local (somente leitura, calamine) | um arquivo (a chave é o nome) |
 | Metryx | `backend/app/etl/adapters/metryx/` | API REST, só os GET da allow-list | um cliente (token) |
 
 - **Planilha:**
@@ -173,13 +174,14 @@ O layout das páginas do BI, para as próximas telas, está em `docs/referencias
 ## Cargas agendadas e produção
 
 Em produção, as cargas rodam sozinhas: o **beat** (Celery) dispara e o **worker** executa, uma por vez
-(`backend/app/tasks/`): planilhas a cada 2 horas, o estoque no dia 1 de cada mês e o Metryx só depois de autorizado
-(`AGENDA_METRYX` vazia = desligado). As agendas vêm do `.env` no formato do cron (`AGENDA_PLANILHAS`, `AGENDA_METRYX`,
-`AGENDA_ESTOQUE`). Em desenvolvimento, as cargas continuam pela linha de comando (`python -m app.etl ...`).
+(`backend/app/tasks/`): as planilhas enviadas pela tela que ainda esperam na fila a cada 5 minutos, o estoque no dia 1
+de cada mês e o Metryx só depois de autorizado (`AGENDA_METRYX` vazia = desligado). As agendas vêm do `.env` no formato
+do cron (`AGENDA_IMPORTACOES`, `AGENDA_METRYX`, `AGENDA_ESTOQUE`). Em desenvolvimento, as cargas continuam pela linha de comando (`python -m app.etl ...`).
 
 O admin tem um botão discreto **"Atualizar agora"** (o ↻ no topo de todas as telas): ele põe a tarefa
-`cargas.atualizar_agora` na fila do worker (planilhas e, se `AGENDA_METRYX` estiver ligada, o Metryx), gira enquanto a
-carga roda e, quando ela termina, faz as páginas relerem os números. Com uma carga já rodando, o pedido é recusado; se
+`cargas.atualizar_agora` na fila do worker (a carga do Metryx), gira enquanto a carga roda e, quando ela termina, faz as
+páginas relerem os números. Ele só aparece com `AGENDA_METRYX` ligada: as planilhas chegam pela tela de importação, que
+carrega cada envio na hora, e sem o Metryx não há o que puxar. Com uma carga já rodando, o pedido é recusado; se
 o worker não começar em 2 minutos, o botão avisa. As tarefas da Terra usam a fila `terra` (num Redis compartilhado, só
 o worker da Terra as pega).
 

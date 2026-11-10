@@ -31,9 +31,12 @@ As agendas são no formato do cron (minuto hora dia mês dia-da-semana), no hor�
 se outra estiver rodando, a das importações e a do Metryx são puladas (a agenda tenta de novo depois); a do estoque
 espera. O resultado de cada carga fica em `ingest.job` e os avisos aparecem na aba Pendências.
 
-Fora da agenda, o admin pode pedir a carga pelo painel: o botão **"Atualizar agora"** (o ↻ no topo) põe
-`cargas.atualizar_agora` na fila (com `AGENDA_METRYX` ligada, o Metryx; na VPS não há pasta de planilhas). Por isso a
-API também recebe o `REDIS_URL` e o worker, o `AGENDA_METRYX` (já no `docker-compose.prod.yml`). As tarefas usam a fila `terra`; ao
+As fontes são duas: as planilhas, que chegam só pela tela **Importar planilhas**, e o Metryx, pela API (o Google
+Drive deixou de ser fonte em 10/11/2026). Fora da agenda, o admin pode pedir a carga do Metryx pelo painel: o botão
+**"Atualizar agora"** (o ↻ no topo) põe `cargas.atualizar_agora` na fila. Ele só aparece com `AGENDA_METRYX` ligada:
+sem o Metryx não há o que puxar. Por isso a API recebe o `REDIS_URL` e o `AGENDA_METRYX`, e o worker, o
+`AGENDA_METRYX` (já no `docker-compose.prod.yml`). Uma `AGENDA_PLANILHAS` que tenha ficado num `.env.producao` antigo
+não faz nada. As tarefas usam a fila `terra`; ao
 atualizar uma instalação antiga, suba o beat e o worker juntos (os dois passam a usar a fila nova).
 
 ## 2. Requisitos
@@ -338,7 +341,6 @@ terra ps                      # api "healthy" e web de pé
 
 Os usuários, as senhas e os acessos vêm junto com a cópia: o que foi criado só no servidor se perde na troca.
 
-Sem pasta de planilhas nem Metryx no servidor, o botão **"Atualizar agora"** não traz nada novo: neste servidor ele
-não deve ser usado. A tela **Importar planilhas** funciona aqui (o worker sobe com o resto), o que serve para a equipe
+Sem o Metryx ligado no servidor, o botão **"Atualizar agora"** não aparece. A tela **Importar planilhas** funciona aqui (o worker sobe com o resto), o que serve para a equipe
 testá-la; o que for importado no servidor também se perde na próxima troca do banco.
 

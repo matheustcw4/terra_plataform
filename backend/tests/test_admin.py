@@ -186,14 +186,16 @@ def test_cadastro_de_funcoes(api, admin):
 
 @pytest.fixture
 def fila(monkeypatch) -> list:
-    """No lugar do Redis: guarda o que a API pôs na fila."""
+    """No lugar do Redis: guarda o que a API pôs na fila. Com o Metryx ligado: sem ele, o botão não tem o que fazer."""
     pedidos = []
     monkeypatch.setattr(atualizacao, "enviar_para_a_fila", pedidos.append)
+    monkeypatch.setattr(atualizacao, "disponivel", lambda: True)
     return pedidos
 
 
 def test_atualizar_agora_poe_a_carga_na_fila(api, admin, fila, engine_super):
     situacao = api.get("/api/v1/admin/atualizacao", headers=admin).json()
+    assert situacao["disponivel"] is True
     assert situacao["rodando"] is False
     assert situacao["ultima"] is None
     resposta = api.post("/api/v1/admin/atualizacao", headers=admin)
@@ -212,6 +214,16 @@ def test_atualizar_agora_com_carga_rodando_espera(api, admin, fila, engine_etl):
     assert fila == []
 
 
+def test_atualizar_agora_com_o_metryx_desligado_nao_tem_botao(api, admin, fila, monkeypatch):
+    # as planilhas chegam pela tela de importação: sem o Metryx, não há o que puxar
+    monkeypatch.setattr(atualizacao, "disponivel", lambda: False)
+    assert api.get("/api/v1/admin/atualizacao", headers=admin).json()["disponivel"] is False
+    resposta = api.post("/api/v1/admin/atualizacao", headers=admin)
+    assert resposta.status_code == 409
+    assert "Metryx" in resposta.json()["detail"]
+    assert fila == []
+
+
 def test_atualizar_agora_mostra_a_ultima_carga(api, admin, fazenda):
     ultima = api.get("/api/v1/admin/atualizacao", headers=admin).json()["ultima"]
     assert ultima["fonte"] == "planilha"
@@ -223,6 +235,7 @@ def test_atualizar_agora_sem_redis_avisa(api, admin, monkeypatch):
         raise OperationalError("Redis fora do ar")
 
     monkeypatch.setattr(atualizacao, "enviar_para_a_fila", fila_fora)
+    monkeypatch.setattr(atualizacao, "disponivel", lambda: True)
     resposta = api.post("/api/v1/admin/atualizacao", headers=admin)
     assert resposta.status_code == 503
     assert "Redis" in resposta.json()["detail"]

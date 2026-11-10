@@ -31,7 +31,7 @@ Adapters e motor (feito em 14/10, com testes):
 
 | Item | Situação |
 |---|---|
-| Fase 2 (adapter de planilhas) | `app/etl/adapters/planilha/`: lê os `.xlsm` da pasta (`PLANILHAS_DIR`, hoje `G:\Meu Drive\Relatórios`, só leitura) com calamine, pelo nome do cabeçalho; identidade = código do projeto + fazenda; CADASTROINICIAL (de-para, saldo inicial, período); desmame/mudança/consumo como lançamentos; planejado (versão PLANILHA); orçamento por centro × mês |
+| Fase 2 (adapter de planilhas) | `app/etl/adapters/planilha/`: lê os `.xlsm` da pasta (`PLANILHAS_DIR`, até 10/11/2026 `G:\Meu Drive\Relatórios`, só leitura) com calamine, pelo nome do cabeçalho; identidade = código do projeto + fazenda; CADASTROINICIAL (de-para, saldo inicial, período); desmame/mudança/consumo como lançamentos; planejado (versão PLANILHA); orçamento por centro × mês |
 | Fase 3 (adapter Metryx) | `app/etl/adapters/metryx/`: allow-list de GETs, cliente httpx com repetição, token cifrado (Fernet, `METRYX_CHAVE_CIFRA`), uma unidade por cliente, normalizador sobre o JSON da API (transferências entre fazendas, retiro legado das mortes, `weightTotal`, estorno), partições por endpoint com guarda de volume. **Chamada real à API ainda não feita** (precisa de autorização e token de teste) |
 | Motor | guarda de volume (`SNAPSHOT_HELD`), arquivo em dobro da mesma fazenda (vale o mais recente, `DUPLICATE_UNIT_FILE`) ou com os mesmos bytes sob outro nome (`DUPLICATE_CONTENT`), recorte `desde` (a planilha da safra nova não apaga a anterior), erro de uma unidade não derruba o job, CLI `python -m app.etl` |
 | Equivalência (doc 01 §7) | `tests/test_planilha.py::test_equivalencia_planilha_e_metryx`: a mesma fazenda sintética em `.xlsx` e em JSON da API gera o mesmo estoque, os mesmos fluxos e a mesma área de pasto |
@@ -414,6 +414,17 @@ Parte IV, Parte V e Parte VI).
 - **"Boletim Resumido"**: o modo Analítico do "Exportar PDF" passou a se chamar assim (é o boletim curto de quatro
   folhas, o da Fazenda CMI); a chave interna continua `analitico`.
 
+**O Google Drive deixou de ser fonte (10/11/2026), feito:** pedido do usuário ("não vamos mais autenticar os dados do
+Google Drive"). Os dados só se atualizam pela tela **Importar planilhas** e pelo Metryx:
+- saíram o `PLANILHAS_DIR`, a `AGENDA_PLANILHAS` e a tarefa `cargas.planilhas`; um `.env` antigo com eles não quebra
+  nada (a configuração ignora o que não conhece);
+- o "Atualizar agora" é só o Metryx: a situação (`GET /admin/atualizacao`) traz `disponivel`, que é o Metryx ligado
+  (`Settings.metryx_ligado`, a mesma regra da agenda); sem ele a tela esconde o botão e o `POST` responde 409;
+- o adapter da pasta (`adapters/planilha/adapter.py`) ficou para a carga em massa de uma cópia local pela linha de
+  comando (`python -m app.etl planilhas --pasta DIR`, a pasta agora obrigatória) e para os testes, sem a espera do
+  arquivo "ainda sincronizando" (`FILE_UNSTABLE`), que só existia por causa do Drive; o `validacao.cruzar` pede
+  `--pasta` ou `--ponte-planilha`.
+
 **Boletim personalizado (20/10/2026), feito:** o terceiro modo do "Exportar PDF", para a pessoa escolher o que vai no
 boletim (pedido do usuário). Os números e as frases são os mesmos do analítico (`GET /dashboards/analitico`).
 - **Assuntos:** capa, movimentação do estoque, lotação, placar zootécnico, **nascimentos**, **compras**, vendas abate,
@@ -620,8 +631,8 @@ valor); depois, operação (agendamento das cargas e deploy na VPS).
 - **"Atualizar agora" (16/10/2026, pedido do usuário):** botão pequeno, só do admin, no topo de todas as telas
   (`core/ui/BotaoAtualizarAgora.tsx`, dentro da `Casca`). `POST /admin/atualizacao` põe `cargas.atualizar_agora` na
   fila (409 se já tem carga rodando; 503 se o Redis não responde) e `GET /admin/atualizacao` diz se a trava está presa
-  e qual foi a última carga. A tarefa carrega as planilhas e, só com `AGENDA_METRYX` ligada (a autorização), o Metryx,
-  com a trava presa do começo ao fim; o job guarda quem pediu (`ingest.job.usuario_id`). A tela pergunta a cada 4 s
+  e qual foi a última carga. A tarefa carrega o Metryx, só com `AGENDA_METRYX` ligada (a autorização; até
+  10/11/2026 carregava também a pasta das planilhas); o job guarda quem pediu (`ingest.job.usuario_id`). A tela pergunta a cada 4 s
   enquanto espera, relê todos os números quando a carga pedida termina e avisa se o worker não começar em 2 minutos
   (`logic/atualizacao.ts`). As tarefas passaram para a fila `terra` (o Redis desta máquina de dev é o do
   agro_platform); no compose de produção a API ganhou `REDIS_URL` e o worker, `AGENDA_METRYX`.

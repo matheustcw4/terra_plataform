@@ -1,8 +1,9 @@
 """As cargas que o beat agenda e o worker executa. Cada tarefa é um invólucro fino de uma função que recebe o banco
 (os testes chamam a função direto, sem fila).
 
-O resultado detalhado de cada carga fica em `ingest.job` e nas ocorrências (aba Pendências); a tarefa devolve só um
-resumo, que vai para o log do worker.
+As fontes são duas (pedido do usuário, 10/11/2026: o Google Drive deixou de ser fonte): as planilhas enviadas pela
+tela de importação e o Metryx pela API. O resultado detalhado de cada carga fica em `ingest.job` e nas ocorrências
+(aba Pendências); a tarefa devolve só um resumo, que vai para o log do worker.
 """
 
 import logging
@@ -15,7 +16,6 @@ from sqlalchemy import Engine, text
 from app.core.config import Settings, get_settings
 from app.db.session import engine_etl
 from app.etl.adapters.metryx.adapter import AdapterMetryx
-from app.etl.adapters.planilha.adapter import AdapterPlanilha
 from app.etl.importacao import processar_fila
 from app.etl.pipeline import MotorCarga, ResultadoJob
 from app.tasks.fila import celery
@@ -32,62 +32,28 @@ def resumo(resultado: ResultadoJob) -> dict:
     return {"status": resultado.status, "job_id": str(resultado.job_id), "unidades": dict(unidades)}
 
 
-def executar_planilhas(engine: Engine, pasta: str, estabilidade_s: float, usuario_id: UUID | None = None) -> dict:
-    """A carga das planilhas em si, sem a trava (quem chama segura a trava)."""
-    adapter = AdapterPlanilha(pasta, estabilidade_s=estabilidade_s)
-    return resumo(MotorCarga(engine).executar(adapter, usuario_id=usuario_id))
-
-
 def executar_metryx(engine: Engine, usuario_id: UUID | None = None) -> dict:
     """A carga do Metryx em si, sem a trava (quem chama segura a trava)."""
     return resumo(MotorCarga(engine).executar(AdapterMetryx(engine), usuario_id=usuario_id))
 
 
-def carga_de_planilhas(engine: Engine, pasta: str | None, estabilidade_s: float = 60) -> dict:
-    """Lê a pasta das planilhas; arquivo sem mudança desde a última carga é pulado (assinatura e sha256), e arquivo
-    salvo há menos de `estabilidade_s` segundos também (ainda sincronizando: entra na próxima)."""
-    if not pasta:
-        log.warning("carga de planilhas sem PLANILHAS_DIR configurado: nada a fazer")
-        return {"status": "sem_pasta"}
-    with trava_das_cargas(engine, esperar=False) as conseguiu:
-        if not conseguiu:
-            log.info("carga de planilhas pulada: outra carga está rodando")
-            return {"status": "ocupada"}
-        return executar_planilhas(engine, pasta, estabilidade_s)
-
-
-def carga_do_metryx(engine: Engine) -> dict:
-    """Sincroniza os clientes Metryx com credencial ativa. Só roda se AGENDA_METRYX estiver preenchida: chamar a API
-    real do Metryx depende de autorização (CLAUDE.md, Segurança)."""
+def carga_do_metryx(engine: Engine, usuario_id: UUID | None = None) -> dict:
+    """Sincroniza os clientes Metryx com credencial ativa. A agenda só roda com AGENDA_METRYX preenchida: chamar a
+    API real do Metryx depende de autorização (CLAUDE.md, Segurança)."""
     with trava_das_cargas(engine, esperar=False) as conseguiu:
         if not conseguiu:
             log.info("carga do Metryx pulada: outra carga está rodando")
             return {"status": "ocupada"}
-        return executar_metryx(engine)
+        return executar_metryx(engine, usuario_id)
 
 
-def metryx_ligado(configuracao: Settings) -> bool:
-    """A agenda do Metryx preenchida é a autorização para chamar a API real (CLAUDE.md, Segurança): o "Atualizar
-    agora" segue a mesma regra da agenda."""
-    return bool(configuracao.agenda_metryx.strip())
-
-
-def atualizacao_agora(engine: Engine, pasta: str | None, com_metryx: bool, usuario_id: UUID | None = None,
-                      estabilidade_s: float = 60) -> dict:
-    """O botão "Atualizar agora" do admin: as planilhas e, se ligado, o Metryx, em seguida. A trava fica presa do
-    começo ao fim: a tela acompanha pela trava, e um vão entre as duas cargas pareceria o fim."""
-    with trava_das_cargas(engine, esperar=False) as conseguiu:
-        if not conseguiu:
-            log.info("atualização pedida pulada: outra carga está rodando")
-            return {"status": "ocupada"}
-        resultado = {}
-        if pasta:
-            resultado["planilhas"] = executar_planilhas(engine, pasta, estabilidade_s, usuario_id)
-        else:
-            resultado["planilhas"] = {"status": "sem_pasta"}
-        if com_metryx:
-            resultado["metryx"] = executar_metryx(engine, usuario_id)
-        return resultado
+def atualizacao_agora(engine: Engine, configuracao: Settings, usuario_id: UUID | None = None) -> dict:
+    """O botão "Atualizar agora" do admin: o Metryx, só com a agenda dele ligada (a mesma autorização da agenda).
+    As planilhas não entram: chegam pela tela de importação, que carrega cada envio na hora."""
+    if not configuracao.metryx_ligado:
+        log.info("atualização pedida com o Metryx desligado: nada a fazer")
+        return {"status": "metryx_desligado"}
+    return carga_do_metryx(engine, usuario_id)
 
 
 def importacoes_na_fila(engine: Engine) -> dict:
@@ -108,13 +74,6 @@ def recalculo_do_estoque(engine: Engine, ate: date) -> dict:
     return {"status": "concluido", "linhas": linhas}
 
 
-@celery.task(name="cargas.planilhas")
-def carregar_planilhas() -> dict:
-    resultado = carga_de_planilhas(engine_etl(), get_settings().planilhas_dir)
-    log.info("carga de planilhas: %s", resultado)
-    return resultado
-
-
 @celery.task(name="cargas.metryx")
 def sincronizar_metryx() -> dict:
     resultado = carga_do_metryx(engine_etl())
@@ -125,11 +84,10 @@ def sincronizar_metryx() -> dict:
 @celery.task(name="cargas.atualizar_agora")
 def atualizar_agora(usuario_id: str | None = None) -> dict:
     """Pedida pelo admin na tela (POST /admin/atualizacao); o job fica com o id de quem pediu."""
-    configuracao = get_settings()
     dono = None
     if usuario_id:
         dono = UUID(usuario_id)
-    resultado = atualizacao_agora(engine_etl(), configuracao.planilhas_dir, metryx_ligado(configuracao), dono)
+    resultado = atualizacao_agora(engine_etl(), get_settings(), dono)
     log.info("atualização pedida pelo admin: %s", resultado)
     return resultado
 
