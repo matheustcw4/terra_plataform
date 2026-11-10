@@ -176,7 +176,7 @@ def linha(nome: str, valores: Valores, lado: str | None, limiar: float) -> Linha
 
 def comparacao(realizado: float, planejado: float, lado: str | None, limiar: float) -> Comparacao:
     variacao = dividir(realizado - planejado, planejado)
-    return Comparacao(realizado=realizado, planejado=planejado, variacao=variacao,
+    return Comparacao(realizado=realizado, planejado=planejado, diferenca=realizado - planejado, variacao=variacao,
                       semaforo=semaforo(variacao, lado, limiar))
 
 

@@ -19,12 +19,15 @@ def compras(s: Session, filtro: Filtro) -> Compras:
     quadros = lotes.quadro(s, filtro, lotes.COMPRA)
     preco_de_compra = quadro_geral(quadros).realizado.preco_arroba
     preco_de_venda = preco_da_arroba_vendida(s, filtro)
-    agio = None
-    if preco_de_compra is not None and preco_de_venda:
-        agio = (preco_de_compra - preco_de_venda) / preco_de_venda
     return Compras(periodo=periodo_do_filtro(filtro), quadro=quadros, preco_arroba_compra=preco_de_compra,
-                   preco_arroba_venda=preco_de_venda, agio=agio,
+                   preco_arroba_venda=preco_de_venda, agio=agio(preco_de_compra, preco_de_venda),
                    serie_mensal=lotes.serie_mensal(s, filtro, lotes.COMPRA), plano=escolha_da_versao(s, filtro))
+
+
+def agio(preco_de_compra: float | None, preco_de_venda: float | None) -> float | None:
+    if preco_de_compra is None or not preco_de_venda:
+        return None
+    return (preco_de_compra - preco_de_venda) / preco_de_venda
 
 
 def quadro_geral(quadros: list[QuadroDoLote]) -> QuadroDoLote:

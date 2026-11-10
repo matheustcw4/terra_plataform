@@ -501,7 +501,7 @@ export interface components {
             lotacao: components["schemas"]["SecaoLotacao"];
             placar_zootecnico: components["schemas"]["SecaoPlacar"];
             nascimentos: components["schemas"]["SecaoDeLotes"];
-            compras: components["schemas"]["SecaoDeLotes"];
+            compras: components["schemas"]["SecaoDeCompras"];
             /** Vendas */
             vendas: components["schemas"]["SecaoDeLotes"][];
             transferencias: components["schemas"]["SecaoTransferencias"];
@@ -609,6 +609,8 @@ export interface components {
             valor_acumulado: number;
             /** Por Cabeca Mes */
             por_cabeca_mes: number | null;
+            /** Participacao */
+            participacao: number | null;
         };
         /**
          * ComMeta
@@ -628,6 +630,8 @@ export interface components {
             realizado: number;
             /** Planejado */
             planejado: number;
+            /** Diferenca */
+            diferenca: number;
             /** Variacao */
             variacao: number | null;
             /** Semaforo */
@@ -1000,22 +1004,6 @@ export interface components {
             /** Valor */
             valor: number | null;
         };
-        /** MesComparado */
-        MesComparado: {
-            /**
-             * Mes
-             * Format: date
-             */
-            mes: string;
-            /** Realizado */
-            realizado: number | null;
-            /** Previsto */
-            previsto: number;
-            /** Realizado Acumulado */
-            realizado_acumulado: number | null;
-            /** Previsto Acumulado */
-            previsto_acumulado: number;
-        };
         /** MesDaContagem */
         MesDaContagem: {
             /**
@@ -1051,6 +1039,8 @@ export interface components {
             lotacao_ua_ha: number | null;
             /** Lotacao Cab Ha Prevista */
             lotacao_cab_ha_prevista: number | null;
+            /** Estoque Final */
+            estoque_final: number | null;
         };
         /** MesDaMortalidade */
         MesDaMortalidade: {
@@ -1128,6 +1118,29 @@ export interface components {
             /** Preco Arroba */
             preco_arroba: number | null;
         };
+        /**
+         * MesDoLoteComparado
+         * @description As cabeças e o valor (faturamento na venda, investimento na compra) de um mês.
+         */
+        MesDoLoteComparado: {
+            /**
+             * Mes
+             * Format: date
+             */
+            mes: string;
+            /** Realizado */
+            realizado: number | null;
+            /** Previsto */
+            previsto: number;
+            /** Realizado Acumulado */
+            realizado_acumulado: number | null;
+            /** Previsto Acumulado */
+            previsto_acumulado: number;
+            /** Valor */
+            valor: number | null;
+            /** Valor Previsto */
+            valor_previsto: number;
+        };
         /** MortalidadeDoGrupo */
         MortalidadeDoGrupo: {
             /** Grupo */
@@ -1138,6 +1151,10 @@ export interface components {
             realizado: number | null;
             /** Meta Periodo */
             meta_periodo: number | null;
+            /** Mortes */
+            mortes: number;
+            /** Mortes Previstas */
+            mortes_previstas: number;
         };
         /** MorteDoMes */
         MorteDoMes: {
@@ -1421,6 +1438,25 @@ export interface components {
             /** Leitura */
             leitura: string[];
         };
+        /** SecaoDeCompras */
+        SecaoDeCompras: {
+            /** Tipo */
+            tipo: string;
+            /** Titulo */
+            titulo: string;
+            /** Lancamentos */
+            lancamentos: components["schemas"]["LoteDoMes"][];
+            /** Meses */
+            meses: components["schemas"]["MesDoLoteComparado"][];
+            /** Resumo */
+            resumo: components["schemas"]["LinhaDoPlacar"][];
+            /** Leitura */
+            leitura: string[];
+            /** Preco Arroba Venda */
+            preco_arroba_venda: number | null;
+            /** Agio */
+            agio: number | null;
+        };
         /** SecaoDeLotes */
         SecaoDeLotes: {
             /** Tipo */
@@ -1430,7 +1466,7 @@ export interface components {
             /** Lancamentos */
             lancamentos: components["schemas"]["LoteDoMes"][];
             /** Meses */
-            meses: components["schemas"]["MesComparado"][];
+            meses: components["schemas"]["MesDoLoteComparado"][];
             /** Resumo */
             resumo: components["schemas"]["LinhaDoPlacar"][];
             /** Leitura */
@@ -1452,6 +1488,8 @@ export interface components {
             placar: components["schemas"]["LinhaDoPlacar"][];
             /** Centros */
             centros: components["schemas"]["CentroDoDesembolso"][];
+            /** Meses */
+            meses: components["schemas"]["MesDoFinanceiro"][];
             /** Leitura */
             leitura: string[];
         };
@@ -1477,6 +1515,10 @@ export interface components {
             lotacao_maxima: number | null;
             /** Lotacao Minima */
             lotacao_minima: number | null;
+            /** Pico Do Rebanho */
+            pico_do_rebanho: number | null;
+            /** Mes Do Pico */
+            mes_do_pico: string | null;
             /** Meses */
             meses: components["schemas"]["MesDaLotacao"][];
             /** Leitura */

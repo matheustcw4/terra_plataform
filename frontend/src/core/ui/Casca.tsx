@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import globoBranco from "../../assets/bi/terra-globo-branco.png";
 import logoBranco from "../../assets/bi/terra-logo-branco.png";
-import logo from "../../assets/bi/terra-logo.png";
 import { useArea } from "../auth/AreaAutenticada";
 import { BotaoAtualizarAgora } from "./BotaoAtualizarAgora";
 import { Icone } from "./Icone";
@@ -21,9 +20,9 @@ type Props = {
   children: ReactNode;
 };
 
-// A casca das telas, com a base visual do AgTechLab nas cores da Terra: menu lateral (recolhível; no celular vira
-// gaveta), topo com as migalhas e os controles, e o cabeçalho da página. O logo só aparece no cabeçalho do PDF (no
-// painel ele já está no menu lateral). O "Atualizar agora" do admin fica aqui para estar em todas as telas.
+// A casca das telas, com a base visual do AgTechLab no visual do boletim de resultados da Terra: menu lateral
+// (recolhível; no celular vira gaveta), topo com as migalhas e os controles, e a faixa marinho do título da página. O
+// logo (branco, sobre a faixa) só aparece no cabeçalho do PDF (no painel ele já está no menu lateral). O "Atualizar agora" do admin fica aqui para estar em todas as telas.
 export function Casca({ secao, grupos, titulo, subtitulo, icone, controles, children }: Props) {
   const { search } = useLocation(); // os links levam o filtro junto
   const { escopo } = useArea();
@@ -90,7 +89,7 @@ export function Casca({ secao, grupos, titulo, subtitulo, icone, controles, chil
         </header>
         <main className="area-da-pagina">
           <header className="cabecalho-da-pagina">
-            <img className="cabecalho-logo-pdf" src={logo} alt="" />
+            <img className="cabecalho-logo-pdf" src={logoBranco} alt="" />
             {icone && (
               <span className="cabecalho-icone">
                 <Icone nome={icone} tamanho={24} />

@@ -62,7 +62,11 @@ export type SecaoLotacao = Schemas["SecaoLotacao"];
 export type SecaoPlacar = Schemas["SecaoPlacar"];
 export type SecaoDeLotes = Schemas["SecaoDeLotes"];
 export type LoteDoMes = Schemas["LoteDoMes"];
-export type MesComparado = Schemas["MesComparado"];
+// as cabeças previstas × realizadas de um mês, comuns aos lotes (MesDoLoteComparado) e às mortes (MesDaMortalidade)
+export type MesComparado = Pick<Schemas["MesDoLoteComparado"],
+  "mes" | "realizado" | "previsto" | "realizado_acumulado" | "previsto_acumulado">;
+export type MesDoLoteComparado = Schemas["MesDoLoteComparado"];
+export type SecaoDeCompras = Schemas["SecaoDeCompras"];
 export type SecaoTransferencias = Schemas["SecaoTransferencias"];
 export type SecaoMortes = Schemas["SecaoMortes"];
 export type SecaoFinanceiro = Schemas["SecaoFinanceiro"];

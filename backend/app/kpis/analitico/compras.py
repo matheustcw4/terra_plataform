@@ -7,10 +7,17 @@ Comprar mais ou menos cabeças não tem lado certo (depende da estratégia da fa
 from sqlalchemy.orm import Session
 
 from app.kpis import lotes
-from app.kpis.analitico.lotes_do_mes import leitura_dos_lotes, lotes_do_mes, meses_comparados, resumo_dos_lotes
+from app.kpis.analitico.lotes_do_mes import (
+    leitura_dos_lotes,
+    linha_chamada,
+    lotes_do_mes,
+    meses_comparados,
+    resumo_dos_lotes,
+)
 from app.kpis.analitico.placar import TresRecortes
 from app.kpis.analitico.recortes import Recortes
-from app.schemas.analitico import SecaoDeLotes
+from app.kpis.compras import agio, preco_da_arroba_vendida
+from app.schemas.analitico import LinhaDoPlacar, SecaoDeCompras
 
 RESUMO = [
     ("Cabeças", "cab", None, "cabecas"),
@@ -22,10 +29,20 @@ RESUMO = [
 ]
 
 
-def secao_compras(s: Session, recortes: Recortes, valores: TresRecortes, limiar: float) -> SecaoDeLotes:
+def secao_compras(s: Session, recortes: Recortes, valores: TresRecortes, limiar: float) -> SecaoDeCompras:
     comprados = lotes_do_mes(s, recortes, lotes.COMPRA)
     quadros = (valores.mes.compras, valores.acumulado.compras, valores.periodo.compras)
     resumo = resumo_dos_lotes("COMPRAS", quadros, RESUMO, limiar)
-    return SecaoDeLotes(tipo="compra", titulo="Compras", lancamentos=comprados,
-                        meses=meses_comparados(s, recortes, lotes.COMPRA), resumo=resumo,
-                        leitura=leitura_dos_lotes(recortes, "Compras", comprados, resumo, "Nenhuma compra"))
+    preco_de_venda = preco_da_arroba_vendida(s, recortes.acumulado)
+    return SecaoDeCompras(tipo="compra", titulo="Compras", lancamentos=comprados,
+                          meses=meses_comparados(s, recortes, lotes.COMPRA), resumo=resumo,
+                          leitura=leitura_dos_lotes(recortes, "Compras", comprados, resumo, "Nenhuma compra"),
+                          preco_arroba_venda=preco_de_venda,
+                          agio=agio(preco_da_arroba_comprada(resumo), preco_de_venda))
+
+
+def preco_da_arroba_comprada(resumo: list[LinhaDoPlacar]) -> float | None:
+    linha = linha_chamada(resumo, "Preço da @")
+    if linha is None:
+        return None
+    return linha.acumulado.realizado

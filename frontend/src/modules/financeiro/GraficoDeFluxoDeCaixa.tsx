@@ -3,7 +3,7 @@ import { Bar, CartesianGrid, ComposedChart, LabelList, Legend, Line, ResponsiveC
 import type { MesDoFinanceiro } from "../../core/api/tipos";
 import { dinheiro, rotuloDeColuna } from "../../logic/formatar";
 import { mesCurto } from "../../logic/meses";
-import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA } from "../../core/ui/estiloDosGraficos";
+import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA, ROTULO } from "../../core/ui/estiloDosGraficos";
 
 // "FLUXO DE CAIXA MENSAL" do BI: receitas e despesas do mês em colunas e o saldo em linha (o saldo soma também as
 // outras receitas, como no BI; a API já manda pronto). Sem animação: o painel é para ler número.
@@ -20,11 +20,11 @@ export function GraficoDeFluxoDeCaixa({ serie }: { serie: MesDoFinanceiro[] }) {
           <Legend {...LEGENDA} />
           <Bar {...COLUNA} dataKey="receitas" name="Receitas" fill="var(--cor-realizado)" isAnimationActive={false}>
             <LabelList dataKey="receitas" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
           <Bar {...COLUNA} dataKey="despesas" name="Despesas" fill="var(--cor-despesa)" isAnimationActive={false}>
             <LabelList dataKey="despesas" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
           <Line dataKey="saldo" name="Saldo" stroke="var(--cor-rebanho-final)" strokeWidth={2}
             isAnimationActive={false} />

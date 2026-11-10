@@ -2,7 +2,7 @@ import { Bar, BarChart, CartesianGrid, LabelList, Legend, ResponsiveContainer, T
 import type { MesDoFinanceiro } from "../../core/api/tipos";
 import { rotuloDeColuna } from "../../logic/formatar";
 import { mesCurto } from "../../logic/meses";
-import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA } from "../../core/ui/estiloDosGraficos";
+import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA, ROTULO } from "../../core/ui/estiloDosGraficos";
 
 type CampoDoMes =
   | "receitas"
@@ -36,7 +36,7 @@ export function GraficoMensalDoFinanceiro({ titulo, serie, realizado, planejado,
           <Legend {...LEGENDA} />
           <Bar {...COLUNA} dataKey={realizado} name="Realizado" fill="var(--cor-realizado)" isAnimationActive={false}>
             <LabelList dataKey={realizado} position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
           <Bar {...COLUNA} dataKey={planejado} name="Planejado" fill="var(--cor-planejado)" isAnimationActive={false} />
         </BarChart>

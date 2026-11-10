@@ -37,10 +37,13 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   futuro e, por ora, elas ficam ao lado do Metryx para validar os números (Q9: o mesmo cliente nas duas fontes fica
   separado, sem de-para). O escopo manda `origem` por fazenda (de `core.fazenda_fonte`); nenhum cálculo usa.
 - **Telas baseadas no BI Ciclo Completo** (pedido do usuário, 15/10/2026): mesma estrutura das páginas do BI (quais
-  quadros e gráficos, e as cores das séries), sem precisar ser idênticas. **A parte visual segue a base do AgTechLab
-  com a paleta da Terra** (pedido do usuário, 16/10/2026): menu lateral recolhível (gaveta no celular), topo com as
-  migalhas e o filtro em uso ("Trocar" volta ao MENU), cartões de borda fina, tabelas e gráficos discretos, fonte
-  Figtree; a moldura do BI (logo, fazenda/"GRUPO" e título) fica no cabeçalho de cada folha do PDF. Antes de fazer
+  quadros e gráficos), sem precisar ser idênticas. **O visual segue o boletim de resultados da Terra** (a apresentação
+  em paisagem que o usuário mandou; pedido de 10/11/2026, no lugar da paleta do BI de 16/10/2026): azul-marinho e
+  marrom sobre fundo creme, a faixa marinho com o fio marrom no título de cada página, cartões brancos de borda fina
+  com a faixa no alto (marinho, ou a cor do status no indicador com meta), títulos em caixa alta espaçada, tabelas de
+  cabeçalho marinho, colunas com o número escrito e as séries em marinho (realizado) e bege (planejado). A casca
+  continua a do AgTechLab: menu lateral recolhível (gaveta no celular), topo com as migalhas e o filtro em uso
+  ("Trocar" volta ao MENU), fonte Figtree; no PDF, a faixa do título ganha o logo branco. Antes de fazer
   uma página, consulte o layout em `docs/referencias/pbix_ciclo/layout_paginas.md` (gerado do PBIX por
   `python -m validacao.layout_do_bi <pbix>`). Os filtros ficam **só na página MENU** (no BI eles se repetem ocultos em
   todas as páginas por limitação do Power BI): Origem (temporário), Cliente, Fazenda, Safra/Cívil, Safra ou Ano,
@@ -92,7 +95,8 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   (ex.: o filtro do MENU chega às páginas por `useArea()`, que é o `useOutletContext` da `AreaAutenticada`; cada
   página usa a `Moldura caminho="/..."` (a `Casca` com o menu lateral; título e ícone saem de `paginasDoBoletim.ts`)
   e os quadros `Painel`/`Linha` de `src/core/ui`; gráfico usa o estilo comum de `src/core/ui/estiloDosGraficos.ts`;
-  cor só pelas variáveis de `src/estilos.css`).
+  cor só pelas variáveis de `src/estilos.css`). Dentro de um `<svg>`, o estilo vai em **atributo**, nunca em classe:
+  o `html-to-image` do PDF copia o `<svg>` sem o estilo calculado dos filhos (o velocímetro saía preto).
 
 ## Segurança e dados
 - **Nunca** versionar tokens, senhas, `.env`, planilhas reais de clientes (`dados_exemplo/` é ignorado pelo git) nem `.pbix`.
@@ -126,19 +130,22 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   Pendências de lançamento (quarentena + avisos da última carga, por fazenda, sob RLS: `app.pendencias_de_carga`) e
   Importar planilhas (menu Dados: o envio dos `.xlsm`, a fila do worker e o resultado de cada arquivo).
 - **Capa e exportação em PDF:** botão "Exportar PDF" em todas as páginas e no MENU, com seleção múltipla das páginas
-  e a cidade da capa (não é gravada em lugar nenhum); a capa usa a arte da consultoria
+  e a cidade da capa (não é gravada em lugar nenhum); nos modos Padrão e Personalizado a capa usa a arte da consultoria
   (`frontend/src/assets/bi/capa-fundo.png`); o PDF sai de `frontend/src/modules/exportacao/` (`html-to-image` + `jsPDF`,
   carregados só ao exportar). **Três modos** (pedidos do usuário, 20/10/2026): o **Padrão** (as páginas do painel), o
-  **Analítico** (folhas A4 em pé, inspiradas no boletim mensal da consultoria, sem copiá-lo: estoque, lotação, placar
-  zootécnico, vendas abate e em pé, mortes, financeiro e caixa) e o **Personalizado** (os assuntos do analítico mais
-  nascimentos, compras e transferências; a pessoa marca os assuntos e o que mostrar em cada um: leitura, previsto ×
-  realizado, lançamentos, gráficos, números do período, notas; os blocos se encaixam em folhas A4, quebrando entre
-  quadros). Nos três modos há dois campos de **nota técnica** (início e fim do PDF; pedido do usuário, 21/10/2026),
-  que, como a cidade da capa, não são gravados em lugar nenhum. O mês de referência é o último mês do filtro; cada
-  folha compara o mês e o acumulado do período (safra ou ano) com o previsto, mostra a meta do período e traz a
-  "Leitura do mês" em frases. Tudo vem pronto de `GET /dashboards/analitico` (`app/kpis/analitico/`, que reusa os KPIs
-  das páginas); as folhas ficam em `frontend/src/modules/exportacao/analitico/`. Regras em `docs/02_PROXIMOS_PASSOS.md`
-  ("Boletim analítico").
+  **Analítico** (o **boletim de resultados** da Terra em folhas de paisagem 16:9, no desenho da apresentação; pedido
+  do usuário, 10/11/2026: capa marinho e marrom com o ano ou a safra, Resumo · Previsto × Realizado com a lateral
+  marinho, Financeiro, Rebanho e Comercialização, uma folha a cada dois blocos de venda e compra, e o que não teve
+  lote nem meta resumido em "Sem movimento no período"; `modules/exportacao/boletim/`, lógica em
+  `src/logic/boletim.ts`; colunas e barras em HTML, não em SVG) e o **Personalizado** (os assuntos do boletim em folhas
+  A4, no visual novo; a pessoa marca os assuntos e o que mostrar em cada um: leitura, previsto × realizado,
+  lançamentos, gráficos, números do período, notas; os blocos se encaixam nas folhas, quebrando entre quadros;
+  `modules/exportacao/analitico/`). Nos três modos há dois campos de **nota técnica** (início e fim do PDF; pedido do
+  usuário, 21/10/2026), que, como a cidade da capa, não são gravados em lugar nenhum. O mês de referência é o último
+  mês do filtro; as folhas comparam o mês e o acumulado do período (safra ou ano) com o previsto, mostram a meta e
+  trazem a leitura dos números em frases. Tudo vem pronto de `GET /dashboards/analitico` (`app/kpis/analitico/`, que
+  reusa os KPIs das páginas, com as séries mês a mês do caixa, do estoque e do valor dos lotes). Regras em
+  `docs/02_PROXIMOS_PASSOS.md` ("Boletim analítico").
 - **Operação:** cargas agendadas com Celery + Redis (`app/tasks/`: beat dispara, worker executa uma por vez, trava
   consultiva no Postgres; agendas `AGENDA_*` no formato do cron; Metryx desligado até a autorização; fila com nome
   próprio, `terra`), botão **"Atualizar agora"** só para o admin no topo de todas as telas (`POST /admin/atualizacao`
@@ -186,8 +193,8 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     de tipo `planejamento`, com todas as versões (29/10/2026; migração 0018: `fato.orcamento_financeiro.tipo` e
     `dim.versao_plano.ordem`); o subcentro genérico "Subcentro de Custo" fica de fora da conta;
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 184 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
-    boletim analítico e a importação pela tela) + 80 testes do front (Vitest);
+  - 185 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
+    boletim analítico e a importação pela tela) + 90 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,
     `layout_do_bi`, `lotacao_sem_area`). A lotação fica igual ao BI mesmo quando um mês com rebanho não tem área, o

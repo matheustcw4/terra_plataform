@@ -1,6 +1,6 @@
 import { Bar, BarChart, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { numero } from "../../logic/formatar";
-import { BARRA_DEITADA, CAIXA_DO_MOUSE, EIXO_DE_NOMES } from "./estiloDosGraficos";
+import { BARRA_DEITADA, CAIXA_DO_MOUSE, EIXO_DE_NOMES, ROTULO } from "./estiloDosGraficos";
 
 export type Barra = { rotulo: string; valor: number };
 
@@ -35,7 +35,7 @@ export function GraficoDeBarras({ titulo, barras, semDados, formatar = numero }:
           <Tooltip {...CAIXA_DO_MOUSE} formatter={(valor) => formatar(Number(valor))} />
           <Bar {...BARRA_DEITADA} dataKey="valor" name={titulo} fill="var(--cor-realizado)" isAnimationActive={false}>
             <LabelList dataKey="valor" position="right" formatter={(valor) => formatar(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

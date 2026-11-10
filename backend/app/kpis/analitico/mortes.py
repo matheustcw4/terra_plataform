@@ -102,11 +102,14 @@ def mortalidade_por_grupo(s: Session, recortes: Recortes) -> list[MortalidadeDoG
     rebanho_da_meta = rebanho_medio_por_grupo(s, recortes.periodo, "planejado")
     grupos = []
     for grupo in GRUPOS:
+        mortes = acumulado[("realizado", grupo)].cabecas
+        mortes_previstas = acumulado[("planejado", grupo)].cabecas
         grupos.append(MortalidadeDoGrupo(
             grupo=grupo,
-            previsto=dividir(acumulado[("planejado", grupo)].cabecas, rebanho_previsto[grupo]),
-            realizado=dividir(acumulado[("realizado", grupo)].cabecas, rebanho_realizado[grupo]),
-            meta_periodo=dividir(periodo[("planejado", grupo)].cabecas, rebanho_da_meta[grupo])))
+            previsto=dividir(mortes_previstas, rebanho_previsto[grupo]),
+            realizado=dividir(mortes, rebanho_realizado[grupo]),
+            meta_periodo=dividir(periodo[("planejado", grupo)].cabecas, rebanho_da_meta[grupo]),
+            mortes=mortes, mortes_previstas=mortes_previstas))
     return grupos
 
 

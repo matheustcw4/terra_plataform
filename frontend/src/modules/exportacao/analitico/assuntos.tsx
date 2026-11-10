@@ -11,7 +11,7 @@ import { ConteudoTransferencias } from "./ConteudoTransferencias";
 import type { Rotulos } from "./FolhaAnalitica";
 
 // Os assuntos do boletim analítico e do personalizado: o título e a leitura de cada um, e os quadros (só as partes
-// escolhidas). A chave é a de FOLHAS_ANALITICAS e ASSUNTOS_PERSONALIZADOS.
+// escolhidas). A chave é a de ASSUNTOS_PERSONALIZADOS.
 
 type TextosDoAssunto = { titulo: string; leitura: string[] };
 

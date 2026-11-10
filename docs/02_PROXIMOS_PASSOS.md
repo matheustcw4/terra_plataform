@@ -296,6 +296,37 @@ exemplo explica, a plataforma explica com os números e os gráficos que já tem
   - concordância: "morreu 1 cabeça", "saiu 1 cabeça", "1 indicador tem status".
 - **Arquivo:** "Boletim analítico - <seleção> - <mês>.pdf" (ex.: "Boletim analítico - GRUPO - jun-26.pdf").
 
+**Boletim de resultados e visual novo (10/11/2026), feito:** a pedido do usuário, a partir de uma apresentação em
+paisagem da Fazenda CMI (2026), as telas e o PDF ganharam o visual do "boletim de resultados" da Terra.
+- **Telas (só o visual; as páginas e os quadros do BI continuam os mesmos):** paleta marinho, marrom, bege e creme em
+  `src/estilos.css` (as séries: realizado marinho, planejado bege, despesa marrom-claro, receita verde); a faixa
+  marinho com o fio marrom no título de cada página (no PDF Padrão, com o logo branco); cartões com a faixa no alto
+  (o velocímetro com a cor do status); tabelas do boletim com o cabeçalho marinho (no Previsto × Realizado, as faixas
+  Mensal em marinho médio e Acumulado em marrom); a última coluna do estoque final mensal em marrom.
+- **Modo Analítico = o boletim de resultados** (`modules/exportacao/boletim/`, folhas de 1600 × 900 px): capa (o ano
+  ou a safra em letras grandes, a fazenda, o período, o planejamento, o sistema e o conteúdo); **01 Resumo** (a lateral
+  marinho com o resultado acumulado, receitas × desembolso, rebanho final e venda abate × compras; o Previsto ×
+  Realizado do caixa por classificação; o fluxo de caixa mês a mês; o desembolso por grupo; as cabeças vendidas e
+  compradas mês a mês); **Financeiro** (desembolso e custeio por cabeça por mês e a @ vendida contra a meta, os três
+  gráficos mês a mês e todos os grupos de desembolso com a participação); **Rebanho** (rebanho médio, lotação,
+  rebanho final com o pico, mortes e compras × vendas; estoque final mensal, estoque por categoria, mortes por grupo
+  e por causa, a tabela das mortes mês a mês, transferências e nascimentos quando houve); **Comercialização** (venda
+  abate, venda em pé e compras, dois blocos por folha, com o placar de cinco indicadores, o valor mês a mês e a tabela
+  das cabeças e dos R$). O que não teve lote nem meta no período não ganha quadro: entra em "Sem movimento no
+  período". As notas técnicas viram folhas de paisagem.
+- **API** (`GET /dashboards/analitico`): ganhou o que as folhas desenham e o front não pode calcular: a série mensal
+  do financeiro (`financeiro.meses`), a participação de cada centro de custo, o estoque final de cada mês e o pico
+  (`lotacao`), as mortes por grupo em cabeças, o valor mês a mês dos lotes (`MesDoLoteComparado`), o ágio da compra
+  (`SecaoDeCompras`) e, no Previsto × Realizado, a `diferenca` em R$.
+- **Resultado sem semáforo no boletim:** com o planejado negativo, o % do resultado (e o semáforo, que é o do BI)
+  inverte o sentido: na CMI, um resultado R$ 1,59 mi melhor que o planejado saía vermelho. O boletim mostra a diferença
+  em R$ sem cor; a página Previsto × Realizado continua com o semáforo do BI.
+- **SVG no PDF:** o `html-to-image` copia o `<svg>` sem o estilo calculado dos filhos; o que vinha de classe saía
+  preto (o velocímetro) ou cinza (os rótulos das colunas). Agora o estilo vai em atributo (`ROTULO` em
+  `estiloDosGraficos.ts`), e as colunas e barras do boletim são HTML.
+- **Personalizado:** continua em A4, com o visual novo (a faixa marinho no topo das folhas e a leitura em bege); a
+  capa dos modos Padrão e Personalizado continua a arte da consultoria.
+
 **Boletim personalizado (20/10/2026), feito:** o terceiro modo do "Exportar PDF", para a pessoa escolher o que vai no
 boletim (pedido do usuário). Os números e as frases são os mesmos do analítico (`GET /dashboards/analitico`).
 - **Assuntos:** capa, movimentação do estoque, lotação, placar zootécnico, **nascimentos**, **compras**, vendas abate,

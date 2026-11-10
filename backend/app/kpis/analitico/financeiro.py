@@ -49,7 +49,7 @@ def secao_financeiro(s: Session, recortes: Recortes, limiar: float) -> SecaoFina
         placar.append(linha_financeira(nome, unidade, sentido, campo, (mes, acumulado, periodo), limiar))
     centros = centros_do_desembolso(s, recortes)
     leitura = leitura_financeira(recortes, placar, centros, sem_lancamento(acumulado))
-    return SecaoFinanceiro(placar=placar, centros=centros, leitura=leitura)
+    return SecaoFinanceiro(placar=placar, centros=centros, meses=acumulado.serie_mensal, leitura=leitura)
 
 
 def linha_financeira(nome: str, unidade: str, sentido: Sentido, campo: str,
@@ -63,12 +63,15 @@ def linha_financeira(nome: str, unidade: str, sentido: Sentido, campo: str,
 def centros_do_desembolso(s: Session, recortes: Recortes) -> list[CentroDoDesembolso]:
     do_mes = {centro.centro_custo: centro.valor for centro in desembolso_por_centro(s, recortes.mes)}
     rebanho_dos_meses = somar_meses(valores_por_mes(s, recortes.acumulado, "realizado")).cabecas
+    do_acumulado = desembolso_por_centro(s, recortes.acumulado)
+    total = sum(centro.valor for centro in do_acumulado)
     centros = []
-    for centro in desembolso_por_centro(s, recortes.acumulado):
+    for centro in do_acumulado:
         centros.append(CentroDoDesembolso(centro_custo=centro.centro_custo,
                                           valor_mes=do_mes.get(centro.centro_custo, 0),
                                           valor_acumulado=centro.valor,
-                                          por_cabeca_mes=dividir(centro.valor, rebanho_dos_meses)))
+                                          por_cabeca_mes=dividir(centro.valor, rebanho_dos_meses),
+                                          participacao=dividir(centro.valor, total)))
     return centros
 
 

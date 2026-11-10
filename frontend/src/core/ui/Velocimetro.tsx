@@ -20,18 +20,22 @@ export function Velocimetro({ titulo, valores, formatar }: Props) {
   const fracaoDaMeta = fracaoDaEscala(valores.planejado, valores.maximo);
   const pontaDaMarca = pontoDoArco(fracaoDaMeta, CENTRO, RAIO + 12);
   const baseDaMarca = pontoDoArco(fracaoDaMeta, CENTRO, RAIO - 12);
+  // a faixa do alto do cartão tem a cor do arco, como os cartões de indicador do boletim de resultados
   let cor = "var(--cor-realizado)";
+  let classes = "painel-grafico velocimetro";
   if (valores.dentro_da_meta === true) {
     cor = "var(--cor-meta-ok)";
+    classes += " dentro-da-meta";
   }
   if (valores.dentro_da_meta === false) {
     cor = "var(--cor-meta-fora)";
+    classes += " fora-da-meta";
   }
   return (
-    <section className="painel-grafico velocimetro">
+    <section className={classes}>
       <h2>{titulo}</h2>
       <svg viewBox="0 0 200 118" role="img" aria-label={`${titulo}: ${formatar(valores.realizado)}`}>
-        <path d={caminhoDoArco(1, CENTRO, RAIO)} fill="none" stroke="var(--cor-grade)"
+        <path d={caminhoDoArco(1, CENTRO, RAIO)} fill="none" stroke="var(--cor-bege-suave)"
           strokeWidth={ESPESSURA_DO_ARCO} />
         {fracaoDoRealizado > 0 && <path d={caminhoDoArco(fracaoDoRealizado, CENTRO, RAIO)} fill="none" stroke={cor}
           strokeWidth={ESPESSURA_DO_ARCO} />}
@@ -39,8 +43,8 @@ export function Velocimetro({ titulo, valores, formatar }: Props) {
           <line x1={baseDaMarca.x} y1={baseDaMarca.y} x2={pontaDaMarca.x} y2={pontaDaMarca.y}
             stroke="var(--cor-marinho)" strokeWidth={3} />
         )}
-        <text x={CENTRO.x} y={CENTRO.y - 8} fontSize={22} fontWeight={700} textAnchor="middle"
-          fill="var(--cor-texto)">
+        <text x={CENTRO.x} y={CENTRO.y - 8} fontSize={23} fontWeight={800} textAnchor="middle"
+          fill="var(--cor-marinho)">
           {formatar(valores.realizado)}
         </text>
       </svg>

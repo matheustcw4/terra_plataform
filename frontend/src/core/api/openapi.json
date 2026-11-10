@@ -2151,7 +2151,7 @@
             "$ref": "#/components/schemas/SecaoDeLotes"
           },
           "compras": {
-            "$ref": "#/components/schemas/SecaoDeLotes"
+            "$ref": "#/components/schemas/SecaoDeCompras"
           },
           "vendas": {
             "items": {
@@ -2498,6 +2498,17 @@
               }
             ],
             "title": "Por Cabeca Mes"
+          },
+          "participacao": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Participacao"
           }
         },
         "type": "object",
@@ -2505,7 +2516,8 @@
           "centro_custo",
           "valor_mes",
           "valor_acumulado",
-          "por_cabeca_mes"
+          "por_cabeca_mes",
+          "participacao"
         ],
         "title": "CentroDoDesembolso"
       },
@@ -2550,6 +2562,10 @@
             "type": "number",
             "title": "Planejado"
           },
+          "diferenca": {
+            "type": "number",
+            "title": "Diferenca"
+          },
           "variacao": {
             "anyOf": [
               {
@@ -2577,6 +2593,7 @@
         "required": [
           "realizado",
           "planejado",
+          "diferenca",
           "variacao",
           "semaforo"
         ],
@@ -3755,54 +3772,6 @@
         "title": "LoteDoMes",
         "description": "Um lançamento de lote no mês de referência (nascimento, compra, venda ou transferência)."
       },
-      "MesComparado": {
-        "properties": {
-          "mes": {
-            "type": "string",
-            "format": "date",
-            "title": "Mes"
-          },
-          "realizado": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Realizado"
-          },
-          "previsto": {
-            "type": "number",
-            "title": "Previsto"
-          },
-          "realizado_acumulado": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Realizado Acumulado"
-          },
-          "previsto_acumulado": {
-            "type": "number",
-            "title": "Previsto Acumulado"
-          }
-        },
-        "type": "object",
-        "required": [
-          "mes",
-          "realizado",
-          "previsto",
-          "realizado_acumulado",
-          "previsto_acumulado"
-        ],
-        "title": "MesComparado"
-      },
       "MesDaContagem": {
         "properties": {
           "mes": {
@@ -3909,6 +3878,17 @@
               }
             ],
             "title": "Lotacao Cab Ha Prevista"
+          },
+          "estoque_final": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estoque Final"
           }
         },
         "type": "object",
@@ -3919,7 +3899,8 @@
           "area_ha",
           "lotacao_cab_ha",
           "lotacao_ua_ha",
-          "lotacao_cab_ha_prevista"
+          "lotacao_cab_ha_prevista",
+          "estoque_final"
         ],
         "title": "MesDaLotacao"
       },
@@ -4138,6 +4119,72 @@
         ],
         "title": "MesDoLote"
       },
+      "MesDoLoteComparado": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "format": "date",
+            "title": "Mes"
+          },
+          "realizado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realizado"
+          },
+          "previsto": {
+            "type": "number",
+            "title": "Previsto"
+          },
+          "realizado_acumulado": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Realizado Acumulado"
+          },
+          "previsto_acumulado": {
+            "type": "number",
+            "title": "Previsto Acumulado"
+          },
+          "valor": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valor"
+          },
+          "valor_previsto": {
+            "type": "number",
+            "title": "Valor Previsto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "realizado",
+          "previsto",
+          "realizado_acumulado",
+          "previsto_acumulado",
+          "valor",
+          "valor_previsto"
+        ],
+        "title": "MesDoLoteComparado",
+        "description": "As cabeças e o valor (faturamento na venda, investimento na compra) de um mês."
+      },
       "MortalidadeDoGrupo": {
         "properties": {
           "grupo": {
@@ -4176,6 +4223,14 @@
               }
             ],
             "title": "Meta Periodo"
+          },
+          "mortes": {
+            "type": "number",
+            "title": "Mortes"
+          },
+          "mortes_previstas": {
+            "type": "number",
+            "title": "Mortes Previstas"
           }
         },
         "type": "object",
@@ -4183,7 +4238,9 @@
           "grupo",
           "previsto",
           "realizado",
-          "meta_periodo"
+          "meta_periodo",
+          "mortes",
+          "mortes_previstas"
         ],
         "title": "MortalidadeDoGrupo"
       },
@@ -5041,6 +5098,80 @@
         ],
         "title": "SecaoCaixa"
       },
+      "SecaoDeCompras": {
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "titulo": {
+            "type": "string",
+            "title": "Titulo"
+          },
+          "lancamentos": {
+            "items": {
+              "$ref": "#/components/schemas/LoteDoMes"
+            },
+            "type": "array",
+            "title": "Lancamentos"
+          },
+          "meses": {
+            "items": {
+              "$ref": "#/components/schemas/MesDoLoteComparado"
+            },
+            "type": "array",
+            "title": "Meses"
+          },
+          "resumo": {
+            "items": {
+              "$ref": "#/components/schemas/LinhaDoPlacar"
+            },
+            "type": "array",
+            "title": "Resumo"
+          },
+          "leitura": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Leitura"
+          },
+          "preco_arroba_venda": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preco Arroba Venda"
+          },
+          "agio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agio"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tipo",
+          "titulo",
+          "lancamentos",
+          "meses",
+          "resumo",
+          "leitura",
+          "preco_arroba_venda",
+          "agio"
+        ],
+        "title": "SecaoDeCompras"
+      },
       "SecaoDeLotes": {
         "properties": {
           "tipo": {
@@ -5060,7 +5191,7 @@
           },
           "meses": {
             "items": {
-              "$ref": "#/components/schemas/MesComparado"
+              "$ref": "#/components/schemas/MesDoLoteComparado"
             },
             "type": "array",
             "title": "Meses"
@@ -5143,6 +5274,13 @@
             "type": "array",
             "title": "Centros"
           },
+          "meses": {
+            "items": {
+              "$ref": "#/components/schemas/MesDoFinanceiro"
+            },
+            "type": "array",
+            "title": "Meses"
+          },
           "leitura": {
             "items": {
               "type": "string"
@@ -5155,6 +5293,7 @@
         "required": [
           "placar",
           "centros",
+          "meses",
           "leitura"
         ],
         "title": "SecaoFinanceiro"
@@ -5257,6 +5396,29 @@
             ],
             "title": "Lotacao Minima"
           },
+          "pico_do_rebanho": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pico Do Rebanho"
+          },
+          "mes_do_pico": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mes Do Pico"
+          },
           "meses": {
             "items": {
               "$ref": "#/components/schemas/MesDaLotacao"
@@ -5284,6 +5446,8 @@
           "lotacao_cab_ha_prevista",
           "lotacao_maxima",
           "lotacao_minima",
+          "pico_do_rebanho",
+          "mes_do_pico",
           "meses",
           "leitura"
         ],

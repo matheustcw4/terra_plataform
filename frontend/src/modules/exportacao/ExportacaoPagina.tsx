@@ -7,6 +7,7 @@ import { mesDeReferencia } from "../../logic/analitico";
 import { nomeDoArquivo, nomeDoArquivoDoMes } from "../../logic/exportacao";
 import { TODAS_AS_PARTES } from "../../logic/personalizado";
 import { FolhasAnaliticas } from "./analitico/FolhasAnaliticas";
+import { FolhasDoBoletim } from "./boletim/FolhasDoBoletim";
 import { FolhasDoPainel } from "./FolhasDoPainel";
 import { PAGINA_DO_PDF } from "./paginasDoPdf";
 import { esperarAsPaginas, gerarPdf } from "./pdf";
@@ -14,8 +15,8 @@ import { esperarAsPaginas, gerarPdf } from "./pdf";
 // Gera o PDF pedido no "Exportar PDF": desenha a capa e as páginas escolhidas, uma abaixo da outra e com o filtro do
 // MENU (por trás do aviso de progresso), espera os dados e os gráficos, fotografa cada folha e baixa o arquivo.
 // Depois volta para a página de onde a pessoa pediu. Sem pedido (link aberto direto), vai para o MENU.
-// Nos modos Analítico e Personalizado as folhas são as A4 do boletim analítico (`analitico/`), em vez das páginas do
-// painel; no personalizado, a quantidade de folhas depende de como os blocos se encaixam.
+// No modo Analítico as folhas são as do boletim de resultados, em paisagem (`boletim/`); no Personalizado, as A4 com os
+// assuntos escolhidos (`analitico/`), e a quantidade de folhas depende de como os blocos se encaixam.
 export function ExportacaoPagina() {
   const { state, search } = useLocation();
   const pedido = state as PedidoDePdf | null;
@@ -85,10 +86,13 @@ function GerarPdf({ pedido }: { pedido: PedidoDePdf }) {
         )}
       </div>
       <div className="exportacao-folhas" ref={folhas}>
-        {doMes && (
-          <FolhasAnaliticas personalizado={modo === "personalizado"} paginas={paginas}
-            partes={pedido.partes ?? TODAS_AS_PARTES} cidade={pedido.cidade} notaInicial={pedido.notaInicial}
+        {modo === "analitico" && (
+          <FolhasDoBoletim paginas={paginas} cidade={pedido.cidade} notaInicial={pedido.notaInicial}
             notaFinal={pedido.notaFinal} />
+        )}
+        {modo === "personalizado" && (
+          <FolhasAnaliticas paginas={paginas} partes={pedido.partes ?? TODAS_AS_PARTES} cidade={pedido.cidade}
+            notaInicial={pedido.notaInicial} notaFinal={pedido.notaFinal} />
         )}
         {!doMes && (
           <FolhasDoPainel paginas={paginas} cidade={pedido.cidade} notaInicial={pedido.notaInicial}

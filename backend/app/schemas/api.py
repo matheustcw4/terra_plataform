@@ -282,6 +282,7 @@ class Financeiro(BaseModel):
 class Comparacao(BaseModel):
     realizado: float
     planejado: float
+    diferenca: float                # realizado − planejado (no resultado, o % não diz nada: vale a diferença em R$)
     variacao: float | None          # (realizado − planejado) ÷ planejado; sem planejado, vazio
     semaforo: str | None            # verde | amarelo | vermelho, pela regra do BI (limiar de dim.parametro)
 

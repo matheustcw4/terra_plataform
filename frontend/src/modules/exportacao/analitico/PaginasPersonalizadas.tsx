@@ -15,11 +15,12 @@ import { BlocoDoAssunto } from "./BlocoDoAssunto";
 import { type Cabecalho, FolhaAnalitica, type Rotulos } from "./FolhaAnalitica";
 import { TITULO_DA_NOTA } from "./FolhaDaNota";
 
-// As medidas da folha A4 em estilos.css: a altura mínima da .folha-analitica, os espaços de cima e de baixo e entre
-// o cabeçalho e o corpo; entre dois blocos (o espaço do corpo mais a margem do bloco), entre dois quadros (o espaço
-// do corpo do bloco) e entre o título do bloco e o resto.
+// As medidas da folha A4 em estilos.css: a altura mínima da .folha-analitica, o espaço de baixo e entre o cabeçalho
+// e o corpo (o de cima fica por baixo da faixa marinho do cabeçalho, que vai até a borda e entra na altura medida);
+// entre dois blocos (o espaço do corpo mais a margem do bloco), entre dois quadros (o espaço do corpo do bloco) e entre
+// o título do bloco e o resto.
 const ALTURA_DA_FOLHA = 1754;
-const MARGENS_DA_FOLHA = 44 + 48 + 16;
+const MARGENS_DA_FOLHA = 48 + 16;
 const ENTRE_BLOCOS = 16 + 12;
 const ENTRE_PECAS = 16;
 const DEPOIS_DO_TITULO = 12;

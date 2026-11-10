@@ -3,7 +3,7 @@ import { Bar, CartesianGrid, ComposedChart, LabelList, Legend, Line, ResponsiveC
 import type { MesDoLote } from "../../core/api/tipos";
 import { rotuloDeColuna } from "../../logic/formatar";
 import { mesCurto } from "../../logic/meses";
-import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA } from "../../core/ui/estiloDosGraficos";
+import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA, ROTULO } from "../../core/ui/estiloDosGraficos";
 
 type Props = {
   titulo: string;
@@ -31,12 +31,12 @@ export function GraficoMensalDoLote({ titulo, serie, realizado, planejado, linha
           <Legend {...LEGENDA} />
           <Bar {...COLUNA} yAxisId="mes" dataKey={realizado} name="Realizado" fill="var(--cor-realizado)" isAnimationActive={false}>
             <LabelList dataKey={realizado} position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
           <Bar {...COLUNA} yAxisId="mes" dataKey={planejado} name="Planejado" fill="var(--cor-planejado)"
             isAnimationActive={false}>
             <LabelList dataKey={planejado} position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
           {linha && (
             <Line yAxisId="linha" dataKey={linha.campo} name={linha.nome} stroke="var(--cor-acumulado)"

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import logo from "../../../assets/bi/terra-logo.png";
+import logo from "../../../assets/bi/terra-logo-branco.png";
 import type { Cabecalho } from "../../../logic/analitico";
 
 export type { Cabecalho };

@@ -61,7 +61,7 @@ function Conteudo({ dados }: { dados: Movimentacao }) {
           <Linha rotulo="% Em Relação a Meta" valor={percentual(dados.vendas.percentual_da_meta)} />
         </Painel>
       </div>
-      <GraficoDeColunas titulo="ESTOQUE FINAL MENSAL" colunas={estoqueMensal} />
+      <GraficoDeColunas titulo="ESTOQUE FINAL MENSAL" colunas={estoqueMensal} destacarUltima />
       <div className="estoque-por-categoria">
         <GraficoDeColunas titulo="ESTOQUE POR CATEGORIA" colunas={porCategoria} />
         <div className="rebanho-final">

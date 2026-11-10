@@ -7,7 +7,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from app.schemas.api import EscolhaDaVersao, PrevistoRealizado
+from app.schemas.api import EscolhaDaVersao, MesDoFinanceiro, PrevistoRealizado
 
 
 class Comparado(BaseModel):
@@ -90,6 +90,7 @@ class MesDaLotacao(BaseModel):
     lotacao_cab_ha: float | None
     lotacao_ua_ha: float | None
     lotacao_cab_ha_prevista: float | None   # rebanho médio previsto ÷ área prevista
+    estoque_final: float | None             # cabeças no fim do mês; vazio depois do mês de referência
 
 
 class SecaoLotacao(BaseModel):
@@ -103,6 +104,8 @@ class SecaoLotacao(BaseModel):
     lotacao_cab_ha_prevista: float | None
     lotacao_maxima: float | None            # cab/ha, entre os meses até o de referência
     lotacao_minima: float | None
+    pico_do_rebanho: float | None           # o maior estoque final de um mês, até o de referência
+    mes_do_pico: date | None
     meses: list[MesDaLotacao]               # todos os meses do período (o realizado só até o de referência)
     leitura: list[str]
 
@@ -134,13 +137,24 @@ class MesComparado(BaseModel):
     previsto_acumulado: float
 
 
+class MesDoLoteComparado(MesComparado):
+    """As cabeças e o valor (faturamento na venda, investimento na compra) de um mês."""
+    valor: float | None                     # vazio depois do mês de referência
+    valor_previsto: float
+
+
 class SecaoDeLotes(BaseModel):
     tipo: str                               # nascimento | compra | abate | em_pe | transf_entrada | transf_saida
     titulo: str
     lancamentos: list[LoteDoMes]
-    meses: list[MesComparado]               # cabeças, mês a mês, no período inteiro
+    meses: list[MesDoLoteComparado]         # cabeças e valor, mês a mês, no período inteiro
     resumo: list[LinhaDoPlacar]             # o acumulado previsto × realizado, indicador por indicador
     leitura: list[str]
+
+
+class SecaoDeCompras(SecaoDeLotes):
+    preco_arroba_venda: float | None        # abate e em pé juntos, no acumulado: a base do ágio
+    agio: float | None                      # (@ de compra − @ vendida) ÷ @ vendida, no acumulado
 
 
 class SecaoTransferencias(BaseModel):
@@ -168,6 +182,8 @@ class MortalidadeDoGrupo(BaseModel):
     previsto: float | None                  # mortes previstas ÷ rebanho médio previsto, até o mês de referência
     realizado: float | None
     meta_periodo: float | None              # o período inteiro, previsto
+    mortes: float                           # cabeças, até o mês de referência
+    mortes_previstas: float
 
 
 class CausaPorGrupo(BaseModel):
@@ -196,11 +212,13 @@ class CentroDoDesembolso(BaseModel):
     valor_mes: float
     valor_acumulado: float
     por_cabeca_mes: float | None            # acumulado ÷ Σ rebanho médio dos meses
+    participacao: float | None              # do desembolso acumulado
 
 
 class SecaoFinanceiro(BaseModel):
     placar: list[LinhaDoPlacar]
     centros: list[CentroDoDesembolso]       # do maior para o menor, no acumulado
+    meses: list[MesDoFinanceiro]            # do começo do período ao mês de referência (a série da página Financeiro)
     leitura: list[str]
 
 
@@ -218,7 +236,7 @@ class BoletimAnalitico(BaseModel):
     lotacao: SecaoLotacao
     placar_zootecnico: SecaoPlacar
     nascimentos: SecaoDeLotes
-    compras: SecaoDeLotes
+    compras: SecaoDeCompras
     vendas: list[SecaoDeLotes]              # abate e em pé
     transferencias: SecaoTransferencias
     mortes: SecaoMortes

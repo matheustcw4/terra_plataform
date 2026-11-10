@@ -3,7 +3,7 @@ import { Bar, CartesianGrid, ComposedChart, LabelList, Legend, Line, ResponsiveC
 import type { MesDaContagem } from "../../core/api/tipos";
 import { numero, rotuloDeColuna } from "../../logic/formatar";
 import { mesCurto } from "../../logic/meses";
-import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA } from "../../core/ui/estiloDosGraficos";
+import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA, ROTULO } from "../../core/ui/estiloDosGraficos";
 
 type MensalProps = {
   titulo: string;
@@ -29,12 +29,12 @@ export function GraficoMensalDaContagem({ titulo, serie, comAcumulado = false }:
           <Bar {...COLUNA} yAxisId="mes" dataKey="realizado" name="Realizado" fill="var(--cor-realizado)"
             isAnimationActive={false}>
             <LabelList dataKey="realizado" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
           <Bar {...COLUNA} yAxisId="mes" dataKey="planejado" name="Planejado" fill="var(--cor-planejado)"
             isAnimationActive={false}>
             <LabelList dataKey="planejado" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
           {comAcumulado && (
             <Line yAxisId="acumulado" dataKey="realizado_acumulado" name="Acumulado" stroke="var(--cor-acumulado)"
@@ -69,12 +69,12 @@ export function GraficoAcumuladoDaContagem({ titulo, serie, forma }: AcumuladoPr
               <Bar {...COLUNA} dataKey="realizado_acumulado" name="Realizado" fill="var(--cor-realizado)"
                 isAnimationActive={false}>
                 <LabelList dataKey="realizado_acumulado" position="top"
-                  formatter={(valor) => rotuloDeColuna(Number(valor))} className="rotulo-de-coluna" />
+                  formatter={(valor) => rotuloDeColuna(Number(valor))} {...ROTULO} />
               </Bar>
               <Bar {...COLUNA} dataKey="planejado_acumulado" name="Planejado" fill="var(--cor-planejado)"
                 isAnimationActive={false}>
                 <LabelList dataKey="planejado_acumulado" position="top"
-                  formatter={(valor) => rotuloDeColuna(Number(valor))} className="rotulo-de-coluna" />
+                  formatter={(valor) => rotuloDeColuna(Number(valor))} {...ROTULO} />
               </Bar>
             </>
           )}
@@ -83,12 +83,12 @@ export function GraficoAcumuladoDaContagem({ titulo, serie, forma }: AcumuladoPr
               <Line dataKey="realizado_acumulado" name="Realizado" stroke="var(--cor-realizado)" strokeWidth={3}
                 isAnimationActive={false}>
                 <LabelList dataKey="realizado_acumulado" position="top"
-                  formatter={(valor) => rotuloDeColuna(Number(valor))} className="rotulo-de-coluna" />
+                  formatter={(valor) => rotuloDeColuna(Number(valor))} {...ROTULO} />
               </Line>
               <Line dataKey="planejado_acumulado" name="Planejado" stroke="var(--cor-planejado)" strokeWidth={3}
                 isAnimationActive={false}>
                 <LabelList dataKey="planejado_acumulado" position="bottom"
-                  formatter={(valor) => rotuloDeColuna(Number(valor))} className="rotulo-de-coluna" />
+                  formatter={(valor) => rotuloDeColuna(Number(valor))} {...ROTULO} />
               </Line>
             </>
           )}

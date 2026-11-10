@@ -1,14 +1,18 @@
-// O estilo comum dos gráficos (o mesmo do AgTechLab, nas cores da Terra): eixo discreto, grade tracejada só na
-// horizontal, caixa do mouse com borda fina e colunas com o canto de cima arredondado. O número escrito junto da
-// coluna usa a cor do texto (classe .rotulo-de-coluna), nunca a da série.
+// O estilo comum dos gráficos, no visual do boletim de resultados da Terra: eixo discreto, grade tracejada clara só
+// na horizontal, caixa do mouse com borda fina e colunas com o canto de cima arredondado. O número escrito junto da
+// coluna (ROTULO) é marinho, nunca a cor da série. Tudo vai em atributos do SVG, e não em classes: na exportação para
+// PDF, o html-to-image copia o <svg> sem o estilo dos filhos.
 
 export const EIXO = {
-  tick: { fontSize: 11, fill: "var(--cor-texto-terciario)" },
+  tick: { fontSize: 11, fill: "var(--cor-texto-apagado)" },
   tickLine: false,
-  axisLine: { stroke: "var(--cor-borda)" },
+  axisLine: { stroke: "var(--cor-borda-forte)" },
 } as const;
 
-export const GRADE = { vertical: false, stroke: "var(--cor-borda)", strokeDasharray: "3 3" } as const;
+export const GRADE = { vertical: false, stroke: "var(--cor-grade)", strokeDasharray: "3 3" } as const;
+
+// o número junto da coluna ou da barra (LabelList)
+export const ROTULO = { fill: "var(--cor-marinho)", fontSize: 11, fontWeight: 700 } as const;
 
 export const CAIXA_DO_MOUSE = {
   contentStyle: { fontSize: 12, borderRadius: 6, border: "1px solid var(--cor-borda)", boxShadow: "var(--sombra)" },

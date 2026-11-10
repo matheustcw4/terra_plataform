@@ -119,6 +119,30 @@ def test_nascimentos_compras_e_transferencias(api, consultor, fazenda):
     assert [linha["grupo"] for linha in dados["transferencias"]["saidas"]["resumo"]] == ["SAÍDAS"] * 3
 
 
+def test_series_do_boletim_de_resultados(api, consultor, fazenda):
+    """O que as folhas de paisagem do modo Analítico desenham: o valor dos lotes, o estoque e o caixa mês a mês, as
+    mortes por grupo em cabeças, a participação de cada centro de custo e o ágio da compra."""
+    dados = boletim(api, consultor, fazenda)
+    em_pe = dados["vendas"][1]["meses"]
+    assert (em_pe[1]["valor"], em_pe[2]["valor"]) == (30000, None)           # agosto vendeu; depois, vazio
+    meses = dados["lotacao"]["meses"]
+    assert meses[1]["estoque_final"] == dados["estoque"]["mes"][-1]["estoque_final"]
+    assert meses[2]["estoque_final"] is None
+    pico = max(mes["estoque_final"] for mes in meses[:2])
+    assert dados["lotacao"]["pico_do_rebanho"] == pico
+    assert [mes["mes"] for mes in dados["financeiro"]["meses"]] == ["2025-07-01", "2025-08-01"]
+    centros = dados["financeiro"]["centros"]
+    assert centros, "a fazenda sintética tem desembolso por centro de custo"
+    assert sum(centro["participacao"] for centro in centros) == pytest.approx(1)
+    compras = dados["compras"]
+    assert compras["agio"] is None                                            # nenhuma compra
+    assert compras["preco_arroba_venda"] == pytest.approx(30000 / (4500 / 30))
+    resultado = dados["caixa"]["previsto_realizado"]["resultado"]["acumulado"]
+    assert resultado["diferenca"] == pytest.approx(resultado["realizado"] - resultado["planejado"])
+    geral = boletim(api, consultor, fazenda, mes="2025-07")["mortes"]["por_grupo"][-1]
+    assert (geral["grupo"], geral["mortes"], geral["mortes_previstas"]) == ("GERAL", 5, 2)
+
+
 def test_mes_depois_do_ultimo_lancamento_ganha_o_aviso(api, consultor, fazenda):
     dados = boletim(api, consultor, fazenda, mes="2026-03")
     aviso = "Os lançamentos de rebanho vão até agosto/2025; depois disso o saldo só se repete"
@@ -193,7 +217,7 @@ def test_sem_lancamento_financeiro_a_leitura_nao_fala_em_zero():
     receitas = linha_do_placar("FINANCEIRO", "Receitas", "R$", "maior_melhor", (0, 0), (5000, 0), 9000, 0.1)
     assert "o previsto até aqui era de R$ 5.000 em receitas" in leitura_financeira(recortes, [receitas] + placar[1:],
                                                                                    [], True)[0]
-    zero = Comparacao(realizado=0, planejado=0, variacao=None, semaforo=None)
+    zero = Comparacao(realizado=0, planejado=0, diferenca=0, variacao=None, semaforo=None)
     caixa = PrevistoRealizado(periodo=Periodo(inicio=date(2025, 7, 1), fim=date(2025, 9, 1), meses=3),
                               ultimo_mes=date(2025, 9, 1), grupos=[],
                               resultado=LinhaDoPrevisto(nome="RESULTADO", mensal=zero, acumulado=zero),

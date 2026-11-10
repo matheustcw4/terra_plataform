@@ -13,7 +13,7 @@ import { numero, rotuloDeColuna } from "../../logic/formatar";
 import { mesCurto } from "../../logic/meses";
 import { doRecorte } from "../../logic/recortes";
 import { useTransferencias } from "./api";
-import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA } from "../../core/ui/estiloDosGraficos";
+import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA, ROTULO } from "../../core/ui/estiloDosGraficos";
 
 // Os dois quadros do BI, Macho à esquerda e Fêmea à direita.
 const SEXOS = [
@@ -114,11 +114,11 @@ function GraficoDeEntradasESaidas({ serie }: { serie: MesDeTransferencia[] }) {
           <Legend {...LEGENDA} />
           <Bar {...COLUNA} dataKey="entradas" name="Entradas" fill="var(--cor-realizado)" isAnimationActive={false}>
             <LabelList dataKey="entradas" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
           <Bar {...COLUNA} dataKey="saidas" name="Saídas" fill="var(--cor-rebanho-final)" isAnimationActive={false}>
             <LabelList dataKey="saidas" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              className="rotulo-de-coluna" />
+              {...ROTULO} />
           </Bar>
         </ComposedChart>
       </ResponsiveContainer>

@@ -56,22 +56,19 @@ export function rotuloDaPaginaDoPdf(chave: string): string {
   return PAGINAS_DO_BOLETIM.find((pagina) => pagina.caminho === chave)?.rotulo ?? chave;
 }
 
-// Os modos do "Exportar PDF": o padrão (as páginas do painel, como estão na tela), o analítico (folhas A4 com o mês de
-// referência, o acumulado e a meta, explicados em frases) e o personalizado (os assuntos do analítico e mais
-// nascimentos, compras e transferências, com a pessoa escolhendo o que mostrar em cada um).
+// Os modos do "Exportar PDF": o padrão (as páginas do painel, como estão na tela), o analítico (o boletim de
+// resultados da Terra, em folhas de paisagem: o mês de referência, o acumulado e a meta, explicados em frases) e o
+// personalizado (os assuntos do boletim em folhas A4, com a pessoa escolhendo o que mostrar em cada um).
 export type ModoDoPdf = "padrao" | "analitico" | "personalizado";
 
-// As folhas do modo Analítico, na ordem em que saem no arquivo (a capa é a mesma do modo padrão).
+// As folhas do modo Analítico, na ordem em que saem no arquivo (a capa é a do boletim de resultados; a
+// Comercialização pode ocupar duas folhas, uma a cada dois blocos de venda e compra).
 export const FOLHAS_ANALITICAS: { chave: string; rotulo: string }[] = [
   { chave: CAPA, rotulo: "Capa" },
-  { chave: "estoque", rotulo: "Movimentação do estoque" },
-  { chave: "lotacao", rotulo: "Lotação" },
-  { chave: "placar_zootecnico", rotulo: "Placar zootécnico" },
-  { chave: "vendas_abate", rotulo: "Vendas abate" },
-  { chave: "vendas_em_pe", rotulo: "Vendas em pé" },
-  { chave: "mortes", rotulo: "Mortes" },
-  { chave: "placar_financeiro", rotulo: "Placar financeiro" },
-  { chave: "caixa", rotulo: "Caixa (previsto × realizado)" },
+  { chave: "resumo", rotulo: "Resumo · Previsto × Realizado" },
+  { chave: "financeiro", rotulo: "Financeiro" },
+  { chave: "rebanho", rotulo: "Rebanho (movimentação, mortes e transferências)" },
+  { chave: "comercializacao", rotulo: "Comercialização (vendas e compras)" },
 ];
 
 export const ORDEM_ANALITICA: string[] = FOLHAS_ANALITICAS.map((folha) => folha.chave);

@@ -4,18 +4,22 @@ import { alternarItem } from "../../logic/listas";
 import { mesCurto } from "../../logic/meses";
 import { CelulasDaComparacao } from "./CelulasDaComparacao";
 
-// A matriz do BI: cada classificação numa linha que abre as contas dela (clicando), as colunas MENSAL (último mês do
-// período) e ACUMULADO (o período todo) e, no fim, o resultado. Começa com as classificações fechadas, como o BI.
+// A matriz do BI: cada classificação numa linha com as contas dela embaixo, as colunas MENSAL (último mês do período)
+// e ACUMULADO (o período todo) e, no fim, o resultado. Começa com as classificações abertas, na tela e no PDF (pedido
+// do usuário, 10/11/2026; o BI começa fechado); clicar fecha e abre. Guarda as fechadas, e não as abertas, para que
+// uma classificação que aparece ao trocar o filtro também chegue aberta.
 export function TabelaDoPrevisto({ dados }: { dados: PrevistoRealizado }) {
-  const [abertos, trocarAbertos] = useState<string[]>([]);
+  const [fechados, trocarFechados] = useState<string[]>([]);
   return (
     <div className="painel-grafico tabela-rolavel">
       <table className="tabela-previsto">
         <thead>
           <tr>
             <th scope="col" rowSpan={2}>Classificação / conta</th>
-            <th scope="colgroup" colSpan={3} className="inicio-do-bloco">MENSAL · {mesCurto(dados.ultimo_mes)}</th>
-            <th scope="colgroup" colSpan={3} className="inicio-do-bloco">
+            <th scope="colgroup" colSpan={3} className="inicio-do-bloco bloco-mensal">
+              MENSAL · {mesCurto(dados.ultimo_mes)}
+            </th>
+            <th scope="colgroup" colSpan={3} className="inicio-do-bloco bloco-acumulado">
               ACUMULADO · {mesCurto(dados.periodo.inicio)} a {mesCurto(dados.periodo.fim)}
             </th>
           </tr>
@@ -30,8 +34,8 @@ export function TabelaDoPrevisto({ dados }: { dados: PrevistoRealizado }) {
         </thead>
         <tbody>
           {dados.grupos.map((grupo) => (
-            <LinhasDoGrupo key={grupo.classificacao} grupo={grupo} aberto={abertos.includes(grupo.classificacao)}
-              alternar={() => trocarAbertos(alternarItem(abertos, grupo.classificacao))} />
+            <LinhasDoGrupo key={grupo.classificacao} grupo={grupo} aberto={!fechados.includes(grupo.classificacao)}
+              alternar={() => trocarFechados(alternarItem(fechados, grupo.classificacao))} />
           ))}
         </tbody>
         <tfoot>

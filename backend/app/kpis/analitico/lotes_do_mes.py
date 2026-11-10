@@ -10,7 +10,7 @@ from app.kpis import lotes
 from app.kpis.analitico import textos
 from app.kpis.analitico.comparar import PrevistoERealizado, Sentido, dividir, linha_do_placar
 from app.kpis.analitico.recortes import Recortes
-from app.schemas.analitico import LinhaDoPlacar, LoteDoMes, MesComparado
+from app.schemas.analitico import LinhaDoPlacar, LoteDoMes, MesDoLoteComparado
 from app.schemas.api import IndicadoresDoLote, QuadroDoLote
 
 LOTES_DO_MES = """
@@ -61,20 +61,23 @@ def numero_ou_vazio(valor) -> float | None:
     return float(valor)
 
 
-def meses_comparados(s: Session, recortes: Recortes, tipo: lotes.TipoDeLote) -> list[MesComparado]:
-    """Cabeças previstas e realizadas mês a mês no período inteiro; o realizado para no mês de referência."""
+def meses_comparados(s: Session, recortes: Recortes, tipo: lotes.TipoDeLote) -> list[MesDoLoteComparado]:
+    """Cabeças e valor previstos e realizados mês a mês no período inteiro; o realizado para no mês de referência."""
     meses = []
     realizado_acumulado = 0.0
     previsto_acumulado = 0.0
     for mes in lotes.serie_mensal(s, recortes.periodo, tipo):
         previsto_acumulado += mes.cabecas_planejadas
         if mes.mes > recortes.mes_referencia:
-            meses.append(MesComparado(mes=mes.mes, realizado=None, previsto=mes.cabecas_planejadas,
-                                      realizado_acumulado=None, previsto_acumulado=previsto_acumulado))
+            meses.append(MesDoLoteComparado(mes=mes.mes, realizado=None, previsto=mes.cabecas_planejadas,
+                                            realizado_acumulado=None, previsto_acumulado=previsto_acumulado,
+                                            valor=None, valor_previsto=mes.valor_planejado))
             continue
         realizado_acumulado += mes.cabecas
-        meses.append(MesComparado(mes=mes.mes, realizado=mes.cabecas, previsto=mes.cabecas_planejadas,
-                                  realizado_acumulado=realizado_acumulado, previsto_acumulado=previsto_acumulado))
+        meses.append(MesDoLoteComparado(mes=mes.mes, realizado=mes.cabecas, previsto=mes.cabecas_planejadas,
+                                        realizado_acumulado=realizado_acumulado,
+                                        previsto_acumulado=previsto_acumulado, valor=mes.valor,
+                                        valor_previsto=mes.valor_planejado))
     return meses
 
 

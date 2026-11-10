@@ -24,8 +24,9 @@ const LEGENDA_DA_LISTA: Record<ModoDoPdf, string> = {
   personalizado: "Assuntos",
 };
 
-// Escolha do modo (padrão: as páginas do painel; analítico: folhas A4 com o mês de referência, o acumulado e a meta,
-// explicados; personalizado: os assuntos e as partes de cada um que a pessoa marcar), das páginas ou assuntos (todos
+// Escolha do modo (padrão: as páginas do painel; analítico: o boletim de resultados em paisagem, com o mês de
+// referência, o acumulado e a meta, explicados; personalizado: os assuntos e as partes de cada um que a pessoa marcar,
+// em folhas A4), das páginas ou assuntos (todos
 // marcados de início), da cidade da capa e das notas técnicas do começo e do fim do PDF. A cidade e as notas só valem
 // para este arquivo: vão na navegação para a página que gera o PDF e não são gravadas em lugar nenhum.
 export function DialogoDeExportacao({ aoFechar }: Props) {
@@ -134,8 +135,9 @@ function DescricaoDoModo({ modo, referencia }: { modo: ModoDoPdf; referencia: st
   if (modo === "analitico") {
     return (
       <p>
-        Uma folha A4 por assunto, com o mês de referência (<strong>{referencia}</strong>, o último mês do filtro), o
-        acumulado do período, a meta e uma leitura explicada dos números.
+        O boletim de resultados da Terra, em folhas de paisagem: capa, resumo do previsto × realizado, financeiro,
+        rebanho e comercialização, do começo do período até o mês de referência (<strong>{referencia}</strong>, o último
+        mês do filtro), com a meta e uma leitura explicada dos números.
       </p>
     );
   }

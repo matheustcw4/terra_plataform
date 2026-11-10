@@ -70,6 +70,13 @@ REBANHO_POR_MES = f"""
       AND {so_a_versao_que_vale('r')}
     GROUP BY r.competencia, r.cenario
 """
+ESTOQUE_FINAL_POR_MES = """
+    SELECT e.competencia, sum(e.saldo_final) AS cabecas
+    FROM fato.estoque_mensal e
+    WHERE e.cenario = 'realizado' AND e.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
+      AND e.competencia BETWEEN :inicio AND :fim
+    GROUP BY e.competencia
+"""
 AREA_POR_MES = """
     SELECT a.competencia, a.cenario, sum(a.area_total_ha) AS area
     FROM fato.area_mensal a
@@ -225,10 +232,11 @@ class DoMes:
 
 def secao_lotacao(s: Session, recortes: Recortes, estoque: SecaoEstoque) -> SecaoLotacao:
     realizado, previsto = rebanho_e_area_por_mes(s, recortes)
-    meses = meses_da_lotacao(recortes, realizado, previsto)
+    meses = meses_da_lotacao(recortes, realizado, previsto, estoque_final_por_mes(s, recortes))
     no_periodo = rebanho_e_area(s, recortes.acumulado)
     prevista = lotacao_prevista(recortes, previsto)
     lotacoes = [mes.lotacao_cab_ha for mes in meses if mes.lotacao_cab_ha is not None]
+    pico = mes_do_maior_estoque(meses)
     inicial = estoque.acumulado.estoque_inicial
     final = estoque.acumulado.estoque_final
     secao = SecaoLotacao(
@@ -236,9 +244,25 @@ def secao_lotacao(s: Session, recortes: Recortes, estoque: SecaoEstoque) -> Seca
         rebanho_medio_cab=no_periodo["rebanho_medio_cab"], rebanho_medio_ua=no_periodo["rebanho_medio_ua"],
         lotacao_cab_ha=no_periodo["lotacao_cab_ha"], lotacao_ua_ha=no_periodo["lotacao_ua_ha"],
         lotacao_cab_ha_prevista=prevista, lotacao_maxima=max(lotacoes, default=None),
-        lotacao_minima=min(lotacoes, default=None), meses=meses, leitura=[])
+        lotacao_minima=min(lotacoes, default=None), pico_do_rebanho=pico.estoque_final if pico else None,
+        mes_do_pico=pico.mes if pico else None, meses=meses, leitura=[])
     secao.leitura = leitura_da_lotacao(recortes, secao)
     return secao
+
+
+def estoque_final_por_mes(s: Session, recortes: Recortes) -> dict[date, float]:
+    """Cabeças no fim de cada mês, do começo do período ao mês de referência."""
+    estoques = {}
+    for linha in s.execute(text(ESTOQUE_FINAL_POR_MES), recortes.acumulado.parametros()).mappings():
+        estoques[linha["competencia"]] = float(linha["cabecas"] or 0)
+    return estoques
+
+
+def mes_do_maior_estoque(meses: list[MesDaLotacao]) -> MesDaLotacao | None:
+    com_estoque = [mes for mes in meses if mes.estoque_final]
+    if not com_estoque:
+        return None
+    return max(com_estoque, key=lambda mes: mes.estoque_final)
 
 
 def rebanho_e_area_por_mes(s: Session, recortes: Recortes) -> tuple[dict[date, DoMes], dict[date, DoMes]]:
@@ -255,20 +279,21 @@ def rebanho_e_area_por_mes(s: Session, recortes: Recortes) -> tuple[dict[date, D
     return por_cenario["realizado"], por_cenario["planejado"]
 
 
-def meses_da_lotacao(recortes: Recortes, realizado: dict[date, DoMes],
-                     previsto: dict[date, DoMes]) -> list[MesDaLotacao]:
+def meses_da_lotacao(recortes: Recortes, realizado: dict[date, DoMes], previsto: dict[date, DoMes],
+                     estoques: dict[date, float]) -> list[MesDaLotacao]:
     meses = []
     for mes in recortes.meses_do_periodo():
         prevista = dividir(previsto[mes].cabecas, previsto[mes].area) if mes in previsto else None
         if mes > recortes.mes_referencia or mes not in realizado:
             meses.append(MesDaLotacao(mes=mes, rebanho_medio_cab=None, rebanho_medio_ua=None, area_ha=None,
-                                      lotacao_cab_ha=None, lotacao_ua_ha=None, lotacao_cab_ha_prevista=prevista))
+                                      lotacao_cab_ha=None, lotacao_ua_ha=None, lotacao_cab_ha_prevista=prevista,
+                                      estoque_final=estoques.get(mes)))
             continue
         do_mes = realizado[mes]
         meses.append(MesDaLotacao(mes=mes, rebanho_medio_cab=do_mes.cabecas, rebanho_medio_ua=do_mes.ua,
                                   area_ha=do_mes.area or None, lotacao_cab_ha=dividir(do_mes.cabecas, do_mes.area),
                                   lotacao_ua_ha=dividir(do_mes.ua, do_mes.area),
-                                  lotacao_cab_ha_prevista=prevista))
+                                  lotacao_cab_ha_prevista=prevista, estoque_final=estoques.get(mes)))
     return meses
 
 
