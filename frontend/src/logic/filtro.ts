@@ -4,7 +4,9 @@ import { mesAtual, mesCurto, mesDaData, somarMeses } from "./meses";
 // O filtro do MENU, como no BI: origem (temporário), cliente, fazendas (seleção múltipla; nenhuma = todas, o "GRUPO"),
 // forma de visualização (safra ou civil), a safra ou o ano, e os meses (seleção múltipla, como o filtro de mês do BI;
 // nenhum = todos). E, desde 10/11/2026, a situação dos títulos do financeiro e a versão do plano de cada fazenda, que
-// também se escolhem nas páginas. Fica na URL (dá para mandar o link) e o navegador lembra o último usado.
+// também se escolhem nas páginas; desde 18/11/2026, o tipo de atividade, a classificação e a conta bancária do
+// financeiro (as opções vêm das capacidades das fazendas). Fica na URL (dá para mandar o link) e o navegador lembra o
+// último usado.
 export type Visao = "safra" | "civil";
 
 // TEMPORÁRIO (pedido do usuário, 15/10/2026): escolher de onde vêm os dados enquanto o mesmo cliente nas duas fontes
@@ -38,6 +40,9 @@ export type Filtro = {
   situacoes: Situacao[]; // dos títulos do financeiro, na ordem de SITUACOES; vazio = o padrão (conciliado e pago)
   versoes: string[]; // as versões do plano marcadas (as de uma fazenda somam); fazenda sem nenhuma = a mais recente
   semPlano: string[]; // as fazendas marcadas "nenhum planejamento"
+  atividades: string[]; // os tipos de atividade do financeiro marcados; vazio = todos
+  classificacoes: string[]; // as classificações do financeiro marcadas; vazio = todas
+  contas: string[]; // os ids das contas bancárias marcadas (só o realizado tem); vazio = todas
 };
 
 // O que as páginas mandam para a API. Com meses salteados, a API soma só os marcados e o estoque final é o do último.
@@ -49,6 +54,9 @@ export type Consulta = {
   situacoes: Situacao[]; // vazio = o padrão da API
   versoes: string[]; // vazio = a mais recente de cada fazenda e safra
   semPlano: string[];
+  atividades: string[]; // vazio = todos os tipos
+  classificacoes: string[]; // vazio = todas
+  contas: string[]; // vazio = todas
 };
 
 // Fazenda sem origem conhecida aparece nas duas.
@@ -122,7 +130,7 @@ export function filtroDoCliente(fazendas: FazendaDoEscopo[], origem: Origem, cli
   const doCliente = fazendasDoCliente(fazendasDaOrigem(fazendas, origem), cliente);
   const ultimo = ultimoMesComDado(doCliente) ?? hoje;
   return { origem, cliente, fazendas: [], visao: "safra", ano: anoDoMes(ultimo, "safra"), meses: [], situacoes: [],
-    versoes: [], semPlano: [] };
+    versoes: [], semPlano: [], atividades: [], classificacoes: [], contas: [] };
 }
 
 // Seleção múltipla do MENU (meses e fazendas): os marcados que existem entre as opções, na ordem delas e sem repetir.
@@ -184,7 +192,11 @@ export function filtroDaUrl(parametros: URLSearchParams, fazendas: FazendaDoEsco
   const situacoes = situacoesEscolhidas(parametros.getAll("status"));
   const versoes = parametros.getAll("versao");
   const semPlano = parametros.getAll("sem_plano");
-  return { origem, cliente: clienteDaUrl, fazendas: marcadas, visao, ano, meses, situacoes, versoes, semPlano };
+  const atividades = parametros.getAll("atividade");
+  const classificacoes = parametros.getAll("classificacao");
+  const contas = parametros.getAll("conta");
+  return { origem, cliente: clienteDaUrl, fazendas: marcadas, visao, ano, meses, situacoes, versoes, semPlano,
+    atividades, classificacoes, contas };
 }
 
 // As situações da URL que existem, na ordem de SITUACOES; as do padrão valem o mesmo que nenhuma.
@@ -252,7 +264,22 @@ export function filtroParaUrl(filtro: Filtro): URLSearchParams {
   for (const fazenda of filtro.semPlano) {
     parametros.append("sem_plano", fazenda);
   }
+  anexarEscolhasDoFinanceiro(parametros, filtro);
   return parametros;
+}
+
+// O tipo de atividade, a classificação e a conta bancária: o mesmo nome na URL da tela e no pedido à API.
+export function anexarEscolhasDoFinanceiro(parametros: URLSearchParams,
+  escolhas: { atividades: string[]; classificacoes: string[]; contas: string[] }) {
+  for (const atividade of escolhas.atividades) {
+    parametros.append("atividade", atividade);
+  }
+  for (const classificacao of escolhas.classificacoes) {
+    parametros.append("classificacao", classificacao);
+  }
+  for (const conta of escolhas.contas) {
+    parametros.append("conta", conta);
+  }
 }
 
 // Fazendas e meses que o filtro escolhe, no formato da API.
@@ -275,10 +302,14 @@ export function consultaDoFiltro(filtro: Filtro, fazendas: FazendaDoEscopo[], ho
     situacoes: filtro.situacoes,
     versoes: filtro.versoes,
     semPlano: filtro.semPlano,
+    atividades: filtro.atividades,
+    classificacoes: filtro.classificacoes,
+    contas: filtro.contas,
   };
 }
 
 // ?fazendas=..&fazendas=..&inicio=AAAA-MM&fim=AAAA-MM[&meses=AAAA-MM..][&situacao=..][&versao=..][&sem_plano=..]
+// [&atividade=..][&classificacao=..][&conta=..]
 export function parametrosDaConsulta(consulta: Consulta): URLSearchParams {
   const parametros = new URLSearchParams({ inicio: consulta.inicio, fim: consulta.fim });
   for (const fazenda of consulta.fazendas) {
@@ -296,6 +327,7 @@ export function parametrosDaConsulta(consulta: Consulta): URLSearchParams {
   for (const fazenda of consulta.semPlano) {
     parametros.append("sem_plano", fazenda);
   }
+  anexarEscolhasDoFinanceiro(parametros, consulta);
   return parametros;
 }
 

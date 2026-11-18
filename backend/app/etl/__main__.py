@@ -5,6 +5,8 @@
     python -m app.etl planilhas-historico [--ate AAAA-MM] [--prop-faz CHAVE ...]   (carga única; depois de `planilhas`)
     python -m app.etl metryx [--cliente ID ...] [--forcar]
     python -m app.etl metryx-credencial --cliente ID --nome "Nome do cliente"   (lê o token sem ecoar)
+    python -m app.etl metryx-conta --nome "Terra"   (a conta mestre, que lista os clientes; lê o token sem ecoar)
+    python -m app.etl metryx-clientes   (relê a lista de clientes das contas mestres, sem carregar os dados)
     python -m app.etl reprocessar VERSAO_ID --fonte planilha|metryx
     python -m app.etl estoque [--ate AAAA-MM-DD]
 
@@ -55,6 +57,23 @@ def _historico(engine, motor: MotorCarga, ate: date, prop_faz: list[str] | None)
     return status or (1 if erros else 0)
 
 
+def _clientes_metryx(engine) -> int:
+    """Relê a lista das contas mestres (chama a API real: só o GET /customers) e mostra os clientes com token."""
+    from app.core.config import get_settings
+    from app.etl.adapters.metryx import contas, credenciais
+    from app.etl.adapters.metryx.cliente import ClienteMetryx
+    cliente_http = ClienteMetryx(get_settings().metryx_base_url)
+    try:
+        descoberta = contas.descobrir_clientes(engine, cliente_http)
+    finally:
+        cliente_http.fechar()
+    print(f"listados: {descoberta.clientes} | novos: {descoberta.novos} | tokens trocados: {descoberta.trocados} | "
+          f"sem token: {descoberta.sem_token} | contas com erro: {descoberta.contas_com_erro}")
+    for credencial in credenciais.credenciais_ativas(engine):
+        print(f"  {credencial.metryx_customer_id}  {credencial.cliente_nome}")
+    return 1 if descoberta.contas_com_erro else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m app.etl", description="Cargas do Projeto Terra")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -75,6 +94,9 @@ def main(argv: list[str] | None = None) -> int:
     c = sub.add_parser("metryx-credencial", help="cadastra/rotaciona o token de um cliente Metryx")
     c.add_argument("--cliente", required=True, help="idCustomer do Metryx")
     c.add_argument("--nome", required=True, help="nome do cliente (para o cadastro)")
+    conta = sub.add_parser("metryx-conta", help="cadastra a conta mestre do Metryx (lista os clientes e os tokens)")
+    conta.add_argument("--nome", required=True, help="nome para reconhecer a conta (ex.: Terra)")
+    sub.add_parser("metryx-clientes", help="relê a lista de clientes das contas mestres e mostra os cadastrados")
     r = sub.add_parser("reprocessar", help="renormaliza uma versão a partir do bruto guardado")
     r.add_argument("versao", type=UUID)
     r.add_argument("--fonte", choices=("planilha", "metryx"), required=True)
@@ -91,6 +113,16 @@ def main(argv: list[str] | None = None) -> int:
         cliente_id = credenciais.registrar(engine, a.cliente.strip(), token.strip(), a.nome)
         print(f"credencial cadastrada para o cliente Metryx {a.cliente} (cliente interno {cliente_id})")
         return 0
+
+    if a.cmd == "metryx-conta":
+        from app.etl.adapters.metryx import contas
+        token = os.environ.pop("METRYX_TOKEN_NOVO", None) or getpass.getpass("token da conta mestre (não aparece): ")
+        conta_id = contas.registrar_conta(engine, token.strip(), a.nome)
+        print(f"conta mestre cadastrada ({conta_id}): a próxima carga do Metryx lê a lista de clientes dela")
+        return 0
+
+    if a.cmd == "metryx-clientes":
+        return _clientes_metryx(engine)
 
     if a.cmd == "importacoes":
         from app.tasks.cargas import importacoes_na_fila

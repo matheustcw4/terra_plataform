@@ -1,5 +1,5 @@
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis } from "recharts";
-import { numero } from "../../logic/formatar";
+import { numero, rotuloInteiro } from "../../logic/formatar";
 import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, ROTULO } from "./estiloDosGraficos";
 
 export type Coluna = { rotulo: string; valor: number };
@@ -41,12 +41,4 @@ function corDaColuna(posicao: number, quantidade: number, destacarUltima: boolea
     return "var(--cor-marrom)";
   }
   return "var(--cor-realizado)";
-}
-
-// O número inteiro em cima da coluna (o estoque cabe), e nada quando a coluna é zero.
-function rotuloInteiro(valor: number): string {
-  if (valor === 0) {
-    return "";
-  }
-  return numero(valor);
 }

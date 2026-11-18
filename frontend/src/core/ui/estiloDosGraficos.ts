@@ -14,6 +14,11 @@ export const GRADE = { vertical: false, stroke: "var(--cor-grade)", strokeDashar
 // o número junto da coluna ou da barra (LabelList)
 export const ROTULO = { fill: "var(--cor-marinho)", fontSize: 11, fontWeight: 700 } as const;
 
+// o número em pé, subindo do topo da coluna: com 12 meses e duas séries numa coluna estreita da página, deitados os
+// números se encavalam; em pé, cada um ocupa só a largura da própria coluna. O gráfico precisa de margem em cima.
+export const ROTULO_EM_PE = { ...ROTULO, fontSize: 10, angle: -90, textAnchor: "start", offset: 4 } as const;
+export const MARGEM_PARA_ROTULO_EM_PE = 48;
+
 export const CAIXA_DO_MOUSE = {
   contentStyle: { fontSize: 12, borderRadius: 6, border: "1px solid var(--cor-borda)", boxShadow: "var(--sombra)" },
   cursor: { fill: "var(--cor-superficie-2)" },

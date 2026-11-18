@@ -14,7 +14,8 @@ Regras (validadas contra o BI em 14/10/2026, docs/validacao/2026-10-14_cruzament
 - baixa com causa de consumo ou doação ("Consumo Abate", "Consumo Acidente", "Doação") vira consumo/doação, como
   no Consolidado Pecuário do próprio Metryx (o BI só contava "Consumo Abate"); estorno (valor negativo) inverte a
   natureza;
-- financeiro realizado = pago; fazenda = destino (D2), fazenda fiscal guardada;
+- financeiro realizado = pago; fazenda = destino (D2), fazenda fiscal guardada; a atividade, a conta bancária e a
+  classificação do centro de custo no plano vão para os filtros do financeiro (classificacao.py);
 - transferência: 1 registro vira 2 linhas (saída na origem, entrada no destino), só para fazendas deste cliente;
 - payload real (15/10/2026): venda, compra e o destino da transferência vêm sem o id da fazenda, que sai do retiro
   (A30); as transferências antigas vêm sem quantidade e ficam de fora, com um aviso só (A31);
@@ -37,6 +38,11 @@ from typing import Any
 from pydantic import ValidationError
 
 from app.etl.adapters.metryx.categoria import sugerir_categoria_bi
+from app.etl.adapters.metryx.classificacao import (
+    ClassificacaoPorCentro,
+    atividade_do_item,
+    conta_bancaria_do_item,
+)
 from app.etl.adapters.metryx.conversao import limpar_nome, para_data, para_decimal, sem_vazios
 from app.etl.adapters.metryx.pasto import PeriodoDePasto, area_no_dia, eh_uso_pecuario
 from app.etl.adapters.metryx.planejamento import MontagemDoPlano
@@ -568,6 +574,12 @@ class MontagemMetryx:
         mostram os pagos (conciliados ou não), como o relatório do Metryx, e o filtro de status do MENU põe o em aberto
         junto. O título excluído no Metryx ("Deletado") não entra, nem com data de pagamento (a Maister tinha 40 assim,
         R$ 4,12 mi, que entravam no realizado). A fazenda é a de destino (D2), e a fiscal fica guardada."""
+        self.classificacao_por_centro = ClassificacaoPorCentro(self.dados)
+        com_mais_de_uma = self.classificacao_por_centro.centros_com_mais_de_uma()
+        if com_mais_de_uma:
+            self.aviso("CLASSIFICATION_AMBIGUOUS",
+                       f"{len(com_mais_de_uma)} centro(s) de custo com mais de uma classificação no plano: os "
+                       "lançamentos deles ficam com a mais frequente", {"centros": com_mais_de_uma})
         for numero, item in enumerate(self.dados.get("lancamento", [])):
             if item.get("status") == STATUS_EXCLUIDO:
                 continue
@@ -599,7 +611,9 @@ class MontagemMetryx:
             fazenda=fazenda, fazenda_fiscal=fiscal, conta=conta, natureza=natureza, valor=valor, situacao=situacao,
             data_pagamento=para_data(item.get("datePayment")), data_vencimento=vencimento,
             descricao=item.get("description"), contraparte=item.get("clientProvider"), documento=item.get("documents"),
-            origem_linha=ref, extra=extra))
+            atividade=atividade_do_item(item, "activity"), conta_bancaria=conta_bancaria_do_item(item),
+            classificacao=self.classificacao_por_centro.do_centro(item.get("costCenter")), origem_linha=ref,
+            extra=extra))
 
     # -- partições --
 

@@ -357,6 +357,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/atividades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Atividades */
+        get: operations["listar_atividades_api_v1_admin_atividades_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/atividades/{mapa_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Classificar Atividade */
+        put: operations["classificar_atividade_api_v1_admin_atividades__mapa_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/usuarios": {
         parameters: {
             query?: never;
@@ -529,6 +563,36 @@ export interface components {
             senha?: string | null;
         };
         /**
+         * AtividadeDeOrigem
+         * @description Uma atividade como a fonte escreve (Metryx: "Pecuária Campo" no realizado, "Pecuária" no plano) e o tipo do
+         *     filtro do financeiro.
+         */
+        AtividadeDeOrigem: {
+            /** Id */
+            id: number;
+            /** Fonte */
+            fonte: string;
+            /** Nome */
+            nome: string;
+            /** Tipo Atividade Id */
+            tipo_atividade_id: number | null;
+            /** Lancamentos */
+            lancamentos: number;
+            /** Orcamentos */
+            orcamentos: number;
+            /** Valor */
+            valor: number;
+        };
+        /** AtividadesDeOrigem */
+        AtividadesDeOrigem: {
+            /** Pendentes */
+            pendentes: number;
+            /** Opcoes */
+            opcoes: components["schemas"]["OpcaoDeTipoDeAtividade"][];
+            /** Itens */
+            itens: components["schemas"]["AtividadeDeOrigem"][];
+        };
+        /**
          * AvisoDaCarga
          * @description Os erros e avisos de uma carga, agrupados pelo código.
          */
@@ -605,6 +669,21 @@ export interface components {
              * @default []
              */
             situacoes: string[];
+            /**
+             * Tipos De Atividade
+             * @default []
+             */
+            tipos_de_atividade: string[];
+            /**
+             * Classificacoes
+             * @default []
+             */
+            classificacoes: string[];
+            /**
+             * Contas Bancarias
+             * @default []
+             */
+            contas_bancarias: components["schemas"]["ContaBancaria"][];
         };
         /**
          * CargaDaIntegracao
@@ -776,6 +855,16 @@ export interface components {
             serie_mensal: components["schemas"]["MesDoLote"][];
             plano: components["schemas"]["EscolhaDaVersao"];
         };
+        /** ContaBancaria */
+        ContaBancaria: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Nome */
+            nome: string;
+        };
         /**
          * ContaDeOrigem
          * @description Uma conta (centro e subcentro) como a fonte escreve, e o centro de custo do plano unificado.
@@ -852,6 +941,13 @@ export interface components {
             usuario: components["schemas"]["UsuarioResumo"];
             /** Fazendas */
             fazendas: components["schemas"]["FazendaDoEscopo"][];
+            /**
+             * @default {
+             *       "tipos_de_atividade": [],
+             *       "classificacoes": []
+             *     }
+             */
+            opcoes_do_financeiro: components["schemas"]["OpcoesDoFinanceiro"];
         };
         /** EstoqueDaCategoria */
         EstoqueDaCategoria: {
@@ -1031,6 +1127,8 @@ export interface components {
             quando: string;
             /** Variavel Da Agenda */
             variavel_da_agenda: string;
+            /** Observacoes */
+            observacoes: string[];
         };
         /**
          * LinhaDoEstoque
@@ -1408,6 +1506,30 @@ export interface components {
             /** Classificacao */
             classificacao: string;
         };
+        /** OpcaoDeTipoDeAtividade */
+        OpcaoDeTipoDeAtividade: {
+            /** Id */
+            id: number;
+            /** Nome */
+            nome: string;
+        };
+        /**
+         * OpcoesDoFinanceiro
+         * @description Todas as opções dos filtros do financeiro das fazendas visíveis, na ordem de mostrar (os tipos na ordem da
+         *     dimensão, as classificações na do DRE): a tela junta as das fazendas do filtro por esta ordem.
+         */
+        OpcoesDoFinanceiro: {
+            /**
+             * Tipos De Atividade
+             * @default []
+             */
+            tipos_de_atividade: string[];
+            /**
+             * Classificacoes
+             * @default []
+             */
+            classificacoes: string[];
+        };
         /** ParteDoDesembolso */
         ParteDoDesembolso: {
             /** Nome */
@@ -1419,6 +1541,11 @@ export interface components {
         PedidoDeAcesso: {
             /** Fazendas */
             fazendas: string[];
+        };
+        /** PedidoDeAtividade */
+        PedidoDeAtividade: {
+            /** Tipo Atividade Id */
+            tipo_atividade_id: number | null;
         };
         /** PedidoDeAtualizacao */
         PedidoDeAtualizacao: {
@@ -1994,6 +2121,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2038,6 +2171,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2081,6 +2220,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2124,6 +2269,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2167,6 +2318,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2210,6 +2367,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2255,6 +2418,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2300,6 +2469,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2343,6 +2518,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2383,6 +2564,12 @@ export interface operations {
                 sem_plano?: string[] | null;
                 /** @description situação dos lançamentos do realizado; sem ela, conciliado e pago */
                 situacao?: ("conciliado" | "pago" | "em_aberto")[] | null;
+                /** @description tipos de atividade (Pecuária, Agricultura…) */
+                atividade?: string[] | null;
+                /** @description classificações (a do Metryx ou o grupo do DRE) */
+                classificacao?: string[] | null;
+                /** @description contas bancárias do realizado */
+                conta?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -2607,6 +2794,73 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PedidoDeConta"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_atividades_api_v1_admin_atividades_get: {
+        parameters: {
+            query?: {
+                /** @description true: só os pendentes */
+                so_pendentes?: boolean;
+                /** @description parte do nome da categoria/conta, da fazenda ou do cliente */
+                busca?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtividadesDeOrigem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    classificar_atividade_api_v1_admin_atividades__mapa_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mapa_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PedidoDeAtividade"];
             };
         };
         responses: {

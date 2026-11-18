@@ -4,6 +4,7 @@ cliente, com os erros e os avisos agrupados. As cargas usam o adapter em memóri
 from datetime import date
 
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.etl.pipeline import MotorCarga
@@ -32,11 +33,12 @@ def test_agenda_em_palavras():
     assert integracoes.agenda_em_palavras("0 6 * * 1-5") == "no horário do cron 0 6 * * 1-5 (Cuiabá)"
 
 
-def test_a_api_ligada_e_a_da_agenda_preenchida():
-    [ligada] = integracoes.listar(Settings(agenda_metryx="0 3 * * *"))
+def test_a_api_ligada_e_a_da_agenda_preenchida(engine_super):
+    with Session(engine_super) as s:
+        [ligada] = integracoes.listar(s, Settings(agenda_metryx="0 3 * * *"))
+        [desligada] = integracoes.listar(s, Settings(agenda_metryx=""))
     assert (ligada.fonte, ligada.rotulo, ligada.ligada, ligada.variavel_da_agenda) == ("metryx", "Metryx", True,
                                                                                        "AGENDA_METRYX")
-    [desligada] = integracoes.listar(Settings(agenda_metryx=""))
     assert (desligada.ligada, desligada.quando) == (False, "desligada")
 
 

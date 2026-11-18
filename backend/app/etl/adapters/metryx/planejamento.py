@@ -38,6 +38,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 from pydantic import ValidationError
 
 from app.etl.adapters.metryx.categoria import sugerir_categoria_bi
+from app.etl.adapters.metryx.classificacao import atividade_do_item, classificacao_do_item
 from app.etl.adapters.metryx.conversao import limpar_nome, para_data, para_decimal, sem_vazios
 from app.etl.canonical import (
     ChaveCategoria,
@@ -459,7 +460,8 @@ class MontagemDoPlano:
             extra = {campo: item.get(campo) for campo in ("type", "className", "activity")}
             self.lote.orcamentos.append(OrcamentoFinanceiro(
                 fazenda=fazenda, versao_plano=VERSAO_DO_FINANCEIRO, tipo="previsao", conta=conta, natureza=natureza,
-                competencia=mes.replace(day=1), valor=abs(valor), origem_linha=ref, extra=extra))
+                competencia=mes.replace(day=1), valor=abs(valor), atividade=atividade_do_item(item, "activity"),
+                classificacao=classificacao_do_item(item), origem_linha=ref, extra=extra))
             self.usou_o_financeiro = True
 
     # -- orçamento do planejamento (fluxo de caixa) --
@@ -491,4 +493,5 @@ class MontagemDoPlano:
             self.lote.orcamentos.append(OrcamentoFinanceiro(
                 fazenda=fazenda, versao_plano=codigo_da_versao(fazenda, versao), tipo="planejamento",
                 conta=conta_do_fluxo(item), natureza=natureza, competencia=mes.replace(day=1), valor=abs(valor),
+                atividade=atividade_do_item(item, "typeActivity"), classificacao=classificacao_do_item(item),
                 origem_linha=ref, extra=extra))

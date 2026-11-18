@@ -149,3 +149,20 @@ class MetryxCredencial(Base):
     ultimo_erro: Mapped[str | None] = mapped_column(Text)
     criado_em: Mapped[datetime] = mapped_column(**AGORA)
     atualizado_em: Mapped[datetime] = mapped_column(**AGORA)
+
+
+class MetryxConta(Base):
+    """A conta mestre do Metryx: lista os clientes e o token de cada um (GET /api-metryx/customers)."""
+    __tablename__ = "metryx_conta"
+    __table_args__ = {"schema": "integracao"}
+
+    id: Mapped[UUID] = mapped_column(**UUID_PK)
+    nome: Mapped[str] = mapped_column(Text)
+    token_cifrado: Mapped[bytes] = mapped_column(LargeBinary)
+    token_impressao: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(Text, server_default=text("'ativa'"))
+    clientes: Mapped[int | None] = mapped_column(Integer)
+    ultima_validacao_em: Mapped[datetime | None]
+    ultimo_erro: Mapped[str | None] = mapped_column(Text)
+    criado_em: Mapped[datetime] = mapped_column(**AGORA)
+    atualizado_em: Mapped[datetime] = mapped_column(**AGORA)

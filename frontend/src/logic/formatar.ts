@@ -61,3 +61,11 @@ export function rotuloDeColuna(valor: number): string {
   }
   return compacto(valor);
 }
+
+// O número inteiro em cima da coluna, quando cabe (o estoque, o rebanho médio), e nada quando a coluna é zero.
+export function rotuloInteiro(valor: number): string {
+  if (valor === 0) {
+    return "";
+  }
+  return numero(valor);
+}

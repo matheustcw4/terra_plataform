@@ -161,9 +161,11 @@ def test_escopo_mostra_so_as_fazendas_do_usuario(api, engine_super, fazenda):
     assert unica["cliente"] == "FULANO DE TAL"                   # o PROPRIETÁRIO do fUnidade, não o projeto
     assert unica["origem"] == "planilha"                         # filtro temporário "Origem" do MENU
     assert unica["ultimo_mes"] == "2025-08-01"            # último movimento; o saldo repetido até 09/2025 não conta
-    # a planilha só traz o que foi pago: o MENU não mostra o filtro de status para ela
+    # a planilha só traz o que foi pago: o MENU não mostra o filtro de status para ela; nem a atividade (não tem) e a
+    # conta bancária (não tem); a classificação é a das contas, na ordem do DRE
     assert unica["capacidades"] == {"estoque": True, "rebanho_medio": True, "area": True, "financeiro": True,
-                                    "planejado": False, "situacoes": ["pago"]}
+                                    "planejado": False, "situacoes": ["pago"], "tipos_de_atividade": ["Sem atividade"],
+                                    "classificacoes": ["Custeio", "A classificar"], "contas_bancarias": []}
     assert api.get("/api/v1/escopo", headers=entrar(api, "outro@terra.test")).json()["fazendas"] == []
     assert len(api.get("/api/v1/escopo", headers=entrar(api, "admin@terra.test")).json()["fazendas"]) == 1
 

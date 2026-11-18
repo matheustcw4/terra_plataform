@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { chamarApi } from "../../core/api/cliente";
 import type { BoletimAnalitico } from "../../core/api/tipos";
-import type { Consulta, Visao } from "../../logic/filtro";
+import { anexarEscolhasDoFinanceiro, type Consulta, type Visao } from "../../logic/filtro";
 
-// GET /dashboards/analitico?fazendas=..&mes_referencia=AAAA-MM&visao=safra|civil[&versao=..][&situacao=..]: tudo o
-// que as folhas do Boletim Resumido e do Personalizado mostram, numa chamada só; as metas nas versões do plano
-// escolhidas e o realizado do financeiro no status escolhido.
+// GET /dashboards/analitico?fazendas=..&mes_referencia=AAAA-MM&visao=safra|civil[&versao=..][&situacao=..]
+// [&atividade=..][&classificacao=..][&conta=..]: tudo o que as folhas do Boletim Resumido e do Personalizado mostram,
+// numa chamada só; as metas nas versões do plano escolhidas e o financeiro no status, no tipo de atividade, na
+// classificação e na conta bancária escolhidos.
 export function useBoletimAnalitico(consulta: Consulta, mesReferencia: string, visao: Visao) {
   const parametros = new URLSearchParams({ mes_referencia: mesReferencia, visao });
   for (const fazenda of consulta.fazendas) {
@@ -20,9 +21,10 @@ export function useBoletimAnalitico(consulta: Consulta, mesReferencia: string, v
   for (const situacao of consulta.situacoes) {
     parametros.append("situacao", situacao);
   }
+  anexarEscolhasDoFinanceiro(parametros, consulta);
   return useQuery({
     queryKey: ["analitico", consulta.fazendas, mesReferencia, visao, consulta.versoes, consulta.semPlano,
-      consulta.situacoes],
+      consulta.situacoes, consulta.atividades, consulta.classificacoes, consulta.contas],
     queryFn: () => chamarApi<BoletimAnalitico>(`/dashboards/analitico?${parametros.toString()}`),
   });
 }

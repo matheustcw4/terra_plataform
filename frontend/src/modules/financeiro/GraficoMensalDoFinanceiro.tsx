@@ -2,7 +2,15 @@ import { Bar, BarChart, CartesianGrid, LabelList, Legend, ResponsiveContainer, T
 import type { MesDoFinanceiro } from "../../core/api/tipos";
 import { rotuloDeColuna } from "../../logic/formatar";
 import { mesCurto } from "../../logic/meses";
-import { CAIXA_DO_MOUSE, COLUNA, EIXO, GRADE, LEGENDA, ROTULO } from "../../core/ui/estiloDosGraficos";
+import {
+  CAIXA_DO_MOUSE,
+  COLUNA,
+  EIXO,
+  GRADE,
+  LEGENDA,
+  MARGEM_PARA_ROTULO_EM_PE,
+  ROTULO_EM_PE,
+} from "../../core/ui/estiloDosGraficos";
 
 type CampoDoMes =
   | "receitas"
@@ -21,14 +29,14 @@ type Props = {
 };
 
 // Os gráficos "REALIZADO X PLANEJADO" da página Financeiro do BI (receitas, desembolso e desembolso por cabeça):
-// realizado × planejado por mês. O número fica só em cima do realizado: na coluna estreita da página, 24 rótulos se
-// sobrepõem (o planejado aparece ao passar o mouse). Sem animação: o painel é para ler número.
+// realizado × planejado por mês, com o número em cima das duas colunas, em pé: na coluna estreita da página, 24
+// números deitados se encavalam. Sem animação: o painel é para ler número.
 export function GraficoMensalDoFinanceiro({ titulo, serie, realizado, planejado, formatar }: Props) {
   return (
     <section className="painel-grafico">
       <h2>{titulo}</h2>
-      <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={serie} margin={{ top: 24, right: 8, bottom: 0, left: 8 }}>
+      <ResponsiveContainer width="100%" height={260}>
+        <BarChart data={serie} margin={{ top: MARGEM_PARA_ROTULO_EM_PE, right: 8, bottom: 0, left: 8 }}>
           <CartesianGrid {...GRADE} />
           <XAxis dataKey="mes" tickFormatter={mesCurto} {...EIXO} />
           <YAxis hide />
@@ -36,9 +44,12 @@ export function GraficoMensalDoFinanceiro({ titulo, serie, realizado, planejado,
           <Legend {...LEGENDA} />
           <Bar {...COLUNA} dataKey={realizado} name="Realizado" fill="var(--cor-realizado)" isAnimationActive={false}>
             <LabelList dataKey={realizado} position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
-              {...ROTULO} />
+              {...ROTULO_EM_PE} />
           </Bar>
-          <Bar {...COLUNA} dataKey={planejado} name="Planejado" fill="var(--cor-planejado)" isAnimationActive={false} />
+          <Bar {...COLUNA} dataKey={planejado} name="Planejado" fill="var(--cor-planejado)" isAnimationActive={false}>
+            <LabelList dataKey={planejado} position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
+              {...ROTULO_EM_PE} />
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </section>

@@ -9,6 +9,7 @@ import { paginaDoCaminho } from "../../core/ui/paginasDoBoletim";
 const SECOES = [
   { caminho: "/admin/categorias", rotulo: "De-para de categorias", icone: "etiquetas" },
   { caminho: "/admin/contas", rotulo: "De-para de contas", icone: "livro" },
+  { caminho: "/admin/atividades", rotulo: "De-para de atividades", icone: "broto" },
   { caminho: "/admin/usuarios", rotulo: "Usuários e acesso", icone: "pessoas" },
   { caminho: "/admin/funcoes", rotulo: "Funções", icone: "cracha" },
 ];

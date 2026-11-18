@@ -17,6 +17,7 @@ class IntegracaoPorApi(BaseModel):
     ligada: bool                            # a agenda preenchida: a autorização para chamar a API real
     quando: str                             # a agenda em palavras ("todo dia às 03:00, horário de Cuiabá")
     variavel_da_agenda: str                 # onde ligar, no .env do servidor ("AGENDA_METRYX")
+    observacoes: list[str]                  # o estado das contas e dos clientes, em frases (a tela só mostra)
 
 
 class UnidadeDaCarga(BaseModel):

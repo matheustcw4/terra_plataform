@@ -1,7 +1,6 @@
 import type { BoletimAnalitico, MortalidadeDoGrupo, SecaoDeLotes } from "../../../core/api/tipos";
 import {
   ateAReferencia,
-  cabeONumeroDoPlanejado,
   type Identificacao,
   linhaDoIndicador,
   mesDoEixo,
@@ -119,7 +118,6 @@ function Mortes({ boletim }: { boletim: BoletimAnalitico }) {
   }));
   const realizadas = meses.map((mes) => mes.realizado);
   const previstas = meses.map((mes) => mes.previsto);
-  const rotuloDoPlanejado = cabeONumeroDoPlanejado(meses.length) ? mortesDoMes : undefined;
   return (
     <div className="boletim-card boletim-quadro">
       <TituloDaParte numero="05">Mortes</TituloDaParte>
@@ -142,7 +140,7 @@ function Mortes({ boletim }: { boletim: BoletimAnalitico }) {
           <Colunas eixo={meses.map((mes) => mesDoEixo(mes.mes))} altura={150} series={[
             { nome: "Real", valores: realizadas, cor: "var(--cor-marrom)", rotulo: mortesDoMes,
               destaques: meses.map((mes) => (mes.realizado ?? 0) > mes.previsto) },
-            { nome: "Plan.", valores: previstas, cor: "var(--cor-planejado)", rotulo: rotuloDoPlanejado,
+            { nome: "Plan.", valores: previstas, cor: "var(--cor-planejado)", rotulo: mortesDoMes,
               corDoRotulo: "var(--boletim-cinza)" },
           ]} />
         </div>
@@ -199,7 +197,6 @@ function Nascimentos({ secao, mesDeReferencia }: { secao: SecaoDeLotes; mesDeRef
   const machos = linhaDoIndicador(secao.resumo, "Machos")?.acumulado;
   const nascidos = linhaDoIndicador(secao.resumo, "Total")?.acumulado;
   const meses = ateAReferencia(secao.meses, mesDeReferencia);
-  const rotuloDoPlanejado = cabeONumeroDoPlanejado(meses.length) ? numeroInteiro : undefined;
   return (
     <div className="boletim-card boletim-quadro crescer">
       <TituloDaParte numero="06">Nascimentos</TituloDaParte>
@@ -236,7 +233,7 @@ function Nascimentos({ secao, mesDeReferencia }: { secao: SecaoDeLotes; mesDeRef
         { nome: "Real", valores: meses.map((mes) => mes.realizado), cor: "var(--cor-realizado)",
           rotulo: numeroInteiro },
         { nome: "Plan.", valores: meses.map((mes) => mes.previsto), cor: "var(--cor-planejado)",
-          rotulo: rotuloDoPlanejado, corDoRotulo: "var(--boletim-cinza)" },
+          rotulo: numeroInteiro, corDoRotulo: "var(--boletim-cinza)" },
       ]} />
     </div>
   );

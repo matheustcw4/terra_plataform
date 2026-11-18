@@ -3,7 +3,6 @@ import logoBranco from "../../../assets/boletim/logo_terra_branco.png";
 import type { BoletimAnalitico, Comparacao, GrupoDoPrevisto, SecaoDeLotes } from "../../../core/api/tipos";
 import {
   ateAReferencia,
-  cabeONumeroDoPlanejado,
   diferencaCompacta,
   diferencaDoResultado,
   doisDigitos,
@@ -289,7 +288,6 @@ type CabecasProps = { titulo: string; secao: SecaoDeLotes; mesDeReferencia: stri
 function CabecasDoMes({ titulo, secao, mesDeReferencia, cor, children }: CabecasProps) {
   const meses = ateAReferencia(secao.meses, mesDeReferencia);
   const cabecas = linhaDoIndicador(secao.resumo, "Cabeças")?.acumulado;
-  const rotuloDoPlanejado = cabeONumeroDoPlanejado(meses.length) ? numeroInteiro : undefined;
   return (
     <div className="boletim-card boletim-quadro">
       <div className="boletim-quadro-topo">
@@ -301,7 +299,7 @@ function CabecasDoMes({ titulo, secao, mesDeReferencia, cor, children }: Cabecas
       <Colunas eixo={meses.map((mes) => mesDoEixo(mes.mes))} altura={160} series={[
         { nome: "Realizado", valores: meses.map((mes) => mes.realizado), cor, rotulo: numeroInteiro },
         { nome: "Planejado", valores: meses.map((mes) => mes.previsto), cor: "var(--cor-planejado)",
-          rotulo: rotuloDoPlanejado, corDoRotulo: "var(--boletim-cinza)" },
+          rotulo: numeroInteiro, corDoRotulo: "var(--boletim-cinza)" },
       ]} />
       <span className="boletim-sub legenda-do-quadro">{children}</span>
     </div>

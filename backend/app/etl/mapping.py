@@ -5,6 +5,9 @@
 - categoria: dim.categoria_map. De-para confirmado pela fonte (planilha) grava a categoria BI; sugestão (Metryx) só
   preenche categoria_bi_sugerida_id — nunca sobrescreve uma confirmação.
 - conta: dim.plano_contas_map; sem de-para, tenta o nome canônico do plano de contas e grava o de-para achado.
+- atividade e classificação da fonte (filtros do financeiro, 18/11/2026): dim.atividade_map e dim.classificacao_map;
+  nome novo nasce pendente (o admin dá o tipo ou o grupo do DRE). A marca de desembolso da classificação segue a fonte.
+- conta bancária: dim.conta_bancaria, pelo id da fonte dentro do cliente (o nome é atualizado a cada carga).
 """
 
 from dataclasses import dataclass, field
@@ -48,6 +51,9 @@ class Resolvido:
     categorias: dict[ChaveCategoria, UUID] = field(default_factory=dict)
     versoes: dict[tuple[UUID, str], UUID] = field(default_factory=dict)   # (cliente_id, codigo) -> id
     contas: dict[ContaOrigem, UUID] = field(default_factory=dict)   # conta -> dim.plano_contas_map.id
+    atividades: dict[str, int] = field(default_factory=dict)          # nome da fonte -> dim.atividade_map.id
+    classificacoes: dict[str, int] = field(default_factory=dict)      # nome da fonte -> dim.classificacao_map.id
+    contas_bancarias: dict[tuple[UUID, str], UUID] = field(default_factory=dict)  # (cliente, id externo) -> id
     fonte_ativa: dict[tuple[UUID, str], str] = field(default_factory=dict)  # (fazenda_id, dominio) -> fonte
     ocorrencias: list[Ocorrencia] = field(default_factory=list)
 
@@ -62,6 +68,9 @@ def resolver(s: Session, lote: LoteCanonico) -> Resolvido:
     _versoes(s, fonte, lote, resolvido)
     _categorias(s, lote, resolvido)
     _contas(s, fonte, lote, resolvido)
+    _atividades(s, fonte, lote, resolvido)
+    _classificacoes(s, fonte, lote, resolvido)
+    _contas_bancarias(s, fonte, lote, resolvido)
     _fontes_ativas(s, resolvido)
     return resolvido
 
@@ -272,3 +281,61 @@ def _contas(s: Session, fonte: Fonte, lote: LoteCanonico, resolvido: Resolvido) 
         if conta_map_id is None:
             conta_map_id = s.scalar(text(CONTA_NOVA), parametros)
         resolvido.contas[conta] = conta_map_id
+
+
+# --- filtros do financeiro: atividade, classificação da fonte e conta bancária -------------------------------------
+
+ATIVIDADE = """
+    INSERT INTO dim.atividade_map (fonte, nome_origem) VALUES (:f, :nome)
+    ON CONFLICT ON CONSTRAINT uq_atividade_map DO UPDATE SET atualizado_em = now()
+    RETURNING id
+"""
+# a marca de desembolso é a da fonte (100% a classificação do Metryx, decisão do usuário de 18/11/2026): a carga
+# atualiza a que estava; o grupo do DRE e o custeio ficam como o admin (ou a migração 0029) deixou
+CLASSIFICACAO = """
+    INSERT INTO dim.classificacao_map (fonte, nome_origem, entra_desembolso) VALUES (:f, :nome, :desembolso)
+    ON CONFLICT ON CONSTRAINT uq_classificacao_map DO UPDATE
+        SET entra_desembolso = coalesce(EXCLUDED.entra_desembolso, dim.classificacao_map.entra_desembolso),
+            atualizado_em = now()
+    RETURNING id
+"""
+CONTA_BANCARIA = """
+    INSERT INTO dim.conta_bancaria (cliente_id, fonte, id_externo, nome) VALUES (:cliente, :f, :id_externo, :nome)
+    ON CONFLICT ON CONSTRAINT uq_conta_bancaria DO UPDATE SET nome = EXCLUDED.nome, atualizado_em = now()
+    RETURNING id
+"""
+
+
+def _atividades(s: Session, fonte: Fonte, lote: LoteCanonico, resolvido: Resolvido) -> None:
+    nomes = set()
+    for linha in [*lote.lancamentos, *lote.orcamentos]:
+        if linha.atividade is not None:
+            nomes.add(linha.atividade)
+    for nome in sorted(nomes):
+        resolvido.atividades[nome] = s.scalar(text(ATIVIDADE), {"f": fonte, "nome": nome})
+
+
+def _classificacoes(s: Session, fonte: Fonte, lote: LoteCanonico, resolvido: Resolvido) -> None:
+    """Uma linha por nome; a marca de desembolso é a primeira informada no lote."""
+    desembolso_do_nome: dict[str, bool | None] = {}
+    for linha in [*lote.lancamentos, *lote.orcamentos]:
+        if linha.classificacao is None:
+            continue
+        nome = linha.classificacao.nome
+        if desembolso_do_nome.get(nome) is None:
+            desembolso_do_nome[nome] = linha.classificacao.desembolso
+    for nome in sorted(desembolso_do_nome):
+        parametros = {"f": fonte, "nome": nome, "desembolso": desembolso_do_nome[nome]}
+        resolvido.classificacoes[nome] = s.scalar(text(CLASSIFICACAO), parametros)
+
+
+def _contas_bancarias(s: Session, fonte: Fonte, lote: LoteCanonico, resolvido: Resolvido) -> None:
+    for linha in lote.lancamentos:
+        conta = linha.conta_bancaria
+        if conta is None:
+            continue
+        chave = (resolvido.cliente_da_fazenda[linha.fazenda], conta.id_externo)
+        if chave in resolvido.contas_bancarias:
+            continue
+        parametros = {"cliente": chave[0], "f": fonte, "id_externo": conta.id_externo, "nome": conta.nome}
+        resolvido.contas_bancarias[chave] = s.scalar(text(CONTA_BANCARIA), parametros)

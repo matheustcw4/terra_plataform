@@ -1,8 +1,8 @@
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, LabelList, Legend, Line, LineChart, XAxis, YAxis } from "recharts";
 import type { MesComparado, SecaoDeLotes } from "../../../core/api/tipos";
-import { COLUNA, EIXO, GRADE, LEGENDA } from "../../../core/ui/estiloDosGraficos";
+import { COLUNA, EIXO, GRADE, LEGENDA, ROTULO } from "../../../core/ui/estiloDosGraficos";
 import { colunasDoLote, dataCurta } from "../../../logic/analitico";
-import { dinheiro, numero, percentual } from "../../../logic/formatar";
+import { dinheiro, numero, percentual, rotuloDeColuna } from "../../../logic/formatar";
 import { mesCurto } from "../../../logic/meses";
 import { mostra, type ParteDoAssunto, recortar } from "../../../logic/personalizado";
 import { QuadroAnalitico, type Rotulos } from "./FolhaAnalitica";
@@ -98,30 +98,44 @@ export function TabelaDeLotes({ secao }: { secao: SecaoDeLotes }) {
   );
 }
 
+// A margem de cima dá lugar ao número da coluna mais alta.
 export function GraficoPorMes({ meses }: { meses: MesComparado[] }) {
   return (
-    <BarChart width={LARGURA_DO_GRAFICO} height={240} data={meses} margin={{ top: 12, right: 20, bottom: 0, left: 0 }}>
+    <BarChart width={LARGURA_DO_GRAFICO} height={240} data={meses} margin={{ top: 24, right: 20, bottom: 0, left: 0 }}>
       <CartesianGrid {...GRADE} />
       <XAxis dataKey="mes" tickFormatter={mesCurto} {...EIXO} interval={0} />
       <YAxis {...EIXO} tickFormatter={(valor) => numero(Number(valor))} />
       <Legend {...LEGENDA} />
-      <Bar {...COLUNA} dataKey="previsto" name="Previsto" fill="var(--cor-planejado)" isAnimationActive={false} />
-      <Bar {...COLUNA} dataKey="realizado" name="Realizado" fill="var(--cor-realizado)" isAnimationActive={false} />
+      <Bar {...COLUNA} dataKey="previsto" name="Previsto" fill="var(--cor-planejado)" isAnimationActive={false}>
+        <LabelList dataKey="previsto" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
+          {...ROTULO} />
+      </Bar>
+      <Bar {...COLUNA} dataKey="realizado" name="Realizado" fill="var(--cor-realizado)" isAnimationActive={false}>
+        <LabelList dataKey="realizado" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
+          {...ROTULO} />
+      </Bar>
     </BarChart>
   );
 }
 
+// O número do realizado fica em cima da linha e o do previsto embaixo, para os dois não se encostarem.
 function GraficoAcumulado({ meses }: { meses: MesComparado[] }) {
   return (
-    <LineChart width={LARGURA_DO_GRAFICO} height={240} data={meses} margin={{ top: 12, right: 20, bottom: 0, left: 0 }}>
+    <LineChart width={LARGURA_DO_GRAFICO} height={240} data={meses} margin={{ top: 24, right: 20, bottom: 0, left: 0 }}>
       <CartesianGrid {...GRADE} />
       <XAxis dataKey="mes" tickFormatter={mesCurto} {...EIXO} interval={0} />
       <YAxis {...EIXO} tickFormatter={(valor) => numero(Number(valor))} />
       <Legend {...LEGENDA} />
       <Line dataKey="previsto_acumulado" name="Previsto" stroke="var(--cor-planejado)" strokeWidth={2}
-        strokeDasharray="6 4" dot={false} isAnimationActive={false} />
+        strokeDasharray="6 4" dot={false} isAnimationActive={false}>
+        <LabelList dataKey="previsto_acumulado" position="bottom" formatter={(valor) => rotuloDeColuna(Number(valor))}
+          {...ROTULO} />
+      </Line>
       <Line dataKey="realizado_acumulado" name="Realizado" stroke="var(--cor-realizado)" strokeWidth={2.5}
-        isAnimationActive={false} />
+        isAnimationActive={false}>
+        <LabelList dataKey="realizado_acumulado" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
+          {...ROTULO} />
+      </Line>
     </LineChart>
   );
 }

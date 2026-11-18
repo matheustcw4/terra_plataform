@@ -225,12 +225,6 @@ export function nomeLegivel(nome: string): string {
   return comMaiuscula(nome.toLocaleLowerCase("pt-BR"));
 }
 
-// Com mais de 6 meses, os números do realizado e do planejado se encostam em cima das colunas: o planejado fica sem
-// número (a cor da coluna e a tabela embaixo já dizem quanto era).
-export function cabeONumeroDoPlanejado(quantidadeDeMesesNoGrafico: number): boolean {
-  return quantidadeDeMesesNoGrafico <= 6;
-}
-
 // Investimentos e custeio são as partes do desembolso: na tabela, entram recuados embaixo dele.
 export function ehParteDoDesembolso(classificacao: string): boolean {
   return classificacao.startsWith("C - ") || classificacao.startsWith("D - ");

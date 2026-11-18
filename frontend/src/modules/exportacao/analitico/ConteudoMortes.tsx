@@ -1,8 +1,8 @@
-import { Bar, CartesianGrid, ComposedChart, Legend, Line, XAxis, YAxis } from "recharts";
+import { Bar, CartesianGrid, ComposedChart, LabelList, Legend, Line, XAxis, YAxis } from "recharts";
 import type { SecaoMortes } from "../../../core/api/tipos";
-import { COLUNA, EIXO, GRADE, LEGENDA } from "../../../core/ui/estiloDosGraficos";
+import { COLUNA, EIXO, GRADE, LEGENDA, ROTULO } from "../../../core/ui/estiloDosGraficos";
 import { dataCurta } from "../../../logic/analitico";
-import { numero, percentual } from "../../../logic/formatar";
+import { numero, percentual, rotuloDeColuna } from "../../../logic/formatar";
 import { mesCurto } from "../../../logic/meses";
 import { mostra, type ParteDoAssunto, recortar } from "../../../logic/personalizado";
 import { QuadroAnalitico, type Rotulos } from "./FolhaAnalitica";
@@ -81,21 +81,31 @@ function MortesDoMes({ secao }: { secao: SecaoMortes }) {
   );
 }
 
+// A margem de cima dá lugar ao número da coluna e do ponto mais altos.
 function GraficoDasMortes({ secao }: { secao: SecaoMortes }) {
   return (
     <ComposedChart width={LARGURA_DO_GRAFICO} height={260} data={secao.meses}
-      margin={{ top: 12, right: 24, bottom: 0, left: 0 }}>
+      margin={{ top: 24, right: 24, bottom: 0, left: 0 }}>
       <CartesianGrid {...GRADE} />
       <XAxis dataKey="mes" tickFormatter={mesCurto} {...EIXO} />
       <YAxis yAxisId="mortes" {...EIXO} tickFormatter={(valor) => numero(Number(valor))} />
       <YAxis yAxisId="taxa" orientation="right" {...EIXO} tickFormatter={(valor) => percentual(Number(valor), 1)} />
       <Legend {...LEGENDA} />
       <Bar {...COLUNA} yAxisId="mortes" dataKey="previsto" name="Mortes previstas" fill="var(--cor-planejado)"
-        isAnimationActive={false} />
+        isAnimationActive={false}>
+        <LabelList dataKey="previsto" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
+          {...ROTULO} />
+      </Bar>
       <Bar {...COLUNA} yAxisId="mortes" dataKey="realizado" name="Mortes realizadas" fill="var(--cor-despesa)"
-        isAnimationActive={false} />
+        isAnimationActive={false}>
+        <LabelList dataKey="realizado" position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
+          {...ROTULO} />
+      </Bar>
       <Line yAxisId="taxa" dataKey="mortalidade_acumulada" name="Mortalidade acumulada"
-        stroke="var(--cor-marinho)" strokeWidth={2.5} isAnimationActive={false} />
+        stroke="var(--cor-marinho)" strokeWidth={2.5} isAnimationActive={false}>
+        <LabelList dataKey="mortalidade_acumulada" position="top" formatter={(valor) => percentual(Number(valor), 2)}
+          {...ROTULO} />
+      </Line>
     </ComposedChart>
   );
 }

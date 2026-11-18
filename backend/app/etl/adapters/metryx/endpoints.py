@@ -52,6 +52,10 @@ ENDPOINTS: dict[str, Endpoint] = {e.nome: e for e in (
     Endpoint("fluxo_caixa_plano", "/api-metryx/previsao-fluxo-caixa-planejamento"),
 )}
 
-CAMINHOS_PERMITIDOS: frozenset[str] = frozenset(e.caminho for e in ENDPOINTS.values())
+# A lista dos clientes e do token de cada um, com o token da conta mestre (contas.py). Não está no Swagger: é o
+# endpoint que o Pentaho do BI usa (análise 04, §1); fica fora de ENDPOINTS porque não é dado de um cliente.
+CAMINHO_DOS_CLIENTES = "/api-metryx/customers"
+
+CAMINHOS_PERMITIDOS: frozenset[str] = frozenset({e.caminho for e in ENDPOINTS.values()} | {CAMINHO_DOS_CLIENTES})
 CAMINHOS_PROIBIDOS: frozenset[str] = frozenset({"/api-metryx/control-birth"})
 assert not CAMINHOS_PERMITIDOS & CAMINHOS_PROIBIDOS

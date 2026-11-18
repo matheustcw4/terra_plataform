@@ -17,6 +17,7 @@ from app.kpis.analitico.resumo import secao_resumo
 from app.kpis.analitico.transferencias import secao_transferencias
 from app.kpis.analitico.ultimo_dado import aviso_do_ultimo_dado
 from app.kpis.analitico.vendas import secoes_de_vendas
+from app.kpis.filtros_do_financeiro import SEM_ESCOLHA, EscolhasDoFinanceiro
 from app.kpis.situacao_do_lancamento import SITUACOES_PADRAO
 from app.kpis.versao_do_plano import escolha_da_versao
 from app.schemas.analitico import BoletimAnalitico
@@ -24,8 +25,10 @@ from app.schemas.analitico import BoletimAnalitico
 
 def boletim_analitico(s: Session, fazendas: list[UUID], mes_referencia: date, visao: str,
                       versoes_do_plano: tuple[UUID, ...] = (), fazendas_sem_plano: tuple[UUID, ...] = (),
-                      situacoes: tuple[str, ...] = SITUACOES_PADRAO) -> BoletimAnalitico:
-    recortes = recortes_do_boletim(fazendas, mes_referencia, visao, versoes_do_plano, fazendas_sem_plano, situacoes)
+                      situacoes: tuple[str, ...] = SITUACOES_PADRAO,
+                      escolhas_do_financeiro: EscolhasDoFinanceiro = SEM_ESCOLHA) -> BoletimAnalitico:
+    recortes = recortes_do_boletim(fazendas, mes_referencia, visao, versoes_do_plano, fazendas_sem_plano, situacoes,
+                                   escolhas_do_financeiro)
     limiar = limiar_do_semaforo(s)
     aviso = aviso_do_ultimo_dado(s, recortes)
     estoque = secao_estoque(s, recortes, sem_lancamento_no_mes=aviso.todas_paradas)

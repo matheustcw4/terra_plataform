@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { parametrosComPrevisto, pedidoDaUrl, urlComTipo } from "./previsto";
 
 const CONSULTA = { fazendas: ["f1"], inicio: "2025-07", fim: "2026-06", meses: [], situacoes: [], versoes: [],
-  semPlano: [] };
+  semPlano: [], atividades: [], classificacoes: [], contas: [] };
 
 describe("escolha do orçamento do planejado", () => {
   test("lê o tipo da URL; sem ele, a escolha padrão", () => {

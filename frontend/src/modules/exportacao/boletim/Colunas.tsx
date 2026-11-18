@@ -4,7 +4,7 @@ export type SerieDeColunas = {
   nome: string;
   valores: (number | null)[]; // um por mês
   cor: string; // variável de cor (var(--cor-...))
-  rotulo?: (valor: number) => string; // o número em cima da coluna; sem ele, a coluna vai sem número
+  rotulo: (valor: number) => string; // o número em cima da coluna
   corDoRotulo?: string; // o planejado escreve em cinza
   destaques?: boolean[]; // o mês em que o número sai vermelho (acima da meta)
 };
@@ -66,9 +66,7 @@ type ColunaProps = {
 function Coluna({ serie, posicao, maior, areaUtil, largura, fonte }: ColunaProps) {
   const valor = serie.valores[posicao] ?? null;
   let texto = "—";
-  if (serie.rotulo === undefined) {
-    texto = " "; // sem número, mas com a mesma altura, para as colunas do mês ficarem alinhadas
-  } else if (valor !== null && valor !== 0) {
+  if (valor !== null && valor !== 0) {
     texto = serie.rotulo(valor);
   }
   let cor = serie.corDoRotulo ?? "var(--boletim-rotulo)";

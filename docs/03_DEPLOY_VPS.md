@@ -133,13 +133,21 @@ $env:POSTGRES_HOST = "127.0.0.1"; $env:POSTGRES_PORT = "55433"; $env:APP_ETL_PAS
 
 ### O Metryx (só com autorização)
 
-As chamadas à API real do Metryx dependem de autorização explícita (CLAUDE.md, Segurança). Autorizado: cadastre o
-token de cada cliente (cifrado no banco com `METRYX_CHAVE_CIFRA`), preencha `AGENDA_METRYX` (ex.: `0 3 * * *`) no
-`.env.producao` e recrie o beat:
+As chamadas à API real do Metryx dependem de autorização explícita (CLAUDE.md, Segurança). Autorizado: cadastre a
+**conta mestre** (o token que lista os clientes e o token de cada um; fica cifrado com `METRYX_CHAVE_CIFRA`), preencha
+`AGENDA_METRYX` (ex.: `0 3 * * *`) no `.env.producao` e recrie os serviços. A cada carga a plataforma relê a lista:
+cliente novo entra sozinho.
+
+```bash
+terra run --rm -it worker python -m app.etl metryx-conta --nome "Terra"
+terra run --rm worker python -m app.etl metryx-clientes     # confere a lista (chama só o GET /customers)
+terra up -d
+```
+
+Sem a conta mestre, cada cliente é cadastrado à mão, com o token dele:
 
 ```bash
 terra run --rm -it worker python -m app.etl metryx-credencial --cliente <idCustomer> --nome "Nome do cliente"
-terra up -d beat
 ```
 
 ## 4. Atualizar a versão

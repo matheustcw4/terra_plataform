@@ -309,6 +309,7 @@ class MotorCarga:
 
         avisos.ocorrencias.extend(diagnostico.pendencias_de_categoria(s, resolvido))
         avisos.ocorrencias.extend(diagnostico.pendencias_de_conta(s, resolvido, lote))
+        avisos.ocorrencias.extend(diagnostico.pendencias_dos_filtros(s, resolvido, lote))
         diagnostico.gravar(s, avisos, resolvido, versao_id, unidade_id, job_id)
         resultado.quarentena = len(avisos.rejeitadas)
         resultado.avisos = avisos.avisos()
@@ -451,5 +452,27 @@ def linha_para_banco(linha: Any, resolvido: Resolvido) -> dict[str, Any]:
     if "fazenda_fiscal" in colunas:
         fiscal = colunas.pop("fazenda_fiscal")
         registro["fazenda_fiscal_id"] = resolvido.fazendas.get(fiscal) if fiscal else None
+    if "atividade" in colunas:
+        colunas.pop("atividade")
+        registro["atividade_map_id"] = resolvido.atividades.get(linha.atividade)
+    if "classificacao" in colunas:
+        colunas.pop("classificacao")
+        registro["classificacao_map_id"] = id_da_classificacao(linha, resolvido)
+    if "conta_bancaria" in colunas:
+        colunas.pop("conta_bancaria")
+        registro["conta_bancaria_id"] = id_da_conta_bancaria(linha, resolvido)
     registro.update(colunas)
     return registro
+
+
+def id_da_classificacao(linha: Any, resolvido: Resolvido) -> int | None:
+    if linha.classificacao is None:
+        return None
+    return resolvido.classificacoes[linha.classificacao.nome]
+
+
+def id_da_conta_bancaria(linha: Any, resolvido: Resolvido) -> UUID | None:
+    if linha.conta_bancaria is None:
+        return None
+    cliente = resolvido.cliente_da_fazenda[linha.fazenda]
+    return resolvido.contas_bancarias[(cliente, linha.conta_bancaria.id_externo)]

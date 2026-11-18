@@ -29,6 +29,11 @@ class RespostaLogin(BaseModel):
 # --- escopo: o que o usuário pode ver ------------------------------------------------------------------------------
 
 
+class ContaBancaria(BaseModel):
+    id: UUID
+    nome: str
+
+
 class Capacidades(BaseModel):
     """Que dados a fazenda tem (o front mostra ou esconde telas por isso, nunca pela fonte)."""
     estoque: bool
@@ -39,6 +44,11 @@ class Capacidades(BaseModel):
     # as situações dos títulos do realizado do financeiro que a fazenda tem: conciliado, pago, em_aberto (a planilha só
     # traz o pago; pedido do usuário, 10/11/2026)
     situacoes: list[str] = []
+    # as opções dos filtros do financeiro que existem nos dados da fazenda (18/11/2026): o MENU e o topo das páginas
+    # do financeiro só mostram um filtro quando há mais de uma opção
+    tipos_de_atividade: list[str] = []      # do realizado e do orçamento
+    classificacoes: list[str] = []          # do realizado e do orçamento, na ordem do DRE
+    contas_bancarias: list[ContaBancaria] = []   # só o realizado tem
 
 
 class FazendaDoEscopo(BaseModel):
@@ -52,9 +62,17 @@ class FazendaDoEscopo(BaseModel):
     capacidades: Capacidades
 
 
+class OpcoesDoFinanceiro(BaseModel):
+    """Todas as opções dos filtros do financeiro das fazendas visíveis, na ordem de mostrar (os tipos na ordem da
+    dimensão, as classificações na do DRE): a tela junta as das fazendas do filtro por esta ordem."""
+    tipos_de_atividade: list[str] = []
+    classificacoes: list[str] = []
+
+
 class Escopo(BaseModel):
     usuario: UsuarioResumo
     fazendas: list[FazendaDoEscopo]
+    opcoes_do_financeiro: OpcoesDoFinanceiro = OpcoesDoFinanceiro()
 
 
 # --- página Movimentação do Gado ---------------------------------------------------------------------------------

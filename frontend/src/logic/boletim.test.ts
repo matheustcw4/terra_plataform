@@ -4,7 +4,6 @@ import type { Filtro } from "./filtro";
 import {
   alturaDaColuna,
   ateAReferencia,
-  cabeONumeroDoPlanejado,
   nomeLegivel,
   cabecasOuTraco,
   diferencaCompacta,
@@ -106,12 +105,10 @@ describe("boletim de resultados", () => {
     expect(ateAReferencia(meses, "2026-10-01")).toEqual([{ mes: "2026-09-01" }, { mes: "2026-10-01" }]);
   });
 
-  it("deixa legível o nome em maiúsculas e tira o número do planejado quando não cabe", () => {
+  it("deixa legível o nome em maiúsculas", () => {
     expect(nomeLegivel("TRISTEZA PARASITÁRIA")).toBe("Tristeza parasitária");
     expect(nomeLegivel("MACHOS 8-12")).toBe("Machos 8-12");
     expect(nomeLegivel("Rebanho Investimento")).toBe("Rebanho Investimento");
-    expect(cabeONumeroDoPlanejado(3)).toBe(true);
-    expect(cabeONumeroDoPlanejado(10)).toBe(false);
   });
 
   it("vê movimento no realizado ou na meta", () => {
@@ -143,14 +140,15 @@ describe("boletim de resultados", () => {
       { id: "c1", nome: "FAZENDA CMI", cliente: "RENE", origem: "planilha", sistema_produtivo: null,
         primeiro_mes: "2025-01-01", ultimo_mes: "2026-10-01",
         capacidades: { estoque: true, rebanho_medio: true, area: true, financeiro: true, planejado: true,
-        situacoes: ["pago"] } },
+        situacoes: ["pago"], tipos_de_atividade: [], classificacoes: [], contas_bancarias: [] } },
       { id: "c2", nome: "FAZENDA PALMARES", cliente: "RENE", origem: "planilha", sistema_produtivo: null,
         primeiro_mes: "2025-01-01", ultimo_mes: "2026-10-01",
         capacidades: { estoque: true, rebanho_medio: true, area: true, financeiro: true, planejado: true,
-        situacoes: ["pago"] } },
+        situacoes: ["pago"], tipos_de_atividade: [], classificacoes: [], contas_bancarias: [] } },
     ];
     const filtro: Filtro = { origem: "planilha", cliente: "RENE", fazendas: ["c1"], visao: "civil", ano: 2026,
-      meses: [], situacoes: [], versoes: [], semPlano: [] };
+      meses: [], situacoes: [], versoes: [], semPlano: [], atividades: [], classificacoes: [],
+      contas: [] };
     const datas = { inicio_do_periodo: "2026-01-01", mes_referencia: "2026-10-01",
       plano: { fazendas: [], em_uso: [] } };
     const uma = identificacaoDoBoletim(filtro, fazendas, datas, " Cuiabá ", "2026-11");

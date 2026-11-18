@@ -15,12 +15,15 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.schemas.admin import (
+    AtividadeDeOrigem,
+    AtividadesDeOrigem,
     CategoriaDeOrigem,
     CategoriasDeOrigem,
     ContaDeOrigem,
     ContasDeOrigem,
     OpcaoDeCategoria,
     OpcaoDeConta,
+    OpcaoDeTipoDeAtividade,
 )
 
 LIMITE_DA_LISTA = 500
@@ -164,3 +167,43 @@ def classificar_conta(s: Session, mapa_id: UUID, centro_custo_id: int | None, us
                              {"id": mapa_id, "centro": centro_custo_id, "usuario": usuario_id}).first()
     if alterada is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "de-para de conta não encontrado")
+
+
+# --- atividades (filtro do financeiro, 18/11/2026) -----------------------------------------------------------------
+
+ATIVIDADES = """
+    SELECT m.id, m.fonte, m.nome_origem AS nome, m.tipo_atividade_id,
+           coalesce(uso.lancamentos, 0) AS lancamentos, coalesce(uso.valor, 0) AS valor,
+           coalesce(planejado.orcamentos, 0) AS orcamentos
+    FROM dim.atividade_map m
+    LEFT JOIN LATERAL (SELECT count(*) AS lancamentos, sum(l.valor) AS valor
+                       FROM fato.lancamento_financeiro l WHERE l.atividade_map_id = m.id) uso ON true
+    LEFT JOIN LATERAL (SELECT count(*) AS orcamentos
+                       FROM fato.orcamento_financeiro o WHERE o.atividade_map_id = m.id) planejado ON true
+    WHERE (NOT :so_pendentes OR m.tipo_atividade_id IS NULL) AND m.nome_origem ILIKE '%' || :busca || '%'
+    ORDER BY m.tipo_atividade_id IS NOT NULL, coalesce(uso.valor, 0) DESC, m.nome_origem
+    LIMIT :limite
+"""
+OPCOES_DE_ATIVIDADE = "SELECT id, nome FROM dim.tipo_atividade ORDER BY ordem"
+PENDENTES_DE_ATIVIDADE = "SELECT count(*) FROM dim.atividade_map WHERE tipo_atividade_id IS NULL"
+CLASSIFICAR_ATIVIDADE = """
+    UPDATE dim.atividade_map SET tipo_atividade_id = :tipo, atualizado_em = now() WHERE id = :id RETURNING id
+"""
+
+
+def listar_atividades(s: Session, so_pendentes: bool, busca: str) -> AtividadesDeOrigem:
+    itens = []
+    parametros = {"so_pendentes": so_pendentes, "busca": busca.strip(), "limite": LIMITE_DA_LISTA}
+    for linha in s.execute(text(ATIVIDADES), parametros).mappings():
+        itens.append(AtividadeDeOrigem(**linha))
+    opcoes = []
+    for linha in s.execute(text(OPCOES_DE_ATIVIDADE)).mappings():
+        opcoes.append(OpcaoDeTipoDeAtividade(**linha))
+    return AtividadesDeOrigem(pendentes=s.scalar(text(PENDENTES_DE_ATIVIDADE)), opcoes=opcoes, itens=itens)
+
+
+def classificar_atividade(s: Session, mapa_id: int, tipo_atividade_id: int | None) -> None:
+    """Grava o tipo (ou volta para "A classificar"). O filtro lê pela view: nada a recalcular."""
+    alterada = s.execute(text(CLASSIFICAR_ATIVIDADE), {"id": mapa_id, "tipo": tipo_atividade_id}).first()
+    if alterada is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "de-para de atividade não encontrado")

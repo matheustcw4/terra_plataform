@@ -102,6 +102,21 @@ class ContaOrigem(_Modelo):
     subcentro: str | None = None
 
 
+class ClassificacaoOrigem(_Modelo):
+    """A classificação que a fonte dá à linha do financeiro (Metryx: classificationAnalyticDescription), com a marca de
+    desembolso dela (classificationAnalyticDisbursement). O de-para `dim.classificacao_map` liga ao grupo do DRE."""
+
+    nome: str
+    desembolso: bool | None = None
+
+
+class ContaBancariaOrigem(_Modelo):
+    """A conta bancária do lançamento na fonte (Metryx: idBankAccount e banckAccount)."""
+
+    id_externo: str
+    nome: str
+
+
 # --- linhas de fato ---------------------------------------------------------------------------------------------------
 
 class _Linha(_Modelo):
@@ -198,6 +213,11 @@ class LancamentoFinanceiro(_Linha):
     descricao: str | None = None
     contraparte: str | None = None
     documento: str | None = None
+    # os filtros do financeiro (18/11/2026): a atividade da fonte (o de-para dá o tipo), a classificação da fonte
+    # (decide o grupo do DRE e o custeio e o desembolso) e a conta bancária
+    atividade: str | None = None
+    classificacao: ClassificacaoOrigem | None = None
+    conta_bancaria: ContaBancariaOrigem | None = None
 
     @model_validator(mode="after")
     def _tem_data_do_caixa(self) -> "LancamentoFinanceiro":
@@ -223,6 +243,8 @@ class OrcamentoFinanceiro(_Linha):
     natureza: Literal["C", "D"]
     competencia: date
     valor: NaoNegativo
+    atividade: str | None = None                       # no plano do Metryx, o tipo (typeActivity)
+    classificacao: ClassificacaoOrigem | None = None
 
     @model_validator(mode="after")
     def _mensal(self) -> "OrcamentoFinanceiro":

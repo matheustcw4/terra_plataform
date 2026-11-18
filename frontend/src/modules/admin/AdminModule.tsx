@@ -1,6 +1,7 @@
 import type { RouteObject } from "react-router";
 import { Redirecionar } from "../../core/ui/Redirecionar";
 import { CategoriasPagina } from "./CategoriasPagina";
+import { AtividadesPagina } from "./AtividadesPagina";
 import { ContasPagina } from "./ContasPagina";
 import { FuncoesPagina } from "./FuncoesPagina";
 import { UsuariosPagina } from "./UsuariosPagina";
@@ -10,6 +11,7 @@ export const rotasDoAdmin: RouteObject[] = [
   { path: "admin", element: <Redirecionar para="/admin/categorias" /> },
   { path: "admin/categorias", element: <CategoriasPagina /> },
   { path: "admin/contas", element: <ContasPagina /> },
+  { path: "admin/atividades", element: <AtividadesPagina /> },
   { path: "admin/usuarios", element: <UsuariosPagina /> },
   { path: "admin/funcoes", element: <FuncoesPagina /> },
 ];

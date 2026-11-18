@@ -1,7 +1,7 @@
-import { Bar, CartesianGrid, ComposedChart, Legend, Line, XAxis, YAxis } from "recharts";
+import { Bar, CartesianGrid, ComposedChart, LabelList, Legend, Line, XAxis, YAxis } from "recharts";
 import type { SecaoLotacao } from "../../../core/api/tipos";
-import { COLUNA, EIXO, GRADE, LEGENDA } from "../../../core/ui/estiloDosGraficos";
-import { numero, percentual } from "../../../logic/formatar";
+import { COLUNA, EIXO, GRADE, LEGENDA, ROTULO } from "../../../core/ui/estiloDosGraficos";
+import { numero, percentual, rotuloInteiro } from "../../../logic/formatar";
 import { mesCurto } from "../../../logic/meses";
 import { mostra, type ParteDoAssunto, recortar } from "../../../logic/personalizado";
 import { CartaoAnalitico } from "./CartaoAnalitico";
@@ -76,11 +76,14 @@ function AcompanhamentoMensal({ secao }: { secao: SecaoLotacao }) {
   );
 }
 
+// A lotação é o rebanho dividido pela área, então a linha passa rente ao alto da coluna: o rebanho médio vai escrito
+// no pé da coluna, a lotação realizada em cima da linha e a prevista embaixo da dela, para os números não se
+// encostarem. A margem de cima dá lugar ao número do ponto mais alto.
 function GraficoDaLotacao({ secao }: { secao: SecaoLotacao }) {
   return (
     <QuadroAnalitico titulo="Rebanho médio e lotação mês a mês">
       <ComposedChart width={LARGURA_DO_GRAFICO} height={280} data={secao.meses}
-        margin={{ top: 16, right: 24, bottom: 0, left: 8 }}>
+        margin={{ top: 24, right: 24, bottom: 0, left: 8 }}>
         <CartesianGrid {...GRADE} />
         <XAxis dataKey="mes" tickFormatter={mesCurto} {...EIXO} />
         <YAxis yAxisId="rebanho" {...EIXO} tickFormatter={(valor) => numero(Number(valor))} />
@@ -88,11 +91,20 @@ function GraficoDaLotacao({ secao }: { secao: SecaoLotacao }) {
           tickFormatter={(valor) => numero(Number(valor), 1)} />
         <Legend {...LEGENDA} />
         <Bar {...COLUNA} yAxisId="rebanho" dataKey="rebanho_medio_cab" name="Rebanho médio (cab)"
-          fill="var(--cor-azul-claro)" isAnimationActive={false} />
+          fill="var(--cor-azul-claro)" isAnimationActive={false}>
+          <LabelList dataKey="rebanho_medio_cab" position="insideBottom"
+            formatter={(valor) => rotuloInteiro(Number(valor))} {...ROTULO} />
+        </Bar>
         <Line yAxisId="lotacao" dataKey="lotacao_cab_ha" name="Lotação realizada (cab/ha)"
-          stroke="var(--cor-realizado)" strokeWidth={2.5} isAnimationActive={false} />
+          stroke="var(--cor-realizado)" strokeWidth={2.5} isAnimationActive={false}>
+          <LabelList dataKey="lotacao_cab_ha" position="top" formatter={(valor) => numero(Number(valor), 2)}
+            {...ROTULO} />
+        </Line>
         <Line yAxisId="lotacao" dataKey="lotacao_cab_ha_prevista" name="Lotação prevista (cab/ha)"
-          stroke="var(--cor-planejado)" strokeWidth={2} strokeDasharray="6 4" isAnimationActive={false} />
+          stroke="var(--cor-planejado)" strokeWidth={2} strokeDasharray="6 4" isAnimationActive={false}>
+          <LabelList dataKey="lotacao_cab_ha_prevista" position="bottom"
+            formatter={(valor) => numero(Number(valor), 2)} {...ROTULO} />
+        </Line>
       </ComposedChart>
     </QuadroAnalitico>
   );

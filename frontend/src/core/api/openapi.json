@@ -262,6 +262,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -440,6 +504,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -605,6 +733,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -770,6 +962,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -935,6 +1191,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -1100,6 +1420,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -1287,6 +1671,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -1474,6 +1922,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -1640,6 +2152,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -1788,6 +2364,70 @@
               "title": "Situacao"
             },
             "description": "situação dos lançamentos do realizado; sem ela, conciliado e pago"
+          },
+          {
+            "name": "atividade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "tipos de atividade (Pecuária, Agricultura…)",
+              "title": "Atividade"
+            },
+            "description": "tipos de atividade (Pecuária, Agricultura…)"
+          },
+          {
+            "name": "classificacao",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "classificações (a do Metryx ou o grupo do DRE)",
+              "title": "Classificacao"
+            },
+            "description": "classificações (a do Metryx ou o grupo do DRE)"
+          },
+          {
+            "name": "conta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "contas bancárias do realizado",
+              "title": "Conta"
+            },
+            "description": "contas bancárias do realizado"
           }
         ],
         "responses": {
@@ -2146,6 +2786,118 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PedidoDeConta"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/atividades": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Listar Atividades",
+        "operationId": "listar_atividades_api_v1_admin_atividades_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "so_pendentes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "true: só os pendentes",
+              "default": true,
+              "title": "So Pendentes"
+            },
+            "description": "true: só os pendentes"
+          },
+          {
+            "name": "busca",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "parte do nome da categoria/conta, da fazenda ou do cliente",
+              "default": "",
+              "title": "Busca"
+            },
+            "description": "parte do nome da categoria/conta, da fazenda ou do cliente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AtividadesDeOrigem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/atividades/{mapa_id}": {
+      "put": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Classificar Atividade",
+        "operationId": "classificar_atividade_api_v1_admin_atividades__mapa_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "mapa_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Mapa Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoDeAtividade"
               }
             }
           }
@@ -2809,6 +3561,86 @@
         "title": "AlteracaoDeUsuario",
         "description": "Só os campos enviados mudam."
       },
+      "AtividadeDeOrigem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "fonte": {
+            "type": "string",
+            "title": "Fonte"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "tipo_atividade_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tipo Atividade Id"
+          },
+          "lancamentos": {
+            "type": "integer",
+            "title": "Lancamentos"
+          },
+          "orcamentos": {
+            "type": "integer",
+            "title": "Orcamentos"
+          },
+          "valor": {
+            "type": "number",
+            "title": "Valor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fonte",
+          "nome",
+          "tipo_atividade_id",
+          "lancamentos",
+          "orcamentos",
+          "valor"
+        ],
+        "title": "AtividadeDeOrigem",
+        "description": "Uma atividade como a fonte escreve (Metryx: \"Pecuária Campo\" no realizado, \"Pecuária\" no plano) e o tipo do\nfiltro do financeiro."
+      },
+      "AtividadesDeOrigem": {
+        "properties": {
+          "pendentes": {
+            "type": "integer",
+            "title": "Pendentes"
+          },
+          "opcoes": {
+            "items": {
+              "$ref": "#/components/schemas/OpcaoDeTipoDeAtividade"
+            },
+            "type": "array",
+            "title": "Opcoes"
+          },
+          "itens": {
+            "items": {
+              "$ref": "#/components/schemas/AtividadeDeOrigem"
+            },
+            "type": "array",
+            "title": "Itens"
+          }
+        },
+        "type": "object",
+        "required": [
+          "pendentes",
+          "opcoes",
+          "itens"
+        ],
+        "title": "AtividadesDeOrigem"
+      },
       "AvisoDaCarga": {
         "properties": {
           "nivel": {
@@ -2972,6 +3804,30 @@
             },
             "type": "array",
             "title": "Situacoes",
+            "default": []
+          },
+          "tipos_de_atividade": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tipos De Atividade",
+            "default": []
+          },
+          "classificacoes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Classificacoes",
+            "default": []
+          },
+          "contas_bancarias": {
+            "items": {
+              "$ref": "#/components/schemas/ContaBancaria"
+            },
+            "type": "array",
+            "title": "Contas Bancarias",
             "default": []
           }
         },
@@ -3585,6 +4441,25 @@
         ],
         "title": "Compras"
       },
+      "ContaBancaria": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome"
+        ],
+        "title": "ContaBancaria"
+      },
       "ContaDeOrigem": {
         "properties": {
           "id": {
@@ -3811,6 +4686,13 @@
             },
             "type": "array",
             "title": "Fazendas"
+          },
+          "opcoes_do_financeiro": {
+            "$ref": "#/components/schemas/OpcoesDoFinanceiro",
+            "default": {
+              "tipos_de_atividade": [],
+              "classificacoes": []
+            }
           }
         },
         "type": "object",
@@ -4334,6 +5216,13 @@
           "variavel_da_agenda": {
             "type": "string",
             "title": "Variavel Da Agenda"
+          },
+          "observacoes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Observacoes"
           }
         },
         "type": "object",
@@ -4342,7 +5231,8 @@
           "rotulo",
           "ligada",
           "quando",
-          "variavel_da_agenda"
+          "variavel_da_agenda",
+          "observacoes"
         ],
         "title": "IntegracaoPorApi",
         "description": "Uma API que alimenta o painel (hoje, o Metryx). As planilhas não entram: chegam pela tela de importação."
@@ -5547,6 +6437,47 @@
         ],
         "title": "OpcaoDeConta"
       },
+      "OpcaoDeTipoDeAtividade": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome"
+        ],
+        "title": "OpcaoDeTipoDeAtividade"
+      },
+      "OpcoesDoFinanceiro": {
+        "properties": {
+          "tipos_de_atividade": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tipos De Atividade",
+            "default": []
+          },
+          "classificacoes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Classificacoes",
+            "default": []
+          }
+        },
+        "type": "object",
+        "title": "OpcoesDoFinanceiro",
+        "description": "Todas as opções dos filtros do financeiro das fazendas visíveis, na ordem de mostrar (os tipos na ordem da\ndimensão, as classificações na do DRE): a tela junta as das fazendas do filtro por esta ordem."
+      },
       "ParteDoDesembolso": {
         "properties": {
           "nome": {
@@ -5581,6 +6512,26 @@
           "fazendas"
         ],
         "title": "PedidoDeAcesso"
+      },
+      "PedidoDeAtividade": {
+        "properties": {
+          "tipo_atividade_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tipo Atividade Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tipo_atividade_id"
+        ],
+        "title": "PedidoDeAtividade"
       },
       "PedidoDeAtualizacao": {
         "properties": {

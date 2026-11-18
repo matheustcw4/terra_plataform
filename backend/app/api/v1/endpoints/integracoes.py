@@ -12,8 +12,8 @@ router = APIRouter(prefix="/admin/integracoes", tags=["integracoes"])
 
 
 @router.get("")
-def listar_integracoes(admin: AdminLogado) -> list[IntegracaoPorApi]:
-    return integracoes.listar(get_settings())
+def listar_integracoes(s: SessaoDoUsuario, admin: AdminLogado) -> list[IntegracaoPorApi]:
+    return integracoes.listar(s, get_settings())
 
 
 @router.get("/{fonte}/cargas")

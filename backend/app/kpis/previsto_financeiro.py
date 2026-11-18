@@ -19,6 +19,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.kpis.filtro import Filtro
+from app.kpis.filtros_do_financeiro import DO_PLANEJADO
 from app.kpis.versao_do_plano import rotulo_da_versao, versoes_por_fazenda
 from app.schemas.api import EscolhaDoPrevisto, TipoDoPrevisto
 
@@ -27,8 +28,8 @@ TIPOS = {"previsao": "Previsão financeira", "planejamento": "Planejamento (flux
 
 # Entra no lugar da view do orçamento: as linhas do tipo escolhido, nas versões que valem em cada fazenda e safra (as
 # marcadas na tela, que somam; na fazenda sem escolha, a de maior ordem; na "sem planejamento", nenhuma), pela função
-# `app.versoes_do_orcamento` (migração 0025).
-ORCAMENTO_ESCOLHIDO = """(
+# `app.versoes_do_orcamento` (migração 0025), e só do tipo de atividade e da classificação escolhidos no filtro.
+ORCAMENTO_ESCOLHIDO = f"""(
     SELECT o.*
     FROM fato.v_orcamento_financeiro o
     WHERE o.tipo = :tipo_do_previsto
@@ -36,6 +37,7 @@ ORCAMENTO_ESCOLHIDO = """(
           SELECT * FROM app.versoes_do_orcamento(CAST(:fazendas AS uuid[]), CAST(:tipo_do_previsto AS text),
                                                  CAST(:versoes_do_plano AS uuid[]),
                                                  CAST(:fazendas_sem_plano AS uuid[])))
+      AND {DO_PLANEJADO}
 )"""
 TIPOS_DAS_FAZENDAS = """
     SELECT DISTINCT o.tipo FROM fato.orcamento_financeiro o WHERE o.fazenda_id = ANY (CAST(:fazendas AS uuid[]))

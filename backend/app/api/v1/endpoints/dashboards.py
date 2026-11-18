@@ -11,6 +11,7 @@ from app.api.deps import SessaoDoUsuario
 from app.kpis.analitico.boletim import boletim_analitico
 from app.kpis.compras import compras
 from app.kpis.filtro import Filtro
+from app.kpis.filtros_do_financeiro import EscolhasDoFinanceiro
 from app.kpis.financeiro import financeiro
 from app.kpis.mortes import mortes
 from app.kpis.movimentacao import movimentacao
@@ -48,6 +49,10 @@ SemPlano = Annotated[list[UUID] | None, Query(description="fazendas marcadas com
 # a situação dos títulos do realizado do financeiro; sem ela, o que foi pago (conciliado ou não)
 Situacoes = Annotated[list[Literal["conciliado", "pago", "em_aberto"]] | None,
                       Query(description="situação dos lançamentos do realizado; sem ela, conciliado e pago")]
+# os filtros do financeiro (18/11/2026), de seleção múltipla; sem escolha, tudo. A conta bancária só recorta o realizado
+TiposDeAtividade = Annotated[list[str] | None, Query(description="tipos de atividade (Pecuária, Agricultura…)")]
+Classificacoes = Annotated[list[str] | None, Query(description="classificações (a do Metryx ou o grupo do DRE)")]
+ContasBancarias = Annotated[list[UUID] | None, Query(description="contas bancárias do realizado")]
 # o planejado do financeiro (Previsto × Realizado e Financeiro): o tipo do orçamento; sem ele, o padrão
 TipoDoPrevisto = Annotated[Literal["previsao", "planejamento"] | None,
                            Query(description="orçamento do planejado: previsão financeira ou planejamento")]
@@ -55,12 +60,14 @@ TipoDoPrevisto = Annotated[Literal["previsao", "planejamento"] | None,
 
 def filtro_do_pedido(s: SessaoDoUsuario, fazendas: Fazendas, inicio: Mes, fim: Mes, meses: Meses = None,
                      versao: VersoesDoPlano = None, sem_plano: SemPlano = None,
-                     situacao: Situacoes = None) -> Filtro:
+                     situacao: Situacoes = None, atividade: TiposDeAtividade = None,
+                     classificacao: Classificacoes = None, conta: ContasBancarias = None) -> Filtro:
     """Confere o pedido de qualquer página: meses válidos, início antes do fim, meses marcados dentro do período e
     só fazendas que o usuário vê."""
     filtro = Filtro(fazendas=fazendas, inicio=mes(inicio), fim=mes(fim), meses_escolhidos=meses_escolhidos(meses),
                     versoes_do_plano=tuple(versao or ()), fazendas_sem_plano=tuple(sem_plano or ()),
-                    situacoes=situacoes_escolhidas(situacao))
+                    situacoes=situacoes_escolhidas(situacao),
+                    escolhas_do_financeiro=escolhas_do_financeiro(atividade, classificacao, conta))
     if filtro.inicio > filtro.fim:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "o início do período é depois do fim")
     for escolhido in filtro.meses_escolhidos:
@@ -126,12 +133,13 @@ def versoes_do_plano(s: SessaoDoUsuario, filtro: FiltroDoPedido) -> EscolhaDaVer
 def boletim_do_mes(s: SessaoDoUsuario, fazendas: Fazendas, mes_referencia: Mes,
                    visao: Annotated[Literal["safra", "civil"], Query()] = "safra",
                    versao: VersoesDoPlano = None, sem_plano: SemPlano = None,
-                   situacao: Situacoes = None) -> BoletimAnalitico:
+                   situacao: Situacoes = None, atividade: TiposDeAtividade = None,
+                   classificacao: Classificacoes = None, conta: ContasBancarias = None) -> BoletimAnalitico:
     """O "Exportar PDF" no modo Boletim Resumido (e no Personalizado): o mês de referência, o acumulado do período
     (safra ou ano) até ele e a meta do período inteiro, com as frases que explicam os números."""
     conferir_acesso(s, fazendas)
     return boletim_analitico(s, fazendas, mes(mes_referencia), visao, tuple(versao or ()), tuple(sem_plano or ()),
-                             situacoes_escolhidas(situacao))
+                             situacoes_escolhidas(situacao), escolhas_do_financeiro(atividade, classificacao, conta))
 
 
 def situacoes_escolhidas(situacoes: list[str] | None) -> tuple[str, ...]:
@@ -143,6 +151,14 @@ def situacoes_escolhidas(situacoes: list[str] | None) -> tuple[str, ...]:
     if not marcadas:
         return SITUACOES_PADRAO
     return tuple(marcadas)
+
+
+def escolhas_do_financeiro(atividades: list[str] | None, classificacoes: list[str] | None,
+                           contas: list[UUID] | None) -> EscolhasDoFinanceiro:
+    """As opções marcadas, sem repetição e em ordem (a mesma escolha dá o mesmo pedido)."""
+    return EscolhasDoFinanceiro(tipos_de_atividade=tuple(sorted(set(atividades or []))),
+                                classificacoes=tuple(sorted(set(classificacoes or []))),
+                                contas_bancarias=tuple(sorted(set(contas or []))))
 
 
 def meses_escolhidos(textos: list[str] | None) -> tuple[date, ...]:

@@ -105,3 +105,32 @@ def pendencias_de_conta(s: Session, resolvido: Resolvido, lote: LoteCanonico) ->
                      f"{linhas} lançamento(s), R$ {total:,.2f}, carregados como 'A classificar'",
             contexto={"plano_contas_map_id": str(resolvido.contas[conta]), "linhas": linhas, "valor": str(total)}))
     return avisos
+
+
+PENDENTES_DE_ATIVIDADE = """
+    SELECT nome_origem FROM dim.atividade_map
+    WHERE id = ANY (CAST(:ids AS smallint[])) AND tipo_atividade_id IS NULL ORDER BY nome_origem
+"""
+PENDENTES_DE_CLASSIFICACAO = """
+    SELECT nome_origem FROM dim.classificacao_map
+    WHERE id = ANY (CAST(:ids AS smallint[])) AND classificacao IS NULL ORDER BY nome_origem
+"""
+
+
+def pendencias_dos_filtros(s: Session, resolvido: Resolvido, lote: LoteCanonico) -> list[Ocorrencia]:
+    """Atividade sem tipo e classificação sem grupo do DRE usadas no lote: as linhas entram (o total bate); a atividade
+    aparece como "A classificar" no filtro, e a linha da classificação pendente usa a classificação da conta."""
+    avisos = []
+    ids = list(set(resolvido.atividades.values()))
+    for (nome,) in s.execute(text(PENDENTES_DE_ATIVIDADE), {"ids": ids}):
+        avisos.append(Ocorrencia(
+            nivel="aviso", codigo=Cod.ACTIVITY_UNCLASSIFIED,
+            mensagem=f"atividade '{nome}' sem tipo de atividade: aparece como 'A classificar' no filtro",
+            contexto={"atividade": nome}))
+    ids = list(set(resolvido.classificacoes.values()))
+    for (nome,) in s.execute(text(PENDENTES_DE_CLASSIFICACAO), {"ids": ids}):
+        avisos.append(Ocorrencia(
+            nivel="aviso", codigo=Cod.CLASSIFICATION_UNMAPPED,
+            mensagem=f"classificação '{nome}' da fonte sem grupo do DRE: as linhas dela usam a classificação da conta",
+            contexto={"classificacao": nome}))
+    return avisos

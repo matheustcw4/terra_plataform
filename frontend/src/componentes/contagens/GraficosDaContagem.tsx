@@ -38,7 +38,10 @@ export function GraficoMensalDaContagem({ titulo, serie, comAcumulado = false }:
           </Bar>
           {comAcumulado && (
             <Line yAxisId="acumulado" dataKey="realizado_acumulado" name="Acumulado" stroke="var(--cor-acumulado)"
-              strokeWidth={2} isAnimationActive={false} />
+              strokeWidth={2} isAnimationActive={false}>
+              <LabelList dataKey="realizado_acumulado" position="top"
+                formatter={(valor) => rotuloDeColuna(Number(valor))} {...ROTULO} />
+            </Line>
           )}
         </ComposedChart>
       </ResponsiveContainer>

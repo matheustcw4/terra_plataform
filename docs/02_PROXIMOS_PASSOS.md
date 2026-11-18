@@ -345,10 +345,10 @@ versão nova baseada nele. A versão 1 ficou guardada na tag git `boletim-v1` (c
   de desembolso e "Outros (N grupos)", e o status do resultado pela regra do gerador: verde quando o realizado chega
   ao planejado, com o planejado negativo também), `percentual_da_meta` em todo comparativo ("96,2% da meta") e a venda
   por sexo (`vendas[].por_sexo`).
-- **Diferenças de propósito em relação ao gerador:** nos gráficos com mais de 6 meses o planejado fica sem número (os
-  dois números se encostavam); categorias e causas que a fonte manda em maiúsculas saem em letra normal ("Tristeza
-  parasitária"); a variação do investimento das compras não tem cor, porque a API não dá lado certo para comprar mais
-  ou menos.
+- **Diferenças de propósito em relação ao gerador:** categorias e causas que a fonte manda em maiúsculas saem em letra
+  normal ("Tristeza parasitária"); a variação do investimento das compras não tem cor, porque a API não dá lado certo
+  para comprar mais ou menos. Todas as séries dos gráficos levam o número, o planejado também, como no gerador
+  (pedido do usuário, 17/11/2026: até então, com mais de 6 meses o planejado ficava sem número).
 - **Conferido no navegador:** Fazenda CMI (ano 2026, jan a out) e Serra Dourada do Metryx (safra 25/26, com
   nascimentos, venda dos dois sexos, venda em pé e transferências), as cinco folhas com 900 px.
 - **A mesma capa nos três modos** (pedido do usuário, 10/11/2026): Padrão e Personalizado deixaram a arte antiga da
@@ -413,6 +413,66 @@ Parte IV, Parte V e Parte VI).
   2027, e por ser a mais recente vale a safra inteira; os outros meses ficam sem meta até a pessoa escolher outra.
 - **"Boletim Resumido"**: o modo Analítico do "Exportar PDF" passou a se chamar assim (é o boletim curto de quatro
   folhas, o da Fazenda CMI); a chave interna continua `analitico`.
+
+**Filtros do financeiro e classificação do Metryx (18/11/2026), feito:** pedido do usuário: trazer do Metryx o tipo de
+atividade do planejamento, a conta bancária e a classificação (para saber o que é custeio e o que é desembolso) e pôr
+como filtros. Decisões do usuário: o filtro de atividade é pelo **tipo nos dois lados**; o plano não é vinculado a
+conta, então a conta bancária só recorta o realizado; e **para os dados do Metryx vale 100% a classificação do Metryx**.
+- **o que vem da API** (conferido nos brutos guardados dos três clientes, sem chamar a API): o plano traz o tipo
+  (`typeActivity`, hoje sempre "Pecuária", inclusive nas 6 versões da Maister) e a classificação analítica com a marca
+  de desembolso; a previsão financeira traz a classificação (a marca em texto) e a atividade (vazia nos três); o
+  lançamento traz a atividade (`activity`: Pecuária Campo, Pecuária Confinamento, Agricultura Permanente, Armazém,
+  Financiamento…) e a conta (`idBankAccount`, `banckAccount`), mas não a classificação;
+- **classificação**: no Metryx ela é do centro de custo (nos três clientes, nenhum centro tem duas). O adapter dá ao
+  lançamento a do seu centro no plano e na previsão do mesmo cliente (`adapters/metryx/classificacao.py`; o lançamento
+  só traz o nome do centro, então o casamento é pelo nome dentro do cliente; centro com mais de uma: a mais frequente,
+  com o aviso `CLASSIFICATION_AMBIGUOUS`). O de-para `dim.classificacao_map` liga cada classificação ao grupo do DRE e
+  às marcas de custeio e desembolso (Custeio → D, custeio e desembolso; Investimento em fazenda → C, desembolso;
+  Investimento em rebanho → C, sem desembolso; Outros débitos e Dividendos → F; Receitas operacionais → A). A marca de
+  desembolso segue a fonte a cada carga. As views do financeiro usam essa classificação antes da exceção da fonte e das
+  marcas do centro; sem ela (a planilha, ou o centro que nunca aparece no plano: 82% a 99% do valor dos três clientes
+  tem), vale a da conta, como antes. Classificação nova chega pendente (`CLASSIFICATION_UNMAPPED`) e não muda nada até
+  ganhar um grupo (por enquanto, por migração ou no banco);
+- **o que mudou nos números** (comparação gravada antes e depois, Financeiro e Previsto × Realizado das safras 25/26 e
+  26/27): U6 e Serra Dourada não mudaram. Na Maister, os financiamentos (Outros débitos, sem desembolso no Metryx)
+  saíram do custeio e do desembolso, ao contrário da exceção de 10/11 (`dim.centro_custo_fonte`, que agora só vale onde
+  o Metryx não classifica), e parte do "A classificar" (silagem, milho) virou Custeio: o desembolso de 25/26 foi de
+  R$ 65,23 mi para R$ 64,33 mi e o de 26/27 de R$ 21,51 mi para R$ 21,65 mi; o desembolso previsto por cabeça de 25/26
+  foi de R$ 72,12 para R$ 70,97. **Falta conferir** com o relatório financeiro do Metryx de um mês com financiamento;
+- **tipo de atividade**: `dim.tipo_atividade` (Pecuária, Agricultura, Silvicultura, Outras atividades) e o de-para
+  `dim.atividade_map` (nome da fonte → tipo; Armazém, Financiamento e Imobiliária / Arrendamento chegaram pendentes,
+  `ACTIVITY_UNCLASSIFIED`). O admin classifica em **Administração → De-para de atividades**
+  (`GET/PUT /admin/atividades`, `AtividadesPagina.tsx`); a atividade sem tipo aparece como "A classificar" no filtro, e
+  a linha sem atividade (planilha, previsão do Metryx) como "Sem atividade";
+- **conta bancária**: `dim.conta_bancaria` (por cliente, pelo id do Metryx; RLS por cliente, migração 0030);
+- **os filtros**: no MENU (quadro "Financeiro e planejamento") e no topo do Previsto × Realizado e do Financeiro, de
+  seleção múltipla, cada um só quando as fazendas do filtro têm mais de uma opção (as capacidades
+  `tipos_de_atividade`, `classificacoes` e `contas_bancarias` do escopo, e a ordem geral em `opcoes_do_financeiro`).
+  A escolha fica na URL (`atividade`, `classificacao`, `conta`), vale nas duas páginas e no PDF. No backend, o
+  realizado passa por `LANCAMENTOS_DO_FILTRO` e o planejado por `ORCAMENTO_ESCOLHIDO`, que aplicam as condições de
+  `app/kpis/filtros_do_financeiro.py`; o tipo de atividade e a classificação valem nos dois lados, a conta só no
+  realizado. No filtro de classificação, a opção é o nome do Metryx ou, sem ele, o grupo do DRE por extenso: num
+  cliente Metryx aparecem "Receitas operacionais" (do Metryx) e "Receitas" (o centro que o plano não classifica);
+- migrações 0029–0030; testes em `tests/test_filtros_do_financeiro.py` (adapter, carga, regra da classificação, os
+  filtros nas páginas, o escopo e o de-para pela API) e `tests/test_rls.py`; front em `logic/filtrosDoFinanceiro.ts`
+  (com teste) e `core/ui/FiltrosDoFinanceiro.tsx`. Para os dados já carregados ganharem os campos, basta a próxima
+  carga do Metryx (ou `python -m app.etl reprocessar VERSAO_ID --fonte metryx`, a partir do bruto guardado).
+
+**Clientes do Metryx pela conta mestre (17/11/2026), feito:** pedido do usuário: um cliente novo liberado no Metryx não
+aparecia na atualização, porque a carga só buscava os clientes com token cadastrado um a um. Agora a carga faz o que o
+Pentaho do BI fazia (análise 04, §1 e §4.1):
+- uma **conta mestre** (`integracao.metryx_conta`, token cifrado, migrações 0027–0028) chama `GET /api-metryx/customers`
+  (fora do Swagger; entrou na allow-list, só GET), que devolve `[{idCustomer, customer, listToken: [{token}]}]`;
+- no começo de toda carga (`AdapterMetryx.descobrir` → `contas.descobrir_clientes`): cliente sem credencial ativa ganha
+  a dele (e o cadastro do cliente, pelo vínculo); se o token em uso saiu da lista, vale o primeiro da lista; se continua,
+  nada muda. Cliente que some da lista não é desligado (pode ter sido cadastrado à mão);
+- os tokens da lista nunca vão para o bruto nem para o log; a conta recusada (401) fica `invalida` e a falha de rede
+  fica no `ultimo_erro`, e a carga segue com os clientes já cadastrados;
+- a aba Integrações → Metryx mostra a conta (quantos clientes a última leitura trouxe, ou o erro) e quantos clientes
+  têm token ativo (`observacoes` em `GET /admin/integracoes`);
+- comandos: `python -m app.etl metryx-conta --nome "Terra"` (cadastra; o token é lido sem aparecer) e
+  `python -m app.etl metryx-clientes` (relê a lista e mostra os clientes, sem carregar os dados). Testes em
+  `tests/test_metryx_contas.py` e o isolamento do token em `tests/test_rls.py`.
 
 **Integrações (10/11/2026), feito:** pedido do usuário ("seria bom ter uma aba ou algum lugar pra ver o log de
 atualização"). A tela "Importar planilhas" virou **Integrações** (`/integracoes`, menu Dados; o endereço antigo

@@ -59,6 +59,12 @@ CATALOGO = {
                                     "equipe"),
     "ACCOUNT_UNCLASSIFIED": Explicacao("Conta \"A classificar\"",
                                        "A equipe Terra precisa classificar a conta no plano unificado.", "equipe"),
+    "ACTIVITY_UNCLASSIFIED": Explicacao("Atividade sem tipo",
+                                        "A equipe Terra precisa dar o tipo da atividade (Administração → Atividades); "
+                                        "até lá ela aparece como \"A classificar\" no filtro.", "equipe"),
+    "CLASSIFICATION_UNMAPPED": Explicacao("Classificação do Metryx nova",
+                                          "A equipe Terra precisa ligar a classificação a um grupo do DRE; até lá "
+                                          "vale a classificação da conta.", "equipe"),
 }
 SEM_EXPLICACAO = Explicacao("Aviso da carga", "Leia o detalhe; se não souber corrigir, fale com a equipe Terra.",
                             "equipe")

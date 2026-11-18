@@ -1,5 +1,8 @@
 """Adapter Metryx: uma unidade de origem por cliente Metryx (credencial ativa).
 
+descobrir(): antes, relê a lista de clientes das contas mestres (contas.py: `GET /api-metryx/customers`): cliente
+             novo ou token trocado já entra nesta carga.
+
 extrair():   chama os endpoints da allow-list com o token do cliente e devolve um único JSON
              {"idCustomer", "endpoints": {nome: status}, "dados": {nome: itens}} — guardado em raw.payload pelo motor.
              - 401: marca a credencial como inválida e falha a unidade (nada é apagado);
@@ -17,7 +20,7 @@ from sqlalchemy import Engine
 
 from app.core.config import get_settings
 from app.etl.adapters.base import Bruto, UnidadeOrigem, sha256_json
-from app.etl.adapters.metryx import credenciais
+from app.etl.adapters.metryx import contas, credenciais
 from app.etl.adapters.metryx.cliente import (
     ClienteMetryx,
     CredencialInvalida,
@@ -57,6 +60,11 @@ class AdapterMetryx:
         self._credenciais: dict[str, credenciais.Credencial] = {}
 
     def descobrir(self) -> list[UnidadeOrigem]:
+        descoberta = contas.descobrir_clientes(self.engine, self.cliente)
+        if descoberta.clientes or descoberta.contas_com_erro:
+            log.info("metryx: as contas mestres listaram %s cliente(s): %s novo(s), %s token(s) trocado(s), %s sem "
+                     "token; %s conta(s) com erro", descoberta.clientes, descoberta.novos, descoberta.trocados,
+                     descoberta.sem_token, descoberta.contas_com_erro)
         self._credenciais = {}
         for credencial in credenciais.credenciais_ativas(self.engine, self.customers):
             self._credenciais[credencial.metryx_customer_id] = credencial

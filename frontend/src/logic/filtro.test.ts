@@ -31,7 +31,7 @@ function fazenda(id: string, cliente: string, primeiroMes: string, ultimoMes: st
     primeiro_mes: primeiroMes,
     ultimo_mes: ultimoMes,
     capacidades: { estoque: true, rebanho_medio: true, area: true, financeiro: true, planejado: true,
-        situacoes: ["pago"] },
+        situacoes: ["pago"], tipos_de_atividade: [], classificacoes: [], contas_bancarias: [] },
   };
 }
 
@@ -76,7 +76,7 @@ describe("filtro do menu", () => {
   test("sem nada na URL: primeiro cliente, todas as fazendas (GRUPO), safra do último dado, todos os meses", () => {
     const filtro = filtroDaUrl(new URLSearchParams(), FAZENDAS, HOJE);
     expect(filtro).toEqual({ origem: "planilha", cliente: "ANA SOUZA", fazendas: [], visao: "safra", ano: 2025,
-      meses: [], situacoes: [], versoes: [], semPlano: [] });
+      meses: [], situacoes: [], versoes: [], semPlano: [], atividades: [], classificacoes: [], contas: [] });
     if (filtro === null) {
       throw new Error("filtro vazio");
     }
@@ -89,7 +89,10 @@ describe("filtro do menu", () => {
       meses: [],
       situacoes: [],
       versoes: [],
-    semPlano: [],
+      semPlano: [],
+      atividades: [],
+      classificacoes: [],
+      contas: [],
     });
   });
 
@@ -97,14 +100,16 @@ describe("filtro do menu", () => {
     const url = new URLSearchParams("cliente=ANA SOUZA&fazenda=a2&visao=civil&ano=2025&mes=2025-08");
     const filtro = filtroDaUrl(url, FAZENDAS, HOJE);
     expect(filtro).toEqual({ origem: "planilha", cliente: "ANA SOUZA", fazendas: ["a2"], visao: "civil", ano: 2025,
-      meses: ["2025-08"], situacoes: [], versoes: [], semPlano: [] });
+      meses: ["2025-08"], situacoes: [], versoes: [], semPlano: [], atividades: [], classificacoes: [],
+      contas: [] });
     if (filtro === null) {
       throw new Error("filtro vazio");
     }
     expect(nomeDaSelecao(filtro, FAZENDAS)).toBe("FAZENDA a2");
     expect(rotuloDoFiltro(filtro)).toBe("2025 · ago/25");
     expect(consultaDoFiltro(filtro, FAZENDAS, HOJE)).toEqual({ fazendas: ["a2"], inicio: "2025-08", fim: "2025-08",
-      meses: ["2025-08"], situacoes: [], versoes: [], semPlano: [] });
+      meses: ["2025-08"], situacoes: [], versoes: [], semPlano: [], atividades: [], classificacoes: [],
+      contas: [] });
   });
 
   test("fazenda de outro cliente, ano sem dado e mês fora do período voltam ao padrão", () => {
@@ -118,7 +123,10 @@ describe("filtro do menu", () => {
       meses: [],
       situacoes: [],
       versoes: [],
-    semPlano: [],
+      semPlano: [],
+      atividades: [],
+      classificacoes: [],
+      contas: [],
     });
   });
 
@@ -129,7 +137,8 @@ describe("filtro do menu", () => {
 
   test("ida e volta pela URL não muda o filtro", () => {
     const filtro: Filtro = { origem: "planilha", cliente: "ANA SOUZA", fazendas: ["a2"], visao: "safra", ano: 2025,
-      meses: ["2025-07", "2025-09"], situacoes: ["pago", "em_aberto"], versoes: ["v1", "v9"], semPlano: ["f9"] };
+      meses: ["2025-07", "2025-09"], situacoes: ["pago", "em_aberto"], versoes: ["v1", "v9"], semPlano: ["f9"],
+      atividades: ["Pecuária", "Agricultura"], classificacoes: ["Custeio"], contas: ["c7"] };
     expect(filtroDaUrl(filtroParaUrl(filtro), FAZENDAS, HOJE)).toEqual(filtro);
   });
 });
@@ -147,10 +156,16 @@ describe("meses de seleção múltipla, como no BI", () => {
     expect(rotuloDoFiltro(filtro)).toBe("Safra 25/26 · jul/25, set/25");
     const consulta = consultaDoFiltro(filtro, FAZENDAS, HOJE);
     expect(consulta).toEqual({ fazendas: ["a1", "a2"], inicio: "2025-07", fim: "2025-09",
-      meses: ["2025-07", "2025-09"], situacoes: [], versoes: [], semPlano: [] });
+      meses: ["2025-07", "2025-09"], situacoes: [], versoes: [], semPlano: [], atividades: [], classificacoes: [],
+      contas: [] });
     expect(parametrosDaConsulta(consulta).getAll("meses")).toEqual(["2025-07", "2025-09"]);
     expect(parametrosDaConsulta(consulta).has("versao")).toBe(false);
     expect(parametrosDaConsulta({ ...consulta, versoes: ["v3", "v5"] }).getAll("versao")).toEqual(["v3", "v5"]);
+    // os filtros do financeiro vão para a API com o nome do parâmetro dela
+    const doFinanceiro = parametrosDaConsulta({ ...consulta, atividades: ["Pecuária"], classificacoes: ["Custeio"],
+      contas: ["c1", "c2"] });
+    expect([doFinanceiro.getAll("atividade"), doFinanceiro.getAll("classificacao"), doFinanceiro.getAll("conta")])
+      .toEqual([["Pecuária"], ["Custeio"], ["c1", "c2"]]);
   });
 
   test("mês fora do período sai; marcar todos é o mesmo que Todos", () => {
@@ -169,7 +184,8 @@ describe("meses de seleção múltipla, como no BI", () => {
 
   test("mais de três meses aparecem pela quantidade", () => {
     const filtro: Filtro = { origem: "planilha", cliente: "ANA SOUZA", fazendas: [], visao: "safra", ano: 2025,
-      meses: SAFRA.slice(0, 4), situacoes: [], versoes: [], semPlano: [] };
+      meses: SAFRA.slice(0, 4), situacoes: [], versoes: [], semPlano: [], atividades: [], classificacoes: [],
+      contas: [] };
     expect(rotuloDoFiltro(filtro)).toBe("Safra 25/26 · 4 meses");
   });
 });
@@ -218,7 +234,7 @@ describe("fazendas de seleção múltipla", () => {
 
 describe("status dos lançamentos do financeiro", () => {
   const BASE: Filtro = { origem: "metryx", cliente: "X", fazendas: [], visao: "safra", ano: 2025, meses: [],
-    situacoes: [], versoes: [], semPlano: [] };
+    situacoes: [], versoes: [], semPlano: [], atividades: [], classificacoes: [], contas: [] };
 
   test("sem escolha valem os pagos (conciliados ou não); a escolha igual ao padrão não vai na URL", () => {
     expect(situacoesEmUso(BASE)).toEqual(["conciliado", "pago"]);

@@ -105,6 +105,20 @@ def test_token_metryx_nao_e_legivel_pela_api(engine_api, engine_super):
         s.execute(text("SELECT token_cifrado FROM integracao.metryx_credencial"))   # …mas não lê
 
 
+def test_conta_mestre_metryx_so_o_etl_le_o_token(engine_api, engine_super):
+    adm = criar_usuario(engine_super, "adm@x.com", admin=True)
+    tecnico = criar_usuario(engine_super, "tec@x.com")
+    with engine_super.begin() as c:
+        c.execute(text("INSERT INTO integracao.metryx_conta (nome, token_cifrado, token_impressao) "
+                       "VALUES ('Terra', 'xx', 'abc')"))
+    with como_usuario(engine_api, tecnico) as s:          # o técnico nem vê a conta
+        assert s.scalar(text("SELECT count(*) FROM integracao.metryx_conta")) == 0
+    with como_usuario(engine_api, adm) as s:              # o admin vê o estado…
+        assert s.scalar(text("SELECT status FROM integracao.metryx_conta")) == "ativa"
+    with pytest.raises(ProgrammingError, match="permission denied"), como_usuario(engine_api, adm) as s:
+        s.execute(text("SELECT token_cifrado FROM integracao.metryx_conta"))   # …mas não o token
+
+
 def test_views_do_financeiro_respeitam_o_rls(engine_etl, engine_api, engine_super):
     from decimal import Decimal
 
@@ -128,6 +142,38 @@ def test_views_do_financeiro_respeitam_o_rls(engine_etl, engine_api, engine_supe
         assert set(s.execute(text("SELECT fazenda_id FROM fato.v_lancamento_financeiro")).scalars()) == {alfa}
     with como_usuario(engine_api, None) as s:
         assert s.execute(text("SELECT count(*) FROM fato.v_lancamento_financeiro")).scalar() == 0
+
+
+def test_conta_bancaria_segue_o_cliente_das_fazendas_do_usuario(engine_etl, engine_api, engine_super):
+    """A conta bancária (filtro do financeiro, migração 0030) é de um cliente: cada usuário vê só as dos clientes das
+    fazendas dele, e só o admin grava."""
+    from decimal import Decimal
+
+    from app.etl.canonical import ContaBancariaOrigem, ContaOrigem, LancamentoFinanceiro, Particao
+    from tests.fabrica import lote_base
+
+    lotes = {}
+    for cod, nome in (("1", "ALFA"), ("2", "BETA")):
+        lote = lote_base("metryx", cliente=cod, fazenda=f"{cod}|{nome}", nome_fazenda=nome)
+        conta = ContaBancariaOrigem(id_externo=f"banco-{cod}", nome=f"Banco {nome}")
+        lote.lancamentos = [LancamentoFinanceiro(fazenda=f"{cod}|{nome}", conta=ContaOrigem(centro="Conta X"),
+                                                 natureza="D", valor=Decimal(10), data_pagamento=date(2025, 8, 1),
+                                                 conta_bancaria=conta, origem_linha="lancamento:1")]
+        lote.particoes = [Particao(entidade="lancamento", fazenda=f"{cod}|{nome}", cenario="realizado",
+                                   estrategia="substituir")]
+        lotes[nome] = lote
+    MotorCarga(engine_etl, hoje=date(2025, 10, 1)).executar(AdapterMemoria("metryx", lotes))
+    with engine_super.connect() as c:
+        alfa = c.execute(text("SELECT entidade_id FROM core.fonte_vinculo WHERE id_externo = '1|ALFA'")).scalar()
+    usuario = criar_usuario(engine_super, "a@x.com", fazendas=[alfa])
+    admin = criar_usuario(engine_super, "admin@x.com", admin=True)
+    with como_usuario(engine_api, usuario) as s:
+        assert s.execute(text("SELECT nome FROM dim.conta_bancaria")).scalars().all() == ["Banco ALFA"]
+        assert s.execute(text("UPDATE dim.conta_bancaria SET nome = 'x'")).rowcount == 0
+    with como_usuario(engine_api, admin) as s:
+        assert len(s.execute(text("SELECT id FROM dim.conta_bancaria")).all()) == 2
+    with como_usuario(engine_api, None) as s:
+        assert s.execute(text("SELECT count(*) FROM dim.conta_bancaria")).scalar() == 0
 
 
 def test_funcao_e_lida_por_todos_e_gravada_so_pelo_admin(engine_api, engine_super):

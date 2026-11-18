@@ -25,6 +25,8 @@ class Cod(StrEnum):
     CATEGORY_UNDECLARED = "CATEGORY_UNDECLARED"
     CATEGORY_BI_UNKNOWN = "CATEGORY_BI_UNKNOWN"
     ACCOUNT_UNCLASSIFIED = "ACCOUNT_UNCLASSIFIED"   # conta carregada como "A classificar"
+    ACTIVITY_UNCLASSIFIED = "ACTIVITY_UNCLASSIFIED"   # atividade da fonte sem tipo: "A classificar" no filtro
+    CLASSIFICATION_UNMAPPED = "CLASSIFICATION_UNMAPPED"   # classificação da fonte sem grupo do DRE: vale a da conta
     SOURCE_INACTIVE_FOR_DOMAIN = "SOURCE_INACTIVE_FOR_DOMAIN"
     SNAPSHOT_HELD = "SNAPSHOT_HELD"               # guarda de volume reteve a partição
     DUPLICATE_UNIT_FILE = "DUPLICATE_UNIT_FILE"   # outra unidade mais recente alimenta a mesma fazenda

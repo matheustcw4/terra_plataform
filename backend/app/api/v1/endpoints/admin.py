@@ -1,5 +1,5 @@
-"""Telas de administração (só admin): de-paras de categoria e de contas, usuários, funções, acesso às fazendas e o
-"Atualizar agora" (põe a carga na fila do worker).
+"""Telas de administração (só admin): de-paras de categoria, de contas e de atividades, usuários, funções, acesso às
+fazendas e o "Atualizar agora" (põe a carga na fila do worker).
 
 As rotas de escrita gravam (commit) antes de responder: a tela relê a lista logo em seguida.
 """
@@ -13,6 +13,7 @@ from app.api.deps import AdminLogado, SessaoDoUsuario
 from app.schemas.admin import (
     AlteracaoDeFuncao,
     AlteracaoDeUsuario,
+    AtividadesDeOrigem,
     CategoriasDeOrigem,
     ContasDeOrigem,
     FazendaDoAcesso,
@@ -20,6 +21,7 @@ from app.schemas.admin import (
     NovaFuncao,
     NovoUsuario,
     PedidoDeAcesso,
+    PedidoDeAtividade,
     PedidoDeAtualizacao,
     PedidoDeCategoria,
     PedidoDeConta,
@@ -55,6 +57,18 @@ def listar_contas(s: SessaoDoUsuario, admin: AdminLogado, so_pendentes: Situacao
 @router.put("/contas/{mapa_id}", status_code=204)
 def classificar_conta(s: SessaoDoUsuario, admin: AdminLogado, mapa_id: UUID, pedido: PedidoDeConta) -> None:
     de_paras.classificar_conta(s, mapa_id, pedido.centro_custo_id, admin.id)
+    s.commit()
+
+
+@router.get("/atividades")
+def listar_atividades(s: SessaoDoUsuario, admin: AdminLogado, so_pendentes: Situacao = True,
+                      busca: Busca = "") -> AtividadesDeOrigem:
+    return de_paras.listar_atividades(s, so_pendentes, busca)
+
+
+@router.put("/atividades/{mapa_id}", status_code=204)
+def classificar_atividade(s: SessaoDoUsuario, admin: AdminLogado, mapa_id: int, pedido: PedidoDeAtividade) -> None:
+    de_paras.classificar_atividade(s, mapa_id, pedido.tipo_atividade_id)
     s.commit()
 
 

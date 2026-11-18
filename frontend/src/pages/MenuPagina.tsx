@@ -5,6 +5,7 @@ import { BotaoExportarPdf } from "../core/ui/BotaoExportarPdf";
 import { Casca } from "../core/ui/Casca";
 import { EscolhaDasVersoes } from "../core/ui/EscolhaDasVersoes";
 import { FiltroDoStatus } from "../core/ui/FiltroDoStatus";
+import { FiltrosDoFinanceiro } from "../core/ui/FiltrosDoFinanceiro";
 import { Painel } from "../core/ui/Painel";
 import { gruposDoBoletim } from "../core/ui/paginasDoBoletim";
 import { useVersoesDoPlano } from "../componentes/menu/api";
@@ -162,6 +163,7 @@ export function MenuPagina() {
         <Painel titulo="Financeiro e planejamento">
           <div className="menu-bi-campos">
             <FiltroDoStatus />
+            <FiltrosDoFinanceiro />
             {versoes.data && <EscolhaDasVersoes escolha={versoes.data} />}
           </div>
         </Painel>

@@ -119,6 +119,10 @@ class LancamentoFinanceiro(ColunasTecnicas, Base):
     descricao: Mapped[str | None] = mapped_column(Text)
     contraparte: Mapped[str | None] = mapped_column(Text)
     documento: Mapped[str | None] = mapped_column(Text)
+    # os filtros do financeiro (migração 0029): atividade e classificação da fonte, conta bancária
+    atividade_map_id: Mapped[int | None] = mapped_column(SmallInteger, ForeignKey("dim.atividade_map.id"))
+    classificacao_map_id: Mapped[int | None] = mapped_column(SmallInteger, ForeignKey("dim.classificacao_map.id"))
+    conta_bancaria_id: Mapped[UUID | None] = mapped_column(ForeignKey("dim.conta_bancaria.id"))
 
 
 class OrcamentoFinanceiro(ColunasTecnicas, Base):
@@ -133,6 +137,9 @@ class OrcamentoFinanceiro(ColunasTecnicas, Base):
     natureza: Mapped[str] = mapped_column(CHAR(1))
     competencia: Mapped[date]
     valor: Mapped[Decimal] = mapped_column(VALOR)
+    # os filtros do financeiro (migração 0029); o plano não tem conta bancária
+    atividade_map_id: Mapped[int | None] = mapped_column(SmallInteger, ForeignKey("dim.atividade_map.id"))
+    classificacao_map_id: Mapped[int | None] = mapped_column(SmallInteger, ForeignKey("dim.classificacao_map.id"))
 
 
 class EstoqueMensal(Base):

@@ -20,7 +20,7 @@ function fazenda(id: string, nome: string, cliente: string, origem = "metryx"): 
     primeiro_mes: "2025-01-01",
     ultimo_mes: "2026-09-01",
     capacidades: { estoque: true, rebanho_medio: true, area: true, financeiro: true, planejado: true,
-        situacoes: ["pago"] },
+        situacoes: ["pago"], tipos_de_atividade: [], classificacoes: [], contas_bancarias: [] },
   };
 }
 
@@ -32,7 +32,7 @@ const FAZENDAS = [
 ];
 
 const GRUPO: Filtro = { origem: "metryx", cliente: "MARIA", fazendas: [], visao: "safra", ano: 2024, meses: [],
-  situacoes: [], versoes: [], semPlano: [] };
+  situacoes: [], versoes: [], semPlano: [], atividades: [], classificacoes: [], contas: [] };
 
 describe("capa do PDF", () => {
   test("safra 24/25 ou ano 2025", () => {

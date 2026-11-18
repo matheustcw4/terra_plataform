@@ -4,7 +4,8 @@ import { algumaRodando } from "../../logic/integracoes";
 import { useCargasDaApi } from "./api";
 import { CargaDaApi } from "./CargaDaApi";
 
-// A aba de uma API (hoje, o Metryx): se está ligada e quando roda, e as cargas mais recentes, a mais nova aberta.
+// A aba de uma API (hoje, o Metryx): se está ligada e quando roda, o estado das contas (as frases vêm prontas da
+// API: no Metryx, a conta mestre que traz os clientes) e as cargas mais recentes, a mais nova aberta.
 export function CargasDaApi({ integracao }: { integracao: IntegracaoPorApi }) {
   const cargas = useCargasDaApi(integracao.fonte);
   return (
@@ -16,6 +17,11 @@ export function CargasDaApi({ integracao }: { integracao: IntegracaoPorApi }) {
           {!integracao.ligada && <span className="selo selo-aviso">desligado</span>}
         </h2>
         <SituacaoDaApi integracao={integracao} />
+        {integracao.observacoes.map((observacao) => (
+          <p key={observacao} className="explicacao">
+            {observacao}
+          </p>
+        ))}
       </section>
       <section className="painel-grafico">
         <h2>

@@ -74,6 +74,33 @@ class PedidoDeConta(BaseModel):
     centro_custo_id: int | None             # vazio volta a conta para "A classificar"
 
 
+class OpcaoDeTipoDeAtividade(BaseModel):
+    id: int
+    nome: str
+
+
+class AtividadeDeOrigem(BaseModel):
+    """Uma atividade como a fonte escreve (Metryx: "Pecuária Campo" no realizado, "Pecuária" no plano) e o tipo do
+    filtro do financeiro."""
+    id: int
+    fonte: str
+    nome: str
+    tipo_atividade_id: int | None           # vazio = "A classificar" no filtro
+    lancamentos: int                        # lançamentos realizados com esta atividade
+    orcamentos: int                         # linhas de orçamento com esta atividade
+    valor: float                            # R$ dos lançamentos realizados
+
+
+class AtividadesDeOrigem(BaseModel):
+    pendentes: int
+    opcoes: list[OpcaoDeTipoDeAtividade]
+    itens: list[AtividadeDeOrigem]          # as sem tipo primeiro, depois as de maior valor
+
+
+class PedidoDeAtividade(BaseModel):
+    tipo_atividade_id: int | None           # vazio volta a atividade para "A classificar"
+
+
 # --- usuários e acesso -------------------------------------------------------------------------------------------
 
 

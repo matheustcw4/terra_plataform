@@ -4,9 +4,11 @@ alimentam o painel e o histórico das cargas de cada uma, com o que aconteceu cl
 Só o admin vê: os jobs e as unidades das cargas não têm leitura para o usuário comum (RLS, migração 0007). As
 planilhas ficam de fora daqui: cada envio aparece na própria tela de importação.
 
-Uma API nova entra em `APIS` (a fonte das cargas, o nome na tela e o campo da agenda dela na configuração).
+Uma API nova entra em `APIS` (a fonte das cargas, o nome na tela, o campo da agenda dela na configuração e as
+observações da aba, como as contas mestres do Metryx).
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -18,15 +20,52 @@ from app.core.config import Settings
 from app.schemas.integracao import AvisoDaCarga, CargaDaIntegracao, IntegracaoPorApi, UnidadeDaCarga
 from app.services.pendencias import CATALOGO
 
+CONTAS_DO_METRYX = """
+    SELECT nome, status, clientes, ultimo_erro FROM integracao.metryx_conta
+    WHERE status <> 'revogada' ORDER BY criado_em
+"""
+CLIENTES_COM_TOKEN = """
+    SELECT count(DISTINCT metryx_customer_id) FROM integracao.metryx_credencial WHERE status = 'ativa'
+"""
+
+
+def observacoes_do_metryx(s: Session) -> list[str]:
+    """As contas mestres (que trazem os clientes e os tokens) e quantos clientes entram na carga."""
+    observacoes = []
+    contas = s.execute(text(CONTAS_DO_METRYX)).mappings().all()
+    if not contas:
+        observacoes.append("Sem conta mestre: entram só os clientes cadastrados um a um (python -m app.etl "
+                           "metryx-credencial). Com a conta (python -m app.etl metryx-conta), cliente novo entra "
+                           "sozinho na carga seguinte.")
+    for conta in contas:
+        observacoes.append(situacao_da_conta(conta))
+    clientes = s.scalar(text(CLIENTES_COM_TOKEN))
+    observacoes.append(f"Clientes com token ativo: {clientes}.")
+    return observacoes
+
+
+def situacao_da_conta(conta) -> str:
+    nome = conta["nome"]
+    if conta["status"] == "invalida":
+        return (f"Conta mestre {nome}: o Metryx recusou o token ({conta['ultimo_erro']}). A carga segue com os "
+                "clientes já cadastrados; cadastre o token novo com python -m app.etl metryx-conta.")
+    if conta["ultimo_erro"]:
+        return (f"Conta mestre {nome}: a última leitura da lista de clientes falhou ({conta['ultimo_erro']}); a "
+                "carga seguiu com os clientes já cadastrados.")
+    if conta["clientes"] is None:
+        return f"Conta mestre {nome}: ainda não foi lida (a próxima carga lê a lista de clientes dela)."
+    return f"Conta mestre {nome}: {conta['clientes']} cliente(s) na última leitura da lista."
+
 
 @dataclass(frozen=True)
 class ApiIntegrada:
     fonte: str
     rotulo: str
     campo_da_agenda: str                    # o campo de Settings com o cron dela: preenchido = ligada
+    observacoes: Callable[[Session], list[str]]
 
 
-APIS = [ApiIntegrada("metryx", "Metryx", "agenda_metryx")]
+APIS = [ApiIntegrada("metryx", "Metryx", "agenda_metryx", observacoes_do_metryx)]
 LIMITE_DE_CARGAS = 30
 
 # Os códigos da carga como um todo; os das linhas vêm do catálogo das pendências.
@@ -54,6 +93,7 @@ TEXTO_DO_CODIGO = {
     "PLAN_VERSION_CHOSEN": "Plano com mais de uma versão na safra",
     "PLAN_NEGATIVE_STOCK": "Plano com categoria negativa em algum mês (conta zero)",
     "PLAN_MONTH_OVERLAP": "Plano com mês que outra safra já cobria (ficou de fora)",
+    "CLASSIFICATION_AMBIGUOUS": "Centro de custo com mais de uma classificação no plano (vale a mais frequente)",
 }
 
 CARGAS = """
@@ -95,13 +135,14 @@ AVISOS_DAS_CARGAS = """
 """
 
 
-def listar(configuracao: Settings) -> list[IntegracaoPorApi]:
+def listar(s: Session, configuracao: Settings) -> list[IntegracaoPorApi]:
     integracoes = []
     for api in APIS:
         agenda = getattr(configuracao, api.campo_da_agenda)
         integracoes.append(IntegracaoPorApi(fonte=api.fonte, rotulo=api.rotulo, ligada=bool(agenda.strip()),
                                             quando=agenda_em_palavras(agenda),
-                                            variavel_da_agenda=api.campo_da_agenda.upper()))
+                                            variavel_da_agenda=api.campo_da_agenda.upper(),
+                                            observacoes=api.observacoes(s)))
     return integracoes
 
 

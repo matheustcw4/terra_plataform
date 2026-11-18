@@ -40,7 +40,10 @@ export function GraficoMensalDoLote({ titulo, serie, realizado, planejado, linha
           </Bar>
           {linha && (
             <Line yAxisId="linha" dataKey={linha.campo} name={linha.nome} stroke="var(--cor-acumulado)"
-              strokeWidth={2} connectNulls isAnimationActive={false} />
+              strokeWidth={2} connectNulls isAnimationActive={false}>
+              <LabelList dataKey={linha.campo} position="top" formatter={(valor) => rotuloDeColuna(Number(valor))}
+                {...ROTULO} />
+            </Line>
           )}
         </ComposedChart>
       </ResponsiveContainer>

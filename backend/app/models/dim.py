@@ -146,3 +146,58 @@ class VersaoPlano(Base):
     oficial: Mapped[bool] = mapped_column(server_default=text("false"))
     ordem: Mapped[int | None]                       # maior = mais recente
     criado_em: Mapped[datetime] = mapped_column(**AGORA)
+
+
+class TipoAtividade(Base):
+    """O tipo de atividade do filtro do financeiro (Pecuária, Agricultura…), referência global."""
+    __tablename__ = "tipo_atividade"
+    __table_args__ = {"schema": "dim"}
+
+    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True)
+    nome: Mapped[str] = mapped_column(Text)
+    ordem: Mapped[int] = mapped_column(SmallInteger)
+
+
+class AtividadeMap(Base):
+    """De-para da atividade da fonte (Metryx: activity no realizado, typeActivity no plano) para o tipo."""
+    __tablename__ = "atividade_map"
+    __table_args__ = {"schema": "dim"}
+
+    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True)
+    fonte: Mapped[str] = mapped_column(Text)
+    nome_origem: Mapped[str] = mapped_column(Text)
+    nome_normalizado: Mapped[str] = mapped_column(Text, Computed("app.normalizar(nome_origem)"))
+    # NULL = pendente ("A classificar")
+    tipo_atividade_id: Mapped[int | None] = mapped_column(SmallInteger, ForeignKey("dim.tipo_atividade.id"))
+    criado_em: Mapped[datetime] = mapped_column(**AGORA)
+    atualizado_em: Mapped[datetime] = mapped_column(**AGORA)
+
+
+class ClassificacaoMap(Base):
+    """A classificação da fonte (Metryx: classificationAnalytic) -> grupo do DRE e marcas de custeio e desembolso."""
+    __tablename__ = "classificacao_map"
+    __table_args__ = {"schema": "dim"}
+
+    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True)
+    fonte: Mapped[str] = mapped_column(Text)
+    nome_origem: Mapped[str] = mapped_column(Text)
+    nome_normalizado: Mapped[str] = mapped_column(Text, Computed("app.normalizar(nome_origem)"))
+    classificacao: Mapped[str | None] = mapped_column(Text)        # grupo do DRE; NULL = pendente
+    entra_custeio: Mapped[bool | None]
+    entra_desembolso: Mapped[bool | None]                           # a marca da fonte
+    criado_em: Mapped[datetime] = mapped_column(**AGORA)
+    atualizado_em: Mapped[datetime] = mapped_column(**AGORA)
+
+
+class ContaBancaria(Base):
+    """A conta bancária dos lançamentos realizados (Metryx: idBankAccount e banckAccount), por cliente."""
+    __tablename__ = "conta_bancaria"
+    __table_args__ = {"schema": "dim"}
+
+    id: Mapped[UUID] = mapped_column(**UUID_PK)
+    cliente_id: Mapped[UUID] = mapped_column(ForeignKey("core.cliente.id", ondelete="CASCADE"))
+    fonte: Mapped[str] = mapped_column(Text)
+    id_externo: Mapped[str] = mapped_column(Text)
+    nome: Mapped[str] = mapped_column(Text)
+    criado_em: Mapped[datetime] = mapped_column(**AGORA)
+    atualizado_em: Mapped[datetime] = mapped_column(**AGORA)

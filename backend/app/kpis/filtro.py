@@ -7,13 +7,15 @@ o que é saldo (estoque final) é o do último mês escolhido (`MAX(dCalendar[Da
 As versões do planejamento marcadas na tela também vêm no recorte, de seleção múltipla, e as fazendas marcadas "sem
 planejamento" (pedido do usuário, 10/11/2026): valem para as metas de todas as páginas e para o orçamento
 (versao_do_plano.py); na fazenda sem escolha, a mais recente de cada safra. E a situação dos títulos do realizado do
-financeiro (situacao_do_lancamento.py); sem escolha, o que foi pago.
+financeiro (situacao_do_lancamento.py); sem escolha, o que foi pago. E o tipo de atividade, a classificação e a conta
+bancária do financeiro (filtros_do_financeiro.py, 18/11/2026); sem escolha, tudo.
 """
 
 from dataclasses import dataclass
 from datetime import date
 from uuid import UUID
 
+from app.kpis.filtros_do_financeiro import SEM_ESCOLHA, EscolhasDoFinanceiro
 from app.kpis.situacao_do_lancamento import SITUACOES_PADRAO
 from app.schemas.api import Periodo
 
@@ -27,12 +29,16 @@ class Filtro:
     versoes_do_plano: tuple[UUID, ...] = ()      # as marcadas (somam na fazenda); sem elas, a mais recente
     fazendas_sem_plano: tuple[UUID, ...] = ()    # as fazendas marcadas "nenhum planejamento"
     situacoes: tuple[str, ...] = SITUACOES_PADRAO   # dos títulos do realizado do financeiro
+    escolhas_do_financeiro: EscolhasDoFinanceiro = SEM_ESCOLHA   # tipo de atividade, classificação e conta
 
     def parametros(self) -> dict:
-        return {"fazendas": [str(fazenda) for fazenda in self.fazendas], "inicio": self.inicio, "fim": self.fim,
-                "meses": meses_do_filtro(self), "versoes_do_plano": [str(versao) for versao in self.versoes_do_plano],
-                "fazendas_sem_plano": [str(fazenda) for fazenda in self.fazendas_sem_plano],
-                "situacoes": list(self.situacoes)}
+        parametros = {"fazendas": [str(fazenda) for fazenda in self.fazendas], "inicio": self.inicio,
+                      "fim": self.fim, "meses": meses_do_filtro(self),
+                      "versoes_do_plano": [str(versao) for versao in self.versoes_do_plano],
+                      "fazendas_sem_plano": [str(fazenda) for fazenda in self.fazendas_sem_plano],
+                      "situacoes": list(self.situacoes)}
+        parametros.update(self.escolhas_do_financeiro.parametros())
+        return parametros
 
 
 def proximo_mes(mes: date) -> date:

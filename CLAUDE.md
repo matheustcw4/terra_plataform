@@ -48,7 +48,11 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   `python -m validacao.layout_do_bi <pbix>`). Os filtros ficam **só na página MENU** (no BI eles se repetem ocultos em
   todas as páginas por limitação do Power BI): Origem (temporário), Cliente, Fazenda, Safra/Cívil, Safra ou Ano,
   Mês e, no quadro "Financeiro e planejamento" (10/11/2026), o status dos lançamentos e a versão do plano de cada
-  fazenda (os dois também ficam no topo das páginas que usam; abaixo). O mês é de **seleção múltipla**, como no BI (pedido do usuário, 15/10/2026): as somas usam só os meses
+  fazenda (os dois também ficam no topo das páginas que usam; abaixo) e, desde 18/11/2026, o tipo de atividade, a
+  classificação e a conta bancária do financeiro (também no topo do Previsto × Realizado e do Financeiro; de seleção
+  múltipla, cada um só quando as fazendas têm mais de uma opção; a conta só recorta o realizado, porque o plano não é
+  vinculado a conta; `FiltrosDoFinanceiro`, `app/kpis/filtros_do_financeiro.py`; na URL, `atividade`,
+  `classificacao` e `conta`). O mês é de **seleção múltipla**, como no BI (pedido do usuário, 15/10/2026): as somas usam só os meses
   marcados (podem ser salteados), e o estoque final é o do último mês marcado (`app/kpis/filtro.py`). A fazenda
   também é de **seleção múltipla** (pedido do usuário, 16/10/2026): nenhuma ou todas marcadas = "GRUPO"; com algumas,
   o topo mostra os nomes separados por " | " (mais de 3: a quantidade) e a capa, todos os nomes.
@@ -84,7 +88,11 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   catalogado que a plataforma não reproduz (relatório de validação §20). Onde o relatório do Metryx e o BI de planilhas
   contam um centro de custo de jeitos diferentes (a compra de animais no desembolso, os financiamentos no custeio), a
   exceção da fonte fica em `dim.centro_custo_fonte` (migração 0022; decisão do usuário, 10/11/2026), que as views dos
-  lançamentos e do orçamento usam: nenhum KPI olha a fonte. Estoque Metryx: a base é o SQL `fSaldoGado`
+  lançamentos e do orçamento usam: nenhum KPI olha a fonte. **Para os dados do Metryx vale 100% a classificação do
+  Metryx** (decisão do usuário, 18/11/2026): a classificação analítica do plano e da previsão (e, no lançamento, a do
+  centro de custo no plano do mesmo cliente) passa pelo de-para `dim.classificacao_map` (grupo do DRE, custeio e a marca
+  de desembolso da fonte), que as views usam antes da exceção da fonte e das marcas do centro (migração 0029). Estoque
+  Metryx: a base é o SQL `fSaldoGado`
   em `docs/referencias/pbix_metryx/power_query.csv`, menos nos bezerros mamando (`adapters/metryx/saldo.py`).
 - Equivalência testada em CI: a mesma fazenda sintética, em `.xlsm` e em JSON Metryx, precisa gerar o mesmo canônico e os mesmos KPIs.
 
@@ -109,7 +117,7 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
 
 ## Segurança e dados
 - **Nunca** versionar tokens, senhas, `.env`, planilhas reais de clientes (`dados_exemplo/` é ignorado pelo git) nem `.pbix`.
-- API Metryx: somente GETs da allow-list. **Nunca chamar `POST /api-metryx/control-birth`** (escreve no Metryx). Chamadas reais à API só com autorização explícita do usuário e token de teste no `.env`.
+- API Metryx: somente GETs da allow-list (inclui o `GET /api-metryx/customers` da conta mestre, fora do Swagger). **Nunca chamar `POST /api-metryx/control-birth`** (escreve no Metryx). Chamadas reais à API só com autorização explícita do usuário e token de teste no `.env`.
 - Tokens Metryx ficam cifrados no banco (`integracao.metryx_credencial`), em campo write-only na UI.
 
 ## Stack e convenções (espelham o AgTechLab, com as correções do relatório 05 §14)
@@ -173,7 +181,7 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   (`docker-compose.prod.yml`, imagens `backend/Dockerfile` e `docker/web/Dockerfile` com Caddy, backup diário; guia
   em `docs/03_DEPLOY_VPS.md`, validado subindo tudo no Docker Desktop).
 - **Administração (só admin):** de-para de categorias (classificar recalcula o estoque), de-para de contas (o DRE
-  muda na hora), usuários (nome, e-mail, senha só como hash argon2 e função), cadastro de funções (`core.funcao`: a
+  muda na hora), de-para de atividades (o tipo de atividade do filtro do financeiro; 18/11/2026), usuários (nome, e-mail, senha só como hash argon2 e função), cadastro de funções (`core.funcao`: a
   função do usuário é escolhida nessa lista, não digitada) e acesso às fazendas;
   `app/services/{de_paras,usuarios,funcoes}.py` + `/api/v1/admin/*`. A função ainda não dá permissão: quem entra na
   administração é o `eh_admin` (papéis por função ficam para a D10).
@@ -189,11 +197,12 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - usuários na tela de admin; o primeiro admin pelo `python -m app.comandos` (`criar-usuario`, `dar-acesso`); a
     equipe da consultoria pela planilha de levantamento (`importar-equipe`, `app/services/equipe.py`).
 - **Base de integração e adapters prontos** (ver `README.md` e o §0 de `docs/02_PROXIMOS_PASSOS.md`):
-  - Postgres no compose; migrações 0001–0026 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
+  - Postgres no compose; migrações 0001–0030 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
     login, pendências, recálculo do estoque pela API, série nova do estoque começa no início da fazenda, cadastro de
     funções e o RLS dele, tipo do orçamento, versões do planejado, fila da importação de planilhas e o RLS dela, a
     exceção de cada fonte às marcas do centro de custo e o RLS dela, a situação do lançamento, a versão por fazenda e
-    o nome do cliente nas unidades do Metryx);
+    o nome do cliente nas unidades do Metryx, a conta mestre do Metryx e o RLS dela, os filtros do financeiro
+    (atividade, classificação da fonte e conta bancária) e o RLS deles);
   - contrato canônico, motor (guarda de volume, arquivo em dobro, recorte `desde`), CLI `python -m app.etl`;
   - **adapter de planilhas**: as planilhas chegam pela tela **Integrações**, aba Planilhas (09/11/2026, D8; todo usuário,
     só nas fazendas a que tem acesso, e fazenda nova só o admin; `ingest.importacao`, `app/etl/importacao.py`,
@@ -218,8 +227,8 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     do desembolso negativa, 10/11/2026); nos lançamentos, a situação do título (conciliado, pago ou em aberto, este
     pelo vencimento e pelo valor a pagar; o excluído no Metryx não entra; migração 0024);
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 196 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
-    boletim analítico, a importação pela tela e as integrações) + 102 testes do front (Vitest);
+  - 212 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
+    boletim analítico, a importação pela tela e as integrações) + 107 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,
     `layout_do_bi`, `lotacao_sem_area`). A lotação fica igual ao BI mesmo quando um mês com rebanho não tem área, o
@@ -229,6 +238,13 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
 - O datalake de planilhas do BI é um snapshot de ago/2026; 55 planilhas já viraram para a safra 26/27 e não trazem
   mais a 25/26. Esse histórico entra pela carga única `planilhas-historico` (decisão Q6), que roda depois de
   `planilhas` e só preenche o que vem antes do que os arquivos cobrem.
+- **Clientes Metryx pela conta mestre** (pedido do usuário, 17/11/2026): a carga do Metryx começa relendo a lista de
+  clientes e o token de cada um (`GET /api-metryx/customers`, com o token da conta mestre, como o Pentaho do BI;
+  `adapters/metryx/contas.py`, `integracao.metryx_conta`, migrações 0027–0028). Cliente novo entra sozinho na carga,
+  token trocado é rotacionado; os tokens da lista vão só cifrados para `integracao.metryx_credencial` (nunca para o
+  bruto ou o log). Conta recusada não para a carga (segue com os clientes já cadastrados) e o motivo aparece na aba
+  Integrações → Metryx. Cadastro: `python -m app.etl metryx-conta --nome "Terra"`; conferir a lista sem carregar:
+  `python -m app.etl metryx-clientes`.
 - **API Metryx real: três clientes até agora.** Em 27/10/2026, com o token passado pelo usuário (cifrado nos bancos
   `terra` e `terra_validacao`), a Maister passou a vir pela API, porque o datalake dela parou em 06/10; jul–set/2026 do
   U6 e da Maister batem com o Metryx (rebanho médio, nascimentos, mortes, compras e vendas; relatório §21). O token da

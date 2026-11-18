@@ -3,6 +3,7 @@ import { chamarApi } from "../../core/api/cliente";
 import type {
   AlteracaoDeFuncao,
   AlteracaoDeUsuario,
+  AtividadesDeOrigem,
   CategoriasDeOrigem,
   ContasDeOrigem,
   FazendaDoAcesso,
@@ -29,6 +30,15 @@ export function useContas(soPendentes: boolean, busca: string) {
   return useQuery({
     queryKey: ["admin", "contas", soPendentes, busca],
     queryFn: () => chamarApi<ContasDeOrigem>(`/admin/contas?${parametrosDaLista(soPendentes, busca)}`),
+    placeholderData: keepPreviousData,
+  });
+}
+
+// GET /admin/atividades?so_pendentes=true&busca=..
+export function useAtividades(soPendentes: boolean, busca: string) {
+  return useQuery({
+    queryKey: ["admin", "atividades", soPendentes, busca],
+    queryFn: () => chamarApi<AtividadesDeOrigem>(`/admin/atividades?${parametrosDaLista(soPendentes, busca)}`),
     placeholderData: keepPreviousData,
   });
 }
@@ -73,6 +83,20 @@ export function useClassificarConta() {
       chamarApi<void>(`/admin/contas/${pedido.id}`, {
         method: "PUT",
         body: JSON.stringify({ centro_custo_id: pedido.centro }),
+      }),
+    onSuccess: relerTudo,
+  });
+}
+
+// PUT /admin/atividades/{id}: o tipo da atividade (vazio volta para "A classificar"); relê tudo, porque as opções
+// do filtro do financeiro, que vêm no escopo, mudam
+export function useClassificarAtividade() {
+  const relerTudo = useRelerTudo();
+  return useMutation({
+    mutationFn: (pedido: { id: number; tipo: number | null }) =>
+      chamarApi<void>(`/admin/atividades/${pedido.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ tipo_atividade_id: pedido.tipo }),
       }),
     onSuccess: relerTudo,
   });

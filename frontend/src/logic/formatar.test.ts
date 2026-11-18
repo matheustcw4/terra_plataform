@@ -1,5 +1,14 @@
 import { expect, test } from "vitest";
-import { comSinal, compacto, dinheiro, dinheiroCompacto, numero, percentual, rotuloDeColuna } from "./formatar";
+import {
+  comSinal,
+  compacto,
+  dinheiro,
+  dinheiroCompacto,
+  numero,
+  percentual,
+  rotuloDeColuna,
+  rotuloInteiro,
+} from "./formatar";
 
 test("números no padrão brasileiro e traço quando não há valor", () => {
   expect(numero(1605)).toBe("1.605");
@@ -28,6 +37,12 @@ test("eixo de gráfico em formato compacto", () => {
 test("rótulo de coluna some quando o valor é zero", () => {
   expect(rotuloDeColuna(0)).toBe("");
   expect(rotuloDeColuna(450)).toBe("450");
+});
+
+test("rótulo inteiro escreve o número todo e some quando o valor é zero", () => {
+  expect(rotuloInteiro(0)).toBe("");
+  expect(rotuloInteiro(5432.4)).toBe("5.432");
+  expect(rotuloInteiro(87)).toBe("87");
 });
 
 test("dinheiro compacto nos rótulos de barra", () => {

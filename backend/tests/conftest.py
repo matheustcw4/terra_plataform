@@ -27,7 +27,7 @@ TABELAS_DADOS = [
     "fato.lancamento_financeiro", "fato.orcamento_financeiro",
     "ingest.importacao", "ingest.linha_quarentena", "ingest.ocorrencia", "raw.payload", "ingest.unidade_origem",
     "ingest.versao_origem",
-    "ingest.job", "integracao.metryx_credencial",
+    "ingest.job", "integracao.metryx_credencial", "integracao.metryx_conta",
     "dim.categoria_map", "dim.plano_contas_map", "dim.versao_plano",
     "core.usuario_fazenda", "core.usuario", "core.funcao", "core.fazenda_fonte", "core.fonte_vinculo", "core.retiro",
     "core.fazenda", "core.cliente",
