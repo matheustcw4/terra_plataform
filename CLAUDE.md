@@ -197,12 +197,13 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - usuários na tela de admin; o primeiro admin pelo `python -m app.comandos` (`criar-usuario`, `dar-acesso`); a
     equipe da consultoria pela planilha de levantamento (`importar-equipe`, `app/services/equipe.py`).
 - **Base de integração e adapters prontos** (ver `README.md` e o §0 de `docs/02_PROXIMOS_PASSOS.md`):
-  - Postgres no compose; migrações 0001–0030 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
+  - Postgres no compose; migrações 0001–0031 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
     login, pendências, recálculo do estoque pela API, série nova do estoque começa no início da fazenda, cadastro de
     funções e o RLS dele, tipo do orçamento, versões do planejado, fila da importação de planilhas e o RLS dela, a
     exceção de cada fonte às marcas do centro de custo e o RLS dela, a situação do lançamento, a versão por fazenda e
     o nome do cliente nas unidades do Metryx, a conta mestre do Metryx e o RLS dela, os filtros do financeiro
-    (atividade, classificação da fonte e conta bancária) e o RLS deles);
+    (atividade, classificação da fonte e conta bancária) e o RLS deles, a classificação "Outros créditos" do
+    Metryx);
   - contrato canônico, motor (guarda de volume, arquivo em dobro, recorte `desde`), CLI `python -m app.etl`;
   - **adapter de planilhas**: as planilhas chegam pela tela **Integrações**, aba Planilhas (09/11/2026, D8; todo usuário,
     só nas fazendas a que tem acesso, e fazenda nova só o admin; `ingest.importacao`, `app/etl/importacao.py`,
@@ -227,7 +228,7 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     do desembolso negativa, 10/11/2026); nos lançamentos, a situação do título (conciliado, pago ou em aberto, este
     pelo vencimento e pelo valor a pagar; o excluído no Metryx não entra; migração 0024);
   - **carga do histórico** das planilhas a partir do snapshot do BI (Q6): `python -m app.etl planilhas-historico`;
-  - 212 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
+  - 217 testes com Postgres real (incluindo a equivalência planilha × Metryx, a API, o admin, as cargas agendadas, o
     boletim analítico, a importação pela tela e as integrações) + 107 testes do front (Vitest);
   - validação contra os BIs em `docs/validacao/`; scripts em `backend/validacao/` (`cruzar`, `classificar`,
     `cruzar_kpis`, `cruzar_compras_e_vendas`, `cruzar_zootecnico`, `cruzar_financeiro`, `cruzar_previsto`,
@@ -243,8 +244,11 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   `adapters/metryx/contas.py`, `integracao.metryx_conta`, migrações 0027–0028). Cliente novo entra sozinho na carga,
   token trocado é rotacionado; os tokens da lista vão só cifrados para `integracao.metryx_credencial` (nunca para o
   bruto ou o log). Conta recusada não para a carga (segue com os clientes já cadastrados) e o motivo aparece na aba
-  Integrações → Metryx. Cadastro: `python -m app.etl metryx-conta --nome "Terra"`; conferir a lista sem carregar:
-  `python -m app.etl metryx-clientes`.
+  Integrações → Metryx. O token da conta mestre fica em `METRYX_TOKEN_MESTRE` (no servidor, no `.env.producao`): toda
+  carga cadastra a conta sozinha com ele (19/11/2026; ou `python -m app.etl metryx-conta --nome "Terra"`, que pede o
+  token e já confere a lista); conferir a lista sem carregar: `python -m app.etl metryx-clientes`. A categoria de
+  animal do Metryx vale pela sugestão (grupo, idade e sexo) até o admin escolher outra: antes ela esperava a
+  confirmação, e o cliente novo chegava com o rebanho fora do estoque (a Estância Nova, 19/11/2026).
 - **API Metryx real: três clientes até agora.** Em 27/10/2026, com o token passado pelo usuário (cifrado nos bancos
   `terra` e `terra_validacao`), a Maister passou a vir pela API, porque o datalake dela parou em 06/10; jul–set/2026 do
   U6 e da Maister batem com o Metryx (rebanho médio, nascimentos, mortes, compras e vendas; relatório §21). O token da

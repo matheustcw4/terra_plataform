@@ -133,16 +133,24 @@ $env:POSTGRES_HOST = "127.0.0.1"; $env:POSTGRES_PORT = "55433"; $env:APP_ETL_PAS
 
 ### O Metryx (só com autorização)
 
-As chamadas à API real do Metryx dependem de autorização explícita (CLAUDE.md, Segurança). Autorizado: cadastre a
-**conta mestre** (o token que lista os clientes e o token de cada um; fica cifrado com `METRYX_CHAVE_CIFRA`), preencha
-`AGENDA_METRYX` (ex.: `0 3 * * *`) no `.env.producao` e recrie os serviços. A cada carga a plataforma relê a lista:
-cliente novo entra sozinho.
+As chamadas à API real do Metryx dependem de autorização explícita (CLAUDE.md, Segurança). Autorizado: ponha o token
+da **conta mestre** (o que lista os clientes e o token de cada um; o mesmo do Pentaho do BI) em `METRYX_TOKEN_MESTRE`,
+preencha `AGENDA_METRYX` (ex.: `0 3 * * *`) no `.env.producao` e recrie os serviços (`terra up -d`). Toda carga
+cadastra a conta com esse token (no banco, cifrada com `METRYX_CHAVE_CIFRA`) e relê a lista: cliente novo entra
+sozinho, com as fazendas e o rebanho (a categoria de animal vale pela sugestão do Metryx até o admin escolher outra).
+
+Sem mexer no `.env.producao`, o cadastro também pode ser feito à mão:
 
 ```bash
 terra run --rm -it worker python -m app.etl metryx-conta --nome "Terra"
 terra run --rm worker python -m app.etl metryx-clientes     # confere a lista (chama só o GET /customers)
 terra up -d
 ```
+
+O `metryx-conta` pede o token (nada aparece enquanto ele é colado) e só termina depois do Enter; em seguida já
+confere a lista de clientes e mostra os que têm token. Sem o `-it`, ou com a sessão SSH fechada antes do Enter, ele fica
+parado esperando: `terra ps -a` mostra um `worker-run` de pé, que se tira com `docker rm -f <nome>`. O `metryx-clientes`
+diz quando não há conta mestre ("nenhuma conta mestre cadastrada") e quando a conta foi recusada pelo Metryx.
 
 Sem a conta mestre, cada cliente é cadastrado à mão, com o token dele:
 

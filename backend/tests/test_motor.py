@@ -202,29 +202,36 @@ def test_fonte_inativa_no_dominio_e_ignorada(engine_etl, engine_super):
                   "SELECT count(*) FROM ingest.ocorrencia WHERE codigo = 'SOURCE_INACTIVE_FOR_DOMAIN'") == 1
 
 
-def test_categoria_pendente_entra_mas_fica_fora_do_estoque_ate_confirmar(engine_etl, engine_super):
-    """Metryx: a fonte só sugere a categoria BI; o consultor confirma (D6). Confirmar reclassifica sem recarga."""
+def test_sugestao_do_metryx_vale_ate_o_admin_escolher_outra(engine_etl, engine_super):
+    """Metryx: a fonte sugere a categoria BI (grupo, idade e sexo), e a sugestão já vale: o rebanho do cliente novo que
+    a conta mestre traz entra no estoque sem esperar ninguém (19/11/2026). A escolha do admin não é desfeita pela
+    carga seguinte, e a categoria sem sugestão fica pendente e fora do estoque."""
     lote = exemplo_doc01("metryx", cliente="777", fazenda="777|9", fonte_mapa="metryx_realizado", escopo="cliente",
                          confirmadas=False)
+    r = motor(engine_etl).executar(AdapterMemoria("metryx", {"777:balanco": lote}))
+    assert r.unidades[0].status == "carregada"
+    assert contar(engine_super, "SELECT count(*) FROM ingest.ocorrencia WHERE codigo = 'CATEGORY_UNMAPPED'") == 0
+    assert contar(engine_super, "SELECT saldo_final FROM fato.estoque_mensal e JOIN dim.categoria_bi b "
+                                "ON b.id = e.categoria_bi_id WHERE b.nome = 'BEZERRO' AND competencia = '2025-07-01'")         == 815
+
+    with engine_super.begin() as c:   # o admin escolhe outra categoria para o desmamado
+        c.execute(text("UPDATE dim.categoria_map SET categoria_bi_id = (SELECT id FROM dim.categoria_bi "
+                       "WHERE nome = 'MACHOS 13-24'), confirmado_em = now() WHERE nome_origem = 'DESMAMA MACHO'"))
+    motor(engine_etl).executar(AdapterMemoria("metryx", {"777:balanco": lote}), forcar=True)
+    assert contar(engine_super, "SELECT b.nome FROM dim.categoria_map m JOIN dim.categoria_bi b "
+                                "ON b.id = m.categoria_bi_id WHERE m.nome_origem = 'DESMAMA MACHO'") == "MACHOS 13-24"
+
+
+def test_categoria_do_metryx_sem_sugestao_fica_pendente_e_fora_do_estoque(engine_etl, engine_super):
+    """Sem sugestão (o grupo do Metryx não diz a categoria BI), nada muda: entra como pendente, com o aviso, e fica
+    fora do estoque até o admin classificar (que reclassifica sem recarga)."""
+    lote = exemplo_doc01("metryx", cliente="777", fazenda="777|9", fonte_mapa="metryx_realizado", escopo="cliente",
+                         confirmadas=False, categorias={"BEZERRO MAMANDO": None, "DESMAMA MACHO": None})
     r = motor(engine_etl).executar(AdapterMemoria("metryx", {"777:balanco": lote}))
     assert r.unidades[0].status == "carregada_com_avisos"
     assert contar(engine_super, "SELECT count(*) FROM fato.mov_animal") == 3
     assert contar(engine_super, "SELECT count(*) FROM fato.estoque_mensal") == 0
     assert contar(engine_super, "SELECT count(*) FROM ingest.ocorrencia WHERE codigo = 'CATEGORY_UNMAPPED'") == 2
-
-    with engine_super.begin() as c:   # consultor aceita as sugestões
-        c.execute(text("UPDATE dim.categoria_map SET categoria_bi_id = categoria_bi_sugerida_id, "
-                       "confirmado_em = now()"))
-        fazenda = c.execute(text("SELECT id FROM core.fazenda")).scalar()
-    with engine_etl.begin() as c:
-        c.execute(text("SELECT fato.recalcular_estoque_mensal(ARRAY[CAST(:f AS uuid)], '2025-09-01')"), {"f": fazenda})
-    assert contar(engine_super, "SELECT saldo_final FROM fato.estoque_mensal e JOIN dim.categoria_bi b "
-                                "ON b.id = e.categoria_bi_id WHERE b.nome = 'BEZERRO' AND competencia = '2025-07-01'") \
-        == 815
-
-    # nova carga com sugestão diferente não desfaz a confirmação
-    motor(engine_etl).executar(AdapterMemoria("metryx", {"777:balanco": lote}), forcar=True)
-    assert contar(engine_super, "SELECT count(*) FROM dim.categoria_map WHERE categoria_bi_id IS NULL") == 0
 
 
 def test_reprocessa_a_partir_do_bruto_guardado(engine_etl, engine_super):

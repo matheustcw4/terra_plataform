@@ -9,6 +9,7 @@ import httpx
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.etl import __main__ as linha_de_comando
 from app.etl.adapters.metryx import contas, credenciais
 from app.etl.adapters.metryx.adapter import AdapterMetryx
 from app.etl.adapters.metryx.cliente import ClienteMetryx
@@ -110,3 +111,36 @@ def test_a_lista_de_clientes_esta_na_allow_list():
     transporte = transporte_com_conta(lista_de_clientes())
     resposta = cliente_http(transporte).get_lista(CAMINHO_DOS_CLIENTES, MESTRE)
     assert len(resposta.itens) == 3
+
+
+def test_sem_conta_mestre_o_comando_explica_e_nao_chama_a_api(engine_etl, capsys):
+    assert linha_de_comando._clientes_metryx(engine_etl) == 1
+    assert "nenhuma conta mestre cadastrada" in capsys.readouterr().out
+
+
+def test_conta_recusada_pede_o_token_de_novo_sem_mostrar_o_token(engine_etl, engine_super, capsys):
+    contas.registrar_conta(engine_etl, "token-velho", "Terra")
+    with engine_super.begin() as c:
+        c.execute(text("UPDATE integracao.metryx_conta SET status = 'invalida', ultimo_erro = 'HTTP 401'"))
+    assert linha_de_comando._clientes_metryx(engine_etl) == 1
+    saida = capsys.readouterr().out
+    assert "está invalida (HTTP 401)" in saida and "token-velho" not in saida
+
+
+def test_token_vazio_nao_cadastra_a_conta(engine_etl, engine_super, monkeypatch, capsys):
+    monkeypatch.setenv("METRYX_TOKEN_NOVO", "   ")
+    assert linha_de_comando._cadastrar_conta_metryx(engine_etl, "Terra") == 1
+    assert "token vazio" in capsys.readouterr().out
+    with engine_super.connect() as c:
+        assert c.scalar(text("SELECT count(*) FROM integracao.metryx_conta")) == 0
+
+
+def test_o_token_mestre_da_configuracao_vira_a_conta_e_traz_os_clientes(engine_etl, engine_super):
+    """METRYX_TOKEN_MESTRE no .env: toda carga cadastra a conta sozinha (sem o metryx-conta) e lê a lista."""
+    transporte = transporte_com_conta(lista_de_clientes())
+    descoberta = contas.descobrir_clientes(engine_etl, cliente_http(transporte), token_mestre=MESTRE)
+    assert (descoberta.clientes, descoberta.novos) == (3, 2)
+    de_novo = contas.descobrir_clientes(engine_etl, cliente_http(transporte), token_mestre=MESTRE)
+    assert de_novo.novos == 0
+    with engine_super.connect() as c:
+        assert c.scalar(text("SELECT count(*) FROM integracao.metryx_conta")) == 1        # a mesma conta, não duas

@@ -210,8 +210,13 @@ def _declarar_categorias_usadas(lote: LoteCanonico, declaradas: dict, resolvido:
 
 def _gravar_de_para_categoria(s: Session, resolvido: Resolvido, categoria: RefCategoria,
                               categoria_bi_id: int | None) -> UUID:
-    """Confirmada (planilha: o CADASTROINICIAL é a confirmação) grava a categoria BI; sugestão (Metryx) só preenche a
-    sugerida e nunca sobrescreve o que o consultor confirmou.
+    """Confirmada (planilha: o CADASTROINICIAL é a confirmação) grava a categoria BI; sugestão (Metryx: grupo, idade e
+    sexo da categoria) grava a sugerida e, enquanto a categoria não tem categoria BI, vale também como a categoria BI.
+
+    Antes a sugestão do Metryx esperava o admin confirmar, e todo cliente novo que a conta mestre trazia ficava com o
+    rebanho fora do estoque e dos KPIs (a Estância Nova, 19/11/2026; os clientes da validação foram confirmados pela
+    sugestão, em lote). A sugestão nunca sobrescreve uma categoria BI que já existe: a que o admin escolheu fica.
+    Categoria sem sugestão continua pendente.
 
     A planilha só confirma quando traz a categoria BI: a categoria em branco no cadastro fica pendente e não apaga o
     que o admin classificou na plataforma (senão a próxima carga desfaria a classificação). Uma categoria preenchida
@@ -221,8 +226,10 @@ def _gravar_de_para_categoria(s: Session, resolvido: Resolvido, categoria: RefCa
     confirma = categoria.confirmada and categoria_bi_id is not None
     if confirma:
         confirmada_id, sugerida_id, confirmado_em = categoria_bi_id, None, text("now()")
+    elif categoria_bi_id is not None:
+        confirmada_id, sugerida_id, confirmado_em = categoria_bi_id, categoria_bi_id, text("now()")
     else:
-        confirmada_id, sugerida_id, confirmado_em = None, categoria_bi_id, None
+        confirmada_id, sugerida_id, confirmado_em = None, None, None
     comando = pg_insert(CategoriaMap).values(
         fonte=chave.fonte_mapa, cliente_id=cliente_id, fazenda_id=fazenda_id, categoria_origem=chave.id_externo,
         nome_origem=categoria.nome, atributos=categoria.atributos, categoria_bi_id=confirmada_id,
@@ -236,6 +243,12 @@ def _gravar_de_para_categoria(s: Session, resolvido: Resolvido, categoria: RefCa
         atualizar["confirmado_por"] = None                     # quem confirmou foi a planilha, não um usuário
     else:
         atualizar["categoria_bi_sugerida_id"] = comando.excluded.categoria_bi_sugerida_id
+        # só preenche a categoria BI vazia; a que já existe (do admin ou de uma carga anterior) fica
+        atualizar["categoria_bi_id"] = text("coalesce(dim.categoria_map.categoria_bi_id, "
+                                            "excluded.categoria_bi_sugerida_id)")
+        atualizar["confirmado_em"] = text("CASE WHEN dim.categoria_map.categoria_bi_id IS NULL "
+                                          "AND excluded.categoria_bi_sugerida_id IS NOT NULL THEN now() "
+                                          "ELSE dim.categoria_map.confirmado_em END")
     return s.scalar(comando.on_conflict_do_update(constraint="uq_categoria_map", set_=atualizar)
                     .returning(CategoriaMap.__table__.c.id))
 

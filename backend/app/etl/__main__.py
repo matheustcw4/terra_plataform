@@ -57,11 +57,48 @@ def _historico(engine, motor: MotorCarga, ate: date, prop_faz: list[str] | None)
     return status or (1 if erros else 0)
 
 
+SEM_CONTA_MESTRE = ('nenhuma conta mestre cadastrada: a carga só usa os clientes já cadastrados. Ponha o token em '
+                    'METRYX_TOKEN_MESTRE (no servidor, no .env.producao, e terra up -d) ou cadastre com python -m '
+                    'app.etl metryx-conta --nome "Terra" (no servidor: terra run --rm -it worker python -m app.etl '
+                    'metryx-conta --nome "Terra"; o -it deixa digitar o token)')
+
+
+def _cadastrar_conta_metryx(engine, nome: str) -> int:
+    """Grava a conta mestre e já confere a lista de clientes dela (o mesmo que a carga faz no começo)."""
+    from app.etl.adapters.metryx import contas
+    token = os.environ.pop("METRYX_TOKEN_NOVO", None) or getpass.getpass("token da conta mestre (não aparece): ")
+    if not token.strip():
+        print("token vazio: nada foi cadastrado")
+        return 1
+    conta_id = contas.registrar_conta(engine, token.strip(), nome)
+    print(f"conta mestre cadastrada ({conta_id}); conferindo a lista de clientes no Metryx")
+    return _clientes_metryx(engine)
+
+
+def _sem_conta_ativa(engine) -> bool:
+    """Explica por que a lista não vai ser lida: nenhuma conta, ou só contas recusadas pelo Metryx."""
+    from app.etl.adapters.metryx import contas
+    situacoes = contas.situacao_das_contas(engine)
+    if not situacoes:
+        print(SEM_CONTA_MESTRE)
+        return True
+    ativas = [situacao for situacao in situacoes if situacao.status == "ativa"]
+    if ativas:
+        return False
+    for situacao in situacoes:
+        print(f"a conta mestre {situacao.nome} está {situacao.status} ({situacao.ultimo_erro or 'sem detalhe'}): "
+              "cadastre o token de novo com metryx-conta")
+    return True
+
+
 def _clientes_metryx(engine) -> int:
     """Relê a lista das contas mestres (chama a API real: só o GET /customers) e mostra os clientes com token."""
     from app.core.config import get_settings
     from app.etl.adapters.metryx import contas, credenciais
     from app.etl.adapters.metryx.cliente import ClienteMetryx
+    contas.conta_da_configuracao(engine, get_settings().metryx_token_mestre)
+    if _sem_conta_ativa(engine):
+        return 1
     cliente_http = ClienteMetryx(get_settings().metryx_base_url)
     try:
         descoberta = contas.descobrir_clientes(engine, cliente_http)
@@ -69,6 +106,10 @@ def _clientes_metryx(engine) -> int:
         cliente_http.fechar()
     print(f"listados: {descoberta.clientes} | novos: {descoberta.novos} | tokens trocados: {descoberta.trocados} | "
           f"sem token: {descoberta.sem_token} | contas com erro: {descoberta.contas_com_erro}")
+    for situacao in contas.situacao_das_contas(engine):
+        if situacao.ultimo_erro:
+            print(f"  a conta {situacao.nome} falhou: {situacao.ultimo_erro}")
+    print("clientes com token ativo:")
     for credencial in credenciais.credenciais_ativas(engine):
         print(f"  {credencial.metryx_customer_id}  {credencial.cliente_nome}")
     return 1 if descoberta.contas_com_erro else 0
@@ -115,11 +156,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if a.cmd == "metryx-conta":
-        from app.etl.adapters.metryx import contas
-        token = os.environ.pop("METRYX_TOKEN_NOVO", None) or getpass.getpass("token da conta mestre (não aparece): ")
-        conta_id = contas.registrar_conta(engine, token.strip(), a.nome)
-        print(f"conta mestre cadastrada ({conta_id}): a próxima carga do Metryx lê a lista de clientes dela")
-        return 0
+        return _cadastrar_conta_metryx(engine, a.nome)
 
     if a.cmd == "metryx-clientes":
         return _clientes_metryx(engine)

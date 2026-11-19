@@ -60,7 +60,7 @@ class AdapterMetryx:
         self._credenciais: dict[str, credenciais.Credencial] = {}
 
     def descobrir(self) -> list[UnidadeOrigem]:
-        descoberta = contas.descobrir_clientes(self.engine, self.cliente)
+        descoberta = contas.descobrir_clientes(self.engine, self.cliente, get_settings().metryx_token_mestre)
         if descoberta.clientes or descoberta.contas_com_erro:
             log.info("metryx: as contas mestres listaram %s cliente(s): %s novo(s), %s token(s) trocado(s), %s sem "
                      "token; %s conta(s) com erro", descoberta.clientes, descoberta.novos, descoberta.trocados,

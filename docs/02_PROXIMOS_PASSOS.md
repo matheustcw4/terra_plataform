@@ -414,6 +414,26 @@ Parte IV, Parte V e Parte VI).
 - **"Boletim Resumido"**: o modo Analítico do "Exportar PDF" passou a se chamar assim (é o boletim curto de quatro
   folhas, o da Fazenda CMI); a chave interna continua `analitico`.
 
+**Estância Nova: cliente novo do Metryx entra sozinho (19/11/2026), feito:** o customer Estância Nova (fazendas
+"Ajuste - EN" e "Fazenda Estância Nova") não aparecia em produção. Três causas, todas corrigidas e testadas aqui com
+o token mestre real (a lista trouxe 18 clientes, 15 novos; a carga só da Estância Nova trouxe as duas fazendas, de
+dez/2021 a nov/2026):
+- **a conta mestre não estava cadastrada no servidor**: o `metryx-conta` ficou parado esperando o token (um
+  `worker-run` de pé há 18 horas), e a carga seguia só com os três clientes antigos. Agora o token pode ficar em
+  `METRYX_TOKEN_MESTRE` (`.env.producao`; o worker recebe pelo compose), e toda carga cadastra a conta sozinha antes
+  de ler o `GET /api-metryx/customers` (`contas.conta_da_configuracao`). O `metryx-conta` confere a lista logo depois
+  de gravar, e o `metryx-clientes` diz quando não há conta ou quando ela foi recusada;
+- **as categorias de animal do cliente novo ficavam pendentes**: a sugestão do Metryx (grupo, idade e sexo) esperava
+  a confirmação do admin, e o rebanho ficava fora do estoque e dos KPIs. Os clientes da validação tinham sido
+  confirmados pela sugestão, em lote, pelo script de cruzamento (14/10 e 27/10), que a produção não roda. Agora a
+  sugestão vale como a categoria BI enquanto a categoria não tem uma (`mapping._gravar_de_para_categoria`); a que o
+  admin escolheu nunca é desfeita, e a categoria sem sugestão continua pendente. Muda a D6 provisória ("quem confirma
+  é o consultor"): o consultor só corrige;
+- **"Outros créditos"**, uma classificação do Metryx que a migração 0029 não semeava, chegava pendente: vai para o
+  grupo E do DRE (migração 0031).
+Na Estância Nova: estoque de 6.149 cabeças no fim de jun/2026 e 5.796 em nov/2026. **Falta conferir** esses números com
+o inventário do próprio Metryx.
+
 **Filtros do financeiro e classificação do Metryx (18/11/2026), feito:** pedido do usuário: trazer do Metryx o tipo de
 atividade do planejamento, a conta bancária e a classificação (para saber o que é custeio e o que é desembolso) e pôr
 como filtros. Decisões do usuário: o filtro de atividade é pelo **tipo nos dois lados**; o plano não é vinculado a

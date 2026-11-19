@@ -97,6 +97,7 @@ services:
       APP_ETL_PASSWORD: ${APP_ETL_PASSWORD}
       REDIS_URL: redis://redis:6379/0
       METRYX_CHAVE_CIFRA: ${METRYX_CHAVE_CIFRA:-}
+      METRYX_TOKEN_MESTRE: ${METRYX_TOKEN_MESTRE-}   # a conta mestre: toda carga lê a lista de clientes com ele
       AGENDA_METRYX: ${AGENDA_METRYX-}       # o "Atualizar agora" só chama o Metryx com a agenda dele ligada
     depends_on:
       migracao:

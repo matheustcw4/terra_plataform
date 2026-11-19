@@ -66,8 +66,37 @@ def contas_ativas(engine: Engine) -> list[Conta]:
     return contas
 
 
-def descobrir_clientes(engine: Engine, cliente_http: ClienteMetryx) -> Descoberta:
+@dataclass(frozen=True)
+class SituacaoDaConta:
+    nome: str
+    status: str
+    ultimo_erro: str | None
+
+
+def situacao_das_contas(engine: Engine) -> list[SituacaoDaConta]:
+    """Todas as contas mestres cadastradas, sem o token: o nome, a situação e o último erro."""
+    with sessao(engine) as s:
+        consulta = select(MetryxConta.nome, MetryxConta.status, MetryxConta.ultimo_erro).order_by(MetryxConta.criado_em)
+        linhas = s.execute(consulta).all()
+    situacoes = []
+    for nome, situacao, erro in linhas:
+        situacoes.append(SituacaoDaConta(nome, situacao, erro))
+    return situacoes
+
+
+NOME_DA_CONTA_DA_CONFIGURACAO = "Terra"
+
+
+def conta_da_configuracao(engine: Engine, token: str) -> None:
+    """O token mestre do .env (METRYX_TOKEN_MESTRE) vira a conta mestre, a cada carga: o mesmo token só reativa a conta
+    (a recusada volta a ser tentada), e um token novo entra ao lado dos que já existiam."""
+    if token.strip():
+        registrar_conta(engine, token.strip(), NOME_DA_CONTA_DA_CONFIGURACAO)
+
+
+def descobrir_clientes(engine: Engine, cliente_http: ClienteMetryx, token_mestre: str = "") -> Descoberta:
     """Relê a lista de clientes de cada conta mestre e atualiza as credenciais. Sem conta, não chama a API."""
+    conta_da_configuracao(engine, token_mestre)
     descoberta = Descoberta()
     for conta in contas_ativas(engine):
         ler_conta(engine, cliente_http, conta, descoberta)

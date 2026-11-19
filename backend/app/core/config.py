@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     # Google Drive deixou de ser fonte)
     metryx_base_url: str = "https://web-srv.metryx.app:8444/mtxserver"
     metryx_chave_cifra: str | None = None     # chave Fernet que cifra os tokens Metryx no banco (nunca no git)
+    # o token da conta mestre (o que lista os clientes, GET /api-metryx/customers); com ele, toda carga do Metryx
+    # cadastra a conta sozinha, sem o `metryx-conta` (19/11/2026). No banco ele fica cifrado, como os outros
+    metryx_token_mestre: str = ""
     datalake_plan_url: str | None = None      # conninfo do datalake do BI de planilhas (só leitura; carga do histórico)
 
     # Cargas agendadas (Celery + Redis). Agenda no formato do cron, "minuto hora dia mês dia-da-semana", no fuso
