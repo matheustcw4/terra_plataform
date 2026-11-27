@@ -39,6 +39,31 @@ ORCAMENTO_ESCOLHIDO = f"""(
                                                  CAST(:fazendas_sem_plano AS uuid[])))
       AND {DO_PLANEJADO}
 )"""
+# O rebanho que divide o planejado do financeiro (desembolso e custeio por cabeça por mês): o da mesma versão que deu o
+# dinheiro, em cada fazenda e safra (pedido do usuário, 27/11/2026). Antes era a versão das metas, escolhida à parte, e
+# a fazenda sem orçamento também entrava: na Maister, o plano "Global (24.06.26 teste)" de uma fazenda sem orçamento
+# quase dobrava o divisor, e o desembolso planejado de 26/27 caía de R$ 173,10 para R$ 79,04 por cabeça por mês.
+# Quando a versão do dinheiro não tem rebanho (a previsão financeira do Metryx, que não é uma versão do plano), vale a
+# versão do plano escolhida para a fazenda, só nas fazendas e safras que têm o dinheiro previsto.
+VERSOES_DO_REBANHO_PREVISTO = """
+    WITH orcamento AS (
+        SELECT * FROM app.versoes_do_orcamento(CAST(:fazendas AS uuid[]), CAST(:tipo_do_previsto AS text),
+                                               CAST(:versoes_do_plano AS uuid[]), CAST(:fazendas_sem_plano AS uuid[]))
+    ), com_rebanho AS (
+        SELECT o.fazenda_id, o.safra, o.versao_plano_id FROM orcamento o
+        WHERE EXISTS (SELECT 1 FROM fato.rebanho_medio_mensal r
+                      WHERE r.cenario = 'planejado' AND r.fazenda_id = o.fazenda_id
+                        AND r.versao_plano_id = o.versao_plano_id
+                        AND extract(year FROM r.competencia - interval '6 months')::integer = o.safra)
+    )
+    SELECT c.fazenda_id, c.safra, c.versao_plano_id FROM com_rebanho c
+    UNION
+    SELECT p.fazenda_id, p.safra, p.versao_plano_id
+    FROM app.versoes_do_planejado(CAST(:fazendas AS uuid[]), CAST(:versoes_do_plano AS uuid[]),
+                                  CAST(:fazendas_sem_plano AS uuid[])) p
+    WHERE (p.fazenda_id, p.safra) IN (SELECT o.fazenda_id, o.safra FROM orcamento o)
+      AND (p.fazenda_id, p.safra) NOT IN (SELECT c.fazenda_id, c.safra FROM com_rebanho c)
+"""
 TIPOS_DAS_FAZENDAS = """
     SELECT DISTINCT o.tipo FROM fato.orcamento_financeiro o WHERE o.fazenda_id = ANY (CAST(:fazendas AS uuid[]))
 """

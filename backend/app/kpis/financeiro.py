@@ -13,7 +13,8 @@ Regras:
   saldo = todas as receitas, inclusive as outras (arrendamento, vendas de outros animais...), − despesas ("Balance":
   o BI soma as outras receitas na linha e não na barra, docs/analises/01 §8.1, item 7);
 - por cabeça por mês = valor do período ÷ Σ do rebanho médio de cada mês, o mesmo que valor ÷ rebanho médio ÷ nº de
-  meses ("head outlay accumulated", "Costing head Accumulated"); o planejado usa o rebanho planejado;
+  meses ("head outlay accumulated", "Costing head Accumulated"); o planejado usa o rebanho planejado da mesma versão
+  que deu o dinheiro planejado, só nas fazendas que têm o orçamento (previsto_financeiro.py, 27/11/2026);
 - fim da escala dos velocímetros = meta × fator de `dim.parametro`, como o BI; o custeio usa o fator do desembolso,
   porque o BI não fixa a escala dele.
 """
@@ -30,12 +31,12 @@ from app.kpis.lotes import dividir, numero
 from app.kpis.previsto_financeiro import (
     ORCAMENTO_ESCOLHIDO,
     PEDIDO_PADRAO,
+    VERSOES_DO_REBANHO_PREVISTO,
     PedidoDoPrevisto,
     PrevistoEscolhido,
     escolher_o_previsto,
 )
 from app.kpis.situacao_do_lancamento import LANCAMENTOS_DO_FILTRO
-from app.kpis.versao_do_plano import so_a_versao_que_vale
 from app.schemas.api import DesembolsoDoCentro, Financeiro, MesDoFinanceiro, Velocimetro
 
 # cenário -> os lançamentos (das situações do recorte) ou o orçamento (do tipo e das versões escolhidos na tela,
@@ -57,15 +58,21 @@ TOTAIS_POR_MES = """
     WHERE v.fazenda_id = ANY (CAST(:fazendas AS uuid[])) AND v.competencia = ANY (CAST(:meses AS date[]))
     GROUP BY v.competencia
 """
-REBANHO_POR_MES = f"""
-    SELECT r.competencia, r.cenario, sum(r.qtd_cab) AS cabecas
+REBANHO_POR_MES = """
+    SELECT r.competencia, sum(r.qtd_cab) AS cabecas
     FROM fato.rebanho_medio_mensal r
     LEFT JOIN dim.categoria_map m ON m.id = r.categoria_map_id
     WHERE r.fazenda_id = ANY (CAST(:fazendas AS uuid[])) AND r.competencia = ANY (CAST(:meses AS date[]))
       AND (r.categoria_map_id IS NULL OR m.categoria_bi_id IS NOT NULL)    -- categoria pendente fica fora
-      AND {so_a_versao_que_vale('r')}
-    GROUP BY r.competencia, r.cenario
+      AND r.cenario = :cenario AND {versao}
+    GROUP BY r.competencia
 """
+# a versão do rebanho de cada cenário: o realizado passa inteiro; o planejado é o da versão que deu o dinheiro
+VERSAO_DO_REBANHO = {
+    "realizado": "true",
+    "planejado": f"""(r.fazenda_id, extract(year FROM r.competencia - interval '6 months')::integer,
+                      r.versao_plano_id) IN ({VERSOES_DO_REBANHO_PREVISTO})""",
+}
 DESEMBOLSO_POR_CENTRO = f"""
     SELECT v.centro_custo, sum(CASE v.natureza WHEN 'D' THEN v.valor ELSE -v.valor END) AS valor
     FROM {LANCAMENTOS_DO_FILTRO} v
@@ -133,9 +140,8 @@ def valores_por_mes(s: Session, filtro: Filtro, cenario: str, previsto: Previsto
             receitas=numero(linha, "receitas"), outras_receitas=numero(linha, "outras_receitas"),
             despesas=numero(linha, "despesas"), desembolso=numero(linha, "desembolso"),
             custeio=numero(linha, "custeio"))
-    for linha in s.execute(text(REBANHO_POR_MES), filtro.parametros()).mappings():
-        if linha["cenario"] != cenario:
-            continue
+    sql_do_rebanho = REBANHO_POR_MES.format(versao=VERSAO_DO_REBANHO[cenario])
+    for linha in s.execute(text(sql_do_rebanho), parametros | {"cenario": cenario}).mappings():
         if linha["competencia"] not in valores:
             valores[linha["competencia"]] = Valores()
         valores[linha["competencia"]].cabecas = numero(linha, "cabecas")

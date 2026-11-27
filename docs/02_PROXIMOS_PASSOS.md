@@ -414,6 +414,17 @@ Parte IV, Parte V e Parte VI).
 - **"Boletim Resumido"**: o modo Analítico do "Exportar PDF" passou a se chamar assim (é o boletim curto de quatro
   folhas, o da Fazenda CMI); a chave interna continua `analitico`.
 
+**Rebanho do planejado por cabeça = o da versão do dinheiro (27/11/2026), feito:** na Maister, o desembolso planejado
+por cabeça por mês de 26/27 aparecia como R$ 79,04 e o realizado (R$ 157,08) passava da meta. O rebanho que divide o
+planejado vinha da versão das metas, escolhida à parte do orçamento, e de todas as fazendas: a "Agropecuária Maister
+LTDA" tem um plano "Global (24.06.26 teste)" de 36 mil cabeças, praticamente o grupo inteiro de novo, sem orçamento
+nenhum, e o divisor quase dobrava. Agora (pedido do usuário) o rebanho do planejado do Financeiro e do PDF vem da
+mesma versão que deu o dinheiro, em cada fazenda e safra, e só das fazendas com orçamento
+(`VERSOES_DO_REBANHO_PREVISTO`, `app/kpis/previsto_financeiro.py`). A previsão financeira do Metryx não é versão do
+plano: nela vale a versão do plano escolhida para a fazenda, só onde há previsão. Maister 26/27, planejamento: R$ 173,10
+por cabeça por mês (custeio R$ 119,10); teste em `tests/test_rebanho_do_planejado.py`. Vale ver com a Maister se o
+plano "Global (teste)" deveria existir no Metryx: ele ainda entra nas metas de rebanho das outras páginas.
+
 **Estância Nova: cliente novo do Metryx entra sozinho (19/11/2026), feito:** o customer Estância Nova (fazendas
 "Ajuste - EN" e "Fazenda Estância Nova") não aparecia em produção. Três causas, todas corrigidas e testadas aqui com
 o token mestre real (a lista trouxe 18 clientes, 15 novos; a carga só da Estância Nova trouxe as duas fazendas, de
