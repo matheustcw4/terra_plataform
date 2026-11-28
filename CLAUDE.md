@@ -56,10 +56,11 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   marcados (podem ser salteados), e o estoque final é o do último mês marcado (`app/kpis/filtro.py`). A fazenda
   também é de **seleção múltipla** (pedido do usuário, 16/10/2026): nenhuma ou todas marcadas = "GRUPO"; com algumas,
   o topo mostra os nomes separados por " | " (mais de 3: a quantidade) e a capa, todos os nomes.
-  **Exceção** (pedido do usuário, 29/10/2026): nas páginas **Previsto × Realizado** e **Financeiro**, o topo da página
-  escolhe de qual orçamento vem o planejado do financeiro: o **tipo** (previsão financeira, o `previsao-financeiro` do
-  Metryx e o DRE planejado da planilha; ou planejamento, o fluxo de caixa do plano do Metryx) e o **status dos
-  lançamentos** do realizado (pedido do usuário, 10/11/2026: conciliado, pago e em aberto, de seleção múltipla; sem
+  **Exceção** (pedido do usuário, 29/10/2026): nas páginas **Previsto × Realizado** e **Financeiro**, o planejado do
+  financeiro é **só o planejamento** (o fluxo de caixa do plano do Metryx e o DRE planejado da planilha; pedido do
+  usuário, 27/11/2026: a previsão financeira do Metryx, o `previsao-financeiro` das contas a pagar e a receber, não é
+  planejado e não entra nunca; até lá era um tipo à escolha no topo, e o seletor só volta se houver mais de um tipo),
+  e o topo da página escolhe o **status dos lançamentos** do realizado (pedido do usuário, 10/11/2026: conciliado, pago e em aberto, de seleção múltipla; sem
   escolha, os pagos; só aparece quando as fazendas têm mais de uma situação, pela capacidade `situacoes`;
   `FiltroDoStatus`, `app/kpis/situacao_do_lancamento.py`). As opções vêm da API (`previsto` na resposta;
   `app/kpis/previsto_financeiro.py`), sem lógica por fonte no front; a escolha fica na URL (`previsto`, `status`),
@@ -197,13 +198,13 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
   - usuários na tela de admin; o primeiro admin pelo `python -m app.comandos` (`criar-usuario`, `dar-acesso`); a
     equipe da consultoria pela planilha de levantamento (`importar-equipe`, `app/services/equipe.py`).
 - **Base de integração e adapters prontos** (ver `README.md` e o §0 de `docs/02_PROXIMOS_PASSOS.md`):
-  - Postgres no compose; migrações 0001–0031 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
+  - Postgres no compose; migrações 0001–0032 (core/dim/fato/ingest/raw/integracao, RLS, seeds, estoque, "A classificar",
     login, pendências, recálculo do estoque pela API, série nova do estoque começa no início da fazenda, cadastro de
     funções e o RLS dele, tipo do orçamento, versões do planejado, fila da importação de planilhas e o RLS dela, a
     exceção de cada fonte às marcas do centro de custo e o RLS dela, a situação do lançamento, a versão por fazenda e
     o nome do cliente nas unidades do Metryx, a conta mestre do Metryx e o RLS dela, os filtros do financeiro
     (atividade, classificação da fonte e conta bancária) e o RLS deles, a classificação "Outros créditos" do
-    Metryx);
+    Metryx, o planejado só do planejamento);
   - contrato canônico, motor (guarda de volume, arquivo em dobro, recorte `desde`), CLI `python -m app.etl`;
   - **adapter de planilhas**: as planilhas chegam pela tela **Integrações**, aba Planilhas (09/11/2026, D8; todo usuário,
     só nas fazendas a que tem acesso, e fazenda nova só o admin; `ingest.importacao`, `app/etl/importacao.py`,
@@ -215,7 +216,8 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     ajustado ao payload real (A29–A32 do relatório de validação §17), com a área de pasto do `utilizacao-pasto` para a
     lotação cab/ha (16/10/2026, §18); a UA do Metryx fica de fora até a API trazê-la; e o **planejamento** (27/10/2026,
     `adapters/metryx/planejamento.py`): metas de compra, venda, nascimento, morte e desmame, rebanho previsto pela
-    evolução do rebanho (o saldo do fim do mês, como o relatório financeiro do Metryx; 10/11/2026) e DRE previsto, com todas as versões (`plVersionCode` dá a ordem, `plVersionName` o
+    evolução do rebanho (o saldo do fim do mês, como o relatório financeiro do Metryx; 10/11/2026) e o fluxo de caixa
+    do plano, com todas as versões (`plVersionCode` dá a ordem, `plVersionName` o
     nome; o BI soma todas): numa fazenda e safra vale a versão escolhida na tela ou, sem escolha, a mais recente
     (`app.versoes_do_planejado`, migração 0019; 04/11/2026), com o mês pelo `month` e pela safra, porque o `date` da API erra o ano de junho (defeito P19, relatório
     §22). A ponte do datalake traz o previsto menos compras e vendas (a stg perdeu a versão e as decimais). O
@@ -223,7 +225,9 @@ Um único banco canônico no PostgreSQL, alimentado por dois adapters (Planilha 
     (`adapters/metryx/rebanho.py`, 27/10/2026); o endpoint `rebanho-medio-pecuario` do BI conta animais a mais e fica
     só no bruto (defeito P18, relatório de validação §21). O `previsao-fluxo-caixa-planejamento` entra como orçamento
     de tipo `planejamento`, com todas as versões (29/10/2026; migração 0018: `fato.orcamento_financeiro.tipo` e
-    `dim.versao_plano.ordem`); o subcentro genérico "Subcentro de Custo" fica de fora da conta; a natureza vem só do
+    `dim.versao_plano.ordem`), e é o único planejado do financeiro: o `previsao-financeiro` (a previsão de contas a
+    pagar e a receber) continua sendo baixado só para a classificação dos centros de custo e não entra no orçamento
+    (27/11/2026, migração 0032); o subcentro genérico "Subcentro de Custo" fica de fora da conta; a natureza vem só do
     `type`, com o valor absoluto (a despesa do plano vem negativa com `type` Débito; tratá-la como estorno punha a meta
     do desembolso negativa, 10/11/2026); nos lançamentos, a situação do título (conciliado, pago ou em aberto, este
     pelo vencimento e pelo valor a pagar; o excluído no Metryx não entra; migração 0024);

@@ -2403,7 +2403,7 @@ export interface operations {
     pagina_financeiro_api_v1_dashboards_financeiro_get: {
         parameters: {
             query: {
-                /** @description orçamento do planejado: previsão financeira ou planejamento */
+                /** @description orçamento do planejado: só o planejamento */
                 previsto?: ("previsao" | "planejamento") | null;
                 fazendas: string[];
                 /** @description AAAA-MM */
@@ -2454,7 +2454,7 @@ export interface operations {
     pagina_previsto_realizado_api_v1_dashboards_previsto_realizado_get: {
         parameters: {
             query: {
-                /** @description orçamento do planejado: previsão financeira ou planejamento */
+                /** @description orçamento do planejado: só o planejamento */
                 previsto?: ("previsao" | "planejamento") | null;
                 fazendas: string[];
                 /** @description AAAA-MM */

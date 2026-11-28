@@ -530,7 +530,8 @@ class MontagemPlanilha:
                 self._linha_financeira(linha, aba, cenario, plano, orcado)
         for (conta, natureza, mes), soma in orcado.items():
             self.lote.orcamentos.append(OrcamentoFinanceiro(
-                fazenda=self.fazenda, versao_plano=VERSAO_PLANILHA, conta=conta, natureza=natureza, competencia=mes,
+                fazenda=self.fazenda, versao_plano=VERSAO_PLANILHA, tipo="planejamento", conta=conta,
+                natureza=natureza, competencia=mes,
                 valor=soma["valor"], origem_linha=f"fDrePLANEJADO!{min(soma['linhas'])}",
                 extra={"linhas": soma["linhas"]}))
 

@@ -6,9 +6,9 @@ Fazenda Metryx sintética, julho de 2025, tudo pago:
 - realizado: Pastagens R$ 1.000 (Pecuária Campo, Itaú), Pastagens R$ 400 (Agricultura Permanente, Banco do Brasil) e
   Financiamentos débitos R$ 300 (Financiamento, atividade sem tipo no de-para; Itaú). O lançamento não traz a
   classificação: ela vem do centro de custo no plano (Pastagens = Custeio; Financiamentos = Outros débitos);
-- planejamento (versão 1, Pecuária): Pastagens R$ 1.200 (Custeio) e Financiamentos débitos R$ 100 (Outros débitos);
-- previsão financeira: Pastagens R$ 1.500 (Custeio, a marca de desembolso em texto) e, em agosto, Manutenção da
-  fazenda R$ 50 com uma classificação que o de-para não conhece (vale a da conta).
+- planejamento (versão 1, Pecuária): Pastagens R$ 1.200 (Custeio) e Financiamentos débitos R$ 100 (Outros débitos) e,
+  em agosto, Manutenção da fazenda R$ 50 com uma classificação que o de-para não conhece (vale a da conta);
+- previsão financeira: Pastagens R$ 1.500, que vem no payload e não entra no planejado (pedido do usuário, 27/11/2026).
 """
 
 from datetime import date
@@ -48,20 +48,19 @@ def financiamento_no_plano() -> dict:
     return item
 
 
-def previsao_classificada(data: str, valor: float, centro: str, classificacao: str, desembolso: str) -> dict:
-    item = previsao_financeira(data, valor, "Débito", centro=centro, subcentro="Geral")
-    item["classificationAnalyticDescription"] = classificacao
-    item["classificationAnalyticDisbursement"] = desembolso       # texto na previsão, como o OpenAPI descreve
+def classe_nova_no_plano() -> dict:
+    item = fluxo_de_caixa("2025-08-01", 50, "Débito", versao=1, centro="Manutenção da fazenda")
+    item["classificationAnalyticDescription"] = "Classe Nova"
+    item["classificationAnalyticDisbursement"] = False
     return item
 
 
 def payload() -> dict:
     return payloads_metryx(
         lancamento=LANCAMENTOS,
-        fluxo_caixa_plano=[fluxo_de_caixa("2025-07-01", 1200, "Débito", versao=1), financiamento_no_plano()],
-        previsao_financeiro=[previsao_classificada("2025-07-01", -1500, "Pastagens", "Custeio", "true"),
-                             previsao_classificada("2025-08-01", -50, "Manutenção da fazenda", "Classe Nova",
-                                                   "false")])
+        fluxo_caixa_plano=[fluxo_de_caixa("2025-07-01", 1200, "Débito", versao=1), financiamento_no_plano(),
+                           classe_nova_no_plano()],
+        previsao_financeiro=[previsao_financeira("2025-07-01", -1500, "Débito")])
 
 
 @pytest.fixture
@@ -93,11 +92,9 @@ def test_o_adapter_leva_a_atividade_a_conta_e_a_classificacao_do_centro():
     assert (pastagens.classificacao.nome, pastagens.classificacao.desembolso) == ("Custeio", True)
     assert agricultura.atividade == "Agricultura Permanente"
     assert (financiamento.classificacao.nome, financiamento.classificacao.desembolso) == ("Outros débitos", False)
-    plano = [orcamento for orcamento in lote.orcamentos if orcamento.tipo == "planejamento"]
-    assert {(item.atividade, item.classificacao.nome) for item in plano} == {("Pecuária", "Custeio"),
-                                                                            ("Pecuária", "Outros débitos")}
-    previsao = [orcamento for orcamento in lote.orcamentos if orcamento.tipo == "previsao"]
-    assert previsao[0].classificacao.desembolso is True and previsao[0].atividade is None
+    assert {orcamento.tipo for orcamento in lote.orcamentos} == {"planejamento"}      # a previsão não entra
+    assert {(item.atividade, item.classificacao.nome) for item in lote.orcamentos} == {
+        ("Pecuária", "Custeio"), ("Pecuária", "Outros débitos"), ("Pecuária", "Classe Nova")}
 
 
 def test_a_carga_grava_os_de_paras_e_avisa_o_que_esta_pendente(fazenda_metryx, engine_super):
@@ -133,8 +130,7 @@ def test_a_classificacao_do_metryx_vale_sobre_a_marca_da_conta(fazenda_metryx, e
 def test_sem_filtro_tudo_entra_e_o_financiamento_fica_fora_do_desembolso(pedir):
     pagina = pedir("financeiro")
     assert pagina["desembolso"] == 1400
-    assert planejado_por_mes(pagina)["2025-07-01"] == 1500
-    assert planejado_por_mes(pedir("financeiro", previsto="planejamento"))["2025-07-01"] == 1200
+    assert planejado_por_mes(pagina)["2025-07-01"] == 1200
 
 
 def test_o_tipo_de_atividade_recorta_o_realizado_e_o_planejado(pedir):
@@ -152,7 +148,7 @@ def test_a_conta_bancaria_recorta_so_o_realizado(pedir, engine_super):
         banco_do_brasil = c.scalar(text("SELECT id FROM dim.conta_bancaria WHERE id_externo = 'b2'"))
     pagina = pedir("financeiro", conta=[str(banco_do_brasil)])
     assert pagina["desembolso"] == 400
-    assert planejado_por_mes(pagina)["2025-07-01"] == 1500       # o plano não é vinculado a conta: fica inteiro
+    assert planejado_por_mes(pagina)["2025-07-01"] == 1200       # o plano não é vinculado a conta: fica inteiro
 
 
 def test_a_classificacao_recorta_a_matriz_do_previsto(pedir):
@@ -166,7 +162,7 @@ def test_o_escopo_traz_as_opcoes_que_a_fazenda_tem(api, engine_super, fazenda_me
     usuario_com_senha(engine_super, "consultor@terra.test", fazendas=[fazenda_metryx])
     escopo = api.get("/api/v1/escopo", headers=entrar(api, "consultor@terra.test")).json()
     [capacidades] = [fazenda["capacidades"] for fazenda in escopo["fazendas"] if fazenda["id"] == str(fazenda_metryx)]
-    assert capacidades["tipos_de_atividade"] == ["Pecuária", "Agricultura", "A classificar", "Sem atividade"]
+    assert capacidades["tipos_de_atividade"] == ["Pecuária", "Agricultura", "A classificar"]
     assert capacidades["classificacoes"] == ["Custeio", "Outros débitos"]
     assert [conta["nome"] for conta in capacidades["contas_bancarias"]] == ["Banco do Brasil", "Itaú - SP"]
     # a ordem geral, para a tela juntar as opções de várias fazendas

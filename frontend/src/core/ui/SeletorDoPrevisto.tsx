@@ -22,17 +22,20 @@ export function SeletorDoPrevisto({ escolha }: Props) {
       </div>
     );
   }
+  // desde 27/11/2026 o planejado é só o planejamento (a previsão financeira não entra): com um tipo só, sem seletor
   return (
     <EscolhaDasVersoes escolha={escolha}>
-      <label className="campo">
-        <span>Planejado do financeiro</span>
-        <select value={escolha.tipo ?? ""}
-          onChange={(evento) => setParametros(urlComTipo(parametros, evento.target.value), { replace: true })}>
-          {escolha.tipos.map((tipo) => (
-            <option key={tipo.codigo} value={tipo.codigo}>{tipo.rotulo}</option>
-          ))}
-        </select>
-      </label>
+      {escolha.tipos.length > 1 && (
+        <label className="campo">
+          <span>Planejado do financeiro</span>
+          <select value={escolha.tipo ?? ""}
+            onChange={(evento) => setParametros(urlComTipo(parametros, evento.target.value), { replace: true })}>
+            {escolha.tipos.map((tipo) => (
+              <option key={tipo.codigo} value={tipo.codigo}>{tipo.rotulo}</option>
+            ))}
+          </select>
+        </label>
+      )}
       <FiltroDoStatus />
       <FiltrosDoFinanceiro />
     </EscolhaDasVersoes>

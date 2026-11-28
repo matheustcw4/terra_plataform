@@ -3,7 +3,8 @@ dinheiro planejado, só nas fazendas que têm o orçamento (pedido do usuário, 
 app/kpis/previsto_financeiro.py, VERSOES_DO_REBANHO_PREVISTO).
 
 O caso da Maister, em miniatura (julho de 2025): a fazenda Metryx tem o plano (versão 1, rebanho previsto de 110
-cabeças), o orçamento do planejamento (R$ 1.000 de adubação) e a previsão financeira (R$ 1.500); a "Outra" tem só um
+cabeças), o orçamento do planejamento (R$ 1.000 de adubação) e a previsão financeira (R$ 1.500, que não entra no
+planejado desde 27/11/2026); a "Outra" tem só um
 plano de rebanho (500 cabeças), sem orçamento nenhum, como o plano "Global (teste)" da Maister. No GRUPO, as 500 cabeças
 dela não podem entrar no divisor.
 """
@@ -70,5 +71,5 @@ def test_o_rebanho_da_fazenda_sem_orcamento_nao_entra_no_divisor(api, engine_sup
     admin = entrar(api, "admin@terra.test")
     # planejamento: R$ 1.000 ÷ 110 cabeças da versão do orçamento (antes, ÷ 610: as 500 da outra fazenda entravam)
     assert por_cabeca(api, admin, duas_fazendas, "planejamento") == pytest.approx(1000 / 110)
-    # previsão financeira, que não é uma versão do plano: o rebanho da versão do plano, só onde há previsão
-    assert por_cabeca(api, admin, duas_fazendas, "previsao") == pytest.approx(1500 / 110)
+    # um link antigo que pede a previsão financeira dá o planejamento do mesmo jeito: ela não é planejado
+    assert por_cabeca(api, admin, duas_fazendas, "previsao") == pytest.approx(1000 / 110)

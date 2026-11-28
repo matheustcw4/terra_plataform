@@ -1540,10 +1540,10 @@
                   "type": "null"
                 }
               ],
-              "description": "orçamento do planejado: previsão financeira ou planejamento",
+              "description": "orçamento do planejado: só o planejamento",
               "title": "Previsto"
             },
-            "description": "orçamento do planejado: previsão financeira ou planejamento"
+            "description": "orçamento do planejado: só o planejamento"
           },
           {
             "name": "fazendas",
@@ -1791,10 +1791,10 @@
                   "type": "null"
                 }
               ],
-              "description": "orçamento do planejado: previsão financeira ou planejamento",
+              "description": "orçamento do planejado: só o planejamento",
               "title": "Previsto"
             },
-            "description": "orçamento do planejado: previsão financeira ou planejamento"
+            "description": "orçamento do planejado: só o planejamento"
           },
           {
             "name": "fazendas",

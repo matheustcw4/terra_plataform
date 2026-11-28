@@ -220,7 +220,7 @@ def fluxo_de_caixa(data: str, valor: float, tipo: str, *, versao: int, centro: s
 def plano_metryx() -> dict[str, list[dict]]:
     """O planejamento da mesma fazenda, na versão 1 da safra 25-26: 100 nascimentos previstos em jul/2025, a evolução
     do rebanho (90 bezerros no saldo inicial e +20 em julho: o rebanho previsto de julho é o saldo do fim do mês, 110,
-    como o relatório do Metryx) e R$ 1.500 de adubação prevista em julho."""
+    como o relatório do Metryx) e R$ 1.500 de previsão financeira em julho, que não entra no planejado."""
     return {
         "nascimento_plano": [item_do_plano("7/25", 11, 100)],
         "rebanho_plano": [item_do_plano(None, 11, 90, type="Entrada", originMovement="Saldo Inicial"),

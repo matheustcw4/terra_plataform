@@ -53,9 +53,10 @@ Situacoes = Annotated[list[Literal["conciliado", "pago", "em_aberto"]] | None,
 TiposDeAtividade = Annotated[list[str] | None, Query(description="tipos de atividade (Pecuária, Agricultura…)")]
 Classificacoes = Annotated[list[str] | None, Query(description="classificações (a do Metryx ou o grupo do DRE)")]
 ContasBancarias = Annotated[list[UUID] | None, Query(description="contas bancárias do realizado")]
-# o planejado do financeiro (Previsto × Realizado e Financeiro): o tipo do orçamento; sem ele, o padrão
+# o planejado do financeiro (Previsto × Realizado e Financeiro): o tipo do orçamento; desde 27/11/2026 só existe o
+# planejamento, e 'previsao' (de um link antigo) dá o planejamento
 TipoDoPrevisto = Annotated[Literal["previsao", "planejamento"] | None,
-                           Query(description="orçamento do planejado: previsão financeira ou planejamento")]
+                           Query(description="orçamento do planejado: só o planejamento")]
 
 
 def filtro_do_pedido(s: SessaoDoUsuario, fazendas: Fazendas, inicio: Mes, fim: Mes, meses: Meses = None,

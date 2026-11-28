@@ -26,9 +26,9 @@ TipoMov = Literal[
     "DESMAME", "MUDANCA_CATEGORIA",
 ]
 TIPOS_COM_DESTINO: frozenset[str] = frozenset({"DESMAME", "MUDANCA_CATEGORIA"})
-# De qual orçamento vem o planejado do financeiro (a tela escolhe, pedido do usuário em 29/10/2026): a previsão
-# financeira (o DRE previsto: o `previsao-financeiro` do Metryx, a aba de DRE planejado da planilha) ou o planejamento
-# (o fluxo de caixa do plano do Metryx, por versão).
+# O tipo do orçamento. O planejado do financeiro é só o planejamento (pedido do usuário, 27/11/2026): o fluxo de caixa
+# do plano do Metryx, por versão, e o DRE planejado da planilha. A previsão financeira do Metryx (contas a pagar e a
+# receber) não entra mais; 'previsao' fica no tipo só para ler o que existia antes da migração 0032.
 TipoOrcamento = Literal["previsao", "planejamento"]
 # A situação do título no realizado (pedido do usuário, 10/11/2026): conciliado (pago e conciliado no banco), pago
 # (sem a conciliação) ou em aberto (sem pagamento; entra pelo vencimento). As telas do financeiro filtram por ela.
@@ -238,7 +238,7 @@ class LancamentoFinanceiro(_Linha):
 class OrcamentoFinanceiro(_Linha):
     fazenda: str
     versao_plano: str
-    tipo: TipoOrcamento = "previsao"
+    tipo: TipoOrcamento = "planejamento"
     conta: ContaOrigem
     natureza: Literal["C", "D"]
     competencia: date

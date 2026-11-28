@@ -90,7 +90,6 @@ PARTICOES_DOS_ENDPOINTS: tuple[tuple[str, str, str, tuple[str, ...] | None], ...
     ("morte_plano", "mov_animal", "planejado", ("MORTE", "CONSUMO_DOACAO")),
     ("desmame_plano", "mov_animal", "planejado", ("DESMAME",)),
     ("rebanho_plano", "rebanho_medio", "planejado", None),
-    ("previsao_financeiro", "orcamento", "planejado", ("previsao",)),
     ("fluxo_caixa_plano", "orcamento", "planejado", ("planejamento",)),
 )
 
@@ -164,7 +163,6 @@ def normalizar(conteudo: dict[str, Any]) -> LoteCanonico:
     plano.mortes()
     plano.desmames()
     plano.rebanho_medio()
-    plano.orcamento()
     plano.fluxo_de_caixa()
     plano.declarar_versoes()
     metryx.particoes()

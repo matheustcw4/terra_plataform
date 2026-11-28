@@ -1,8 +1,8 @@
-"""O planejado do financeiro nas páginas Previsto × Realizado e Financeiro: a tela escolhe o orçamento (previsão
-financeira ou planejamento) e a versão do plano (regras em app/kpis/previsto_financeiro.py).
+"""O planejado do financeiro nas páginas Previsto × Realizado e Financeiro: só o planejamento (o fluxo de caixa do
+plano), na versão do plano escolhida na tela (regras em app/kpis/previsto_financeiro.py).
 
 Fazenda Metryx sintética, conta Pastagens, safra 25/26:
-- previsão financeira: R$ 1.500 de débito em 07/2025;
+- previsão financeira: R$ 1.500 de débito em 07/2025, que vem no payload e NÃO entra (27/11/2026);
 - planejamento: versão 1 com R$ 1.000 em 07/2025 e R$ 300 em 08/2025; versão 3 com R$ 1.200 em 07/2025.
 Numa fazenda e safra entra uma versão só: a mais recente (3) por padrão, sem somar o agosto da versão 1.
 """
@@ -66,14 +66,17 @@ def planejado_de_pastagens(pagina: dict) -> float:
     raise AssertionError("conta Pastagens fora da matriz")
 
 
-def test_sem_escolha_vale_a_previsao_financeira_e_a_tela_recebe_as_opcoes(pedir):
+def test_o_planejado_e_so_o_planejamento(pedir):
+    """Pedido do usuário, 27/11/2026: a previsão financeira (contas a pagar e a receber, R$ 1.500 no payload) não entra;
+    o planejado é o fluxo de caixa do plano, na versão mais recente (a 3, com R$ 1.200). Pedir a previsão, num link
+    antigo, dá o planejamento do mesmo jeito."""
     pagina = pedir("previsto_realizado")
-    assert planejado_de_pastagens(pagina) == 1500
+    assert planejado_de_pastagens(pagina) == 1200
     previsto = pagina["previsto"]
-    assert [tipo["codigo"] for tipo in previsto["tipos"]] == ["previsao", "planejamento"]
-    # a previsão financeira não tem versão; a lista é a das versões do plano da fazenda, a mesma das outras páginas
-    assert previsto["tipo"] == "previsao"
+    assert [tipo["codigo"] for tipo in previsto["tipos"]] == ["planejamento"]
+    assert previsto["tipo"] == "planejamento"
     assert [versao["rotulo"] for versao in previsto["fazendas"][0]["versoes"]] == ["Versão 3", "Versão 1"]
+    assert planejado_de_pastagens(pedir("previsto_realizado", previsto="previsao")) == 1200
 
 
 def test_planejamento_usa_a_versao_mais_recente_da_safra(pedir):
@@ -97,7 +100,7 @@ def desembolso_planejado(pagina: dict) -> list[float]:
 
 
 def test_financeiro_segue_a_mesma_escolha(pedir):
-    assert desembolso_planejado(pedir("financeiro")) == [1500, 0, 0]
+    assert desembolso_planejado(pedir("financeiro")) == [1200, 0, 0]
     planejamento = pedir("financeiro", previsto="planejamento")
     assert desembolso_planejado(planejamento) == [1200, 0, 0]
     versao_1 = planejamento["previsto"]["fazendas"][0]["versoes"][1]["id"]
@@ -105,8 +108,7 @@ def test_financeiro_segue_a_mesma_escolha(pedir):
 
 
 def test_a_tela_diz_qual_versao_do_orcamento_esta_valendo(pedir):
-    assert pedir("previsto_realizado")["previsto"]["em_uso"] == ["Previsão financeira do Metryx (sem versão)"]
-    planejamento = pedir("previsto_realizado", previsto="planejamento")["previsto"]
+    planejamento = pedir("previsto_realizado")["previsto"]
     assert planejamento["em_uso"] == ["Versão 3"]
     versao_1 = planejamento["fazendas"][0]["versoes"][1]["id"]
     escolhida = pedir("previsto_realizado", previsto="planejamento", versao=versao_1)["previsto"]
@@ -128,9 +130,8 @@ def test_filtro_de_status_dos_lancamentos(pedir):
 
 def test_planejamento_com_as_duas_versoes_soma_e_sem_planejamento_zera(pedir):
     """As versões marcadas somam também no orçamento (1.000 + 1.200 em julho), e "nenhum planejamento" tira o
-    orçamento da fazenda, dos dois tipos."""
+    orçamento da fazenda."""
     versoes = [versao["id"] for versao in pedir("financeiro")["previsto"]["fazendas"][0]["versoes"]]
     as_duas = pedir("financeiro", previsto="planejamento", versao=versoes)
     assert desembolso_planejado(as_duas) == [2200, 300, 0]
-    for tipo in ("planejamento", "previsao"):
-        assert desembolso_planejado(pedir("financeiro", previsto=tipo, sem_plano=[str(pedir.fazenda)])) == [0, 0, 0]
+    assert desembolso_planejado(pedir("financeiro", sem_plano=[str(pedir.fazenda)])) == [0, 0, 0]

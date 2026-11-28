@@ -414,14 +414,34 @@ Parte IV, Parte V e Parte VI).
 - **"Boletim Resumido"**: o modo Analítico do "Exportar PDF" passou a se chamar assim (é o boletim curto de quatro
   folhas, o da Fazenda CMI); a chave interna continua `analitico`.
 
+**Planejado do financeiro = só o planejamento (27/11/2026), feito:** pedido do usuário: "planejamento é planejamento
+e vem dos endpoints"; a previsão de contas a pagar e a receber nunca é planejado. Até aqui o planejado do Previsto ×
+Realizado e do Financeiro tinha dois tipos, e o padrão era a previsão financeira do Metryx (`previsao-financeiro`, o
+que o BI compara).
+- **Adapter** (`adapters/metryx/planejamento.py`): o `previsao-financeiro` não vira mais orçamento nem versão
+  ("Previsão financeira do Metryx, sem versão"); ele continua sendo baixado, só para a classificação dos centros de
+  custo (`classificacao.py`). A partição do orçamento da previsão saiu da carga (`normalizar.py`).
+- **Planilha:** o DRE planejado (`fDrePLANEJADO`) é o planejamento dela; o rótulo do tipo passou de `previsao` para
+  `planejamento`, sem mudar os valores.
+- **Migração 0032:** apaga a previsão do Metryx do orçamento e a versão própria dela, muda o rótulo da planilha e põe
+  `planejamento` como o tipo padrão. O bruto fica guardado; o downgrade não recria a previsão.
+- **Tela:** com um tipo só, o seletor "Planejado do financeiro" some (`SeletorDoPrevisto` só o mostra com mais de um);
+  um link antigo com `previsto=previsao` dá o planejamento. O boletim analítico e o PDF seguem o mesmo padrão.
+- **Efeito:** a fazenda Metryx que tinha só a previsão financeira, sem fluxo de caixa no plano, fica sem planejado do
+  financeiro (a Serra Dourada já vinha com a previsão vazia). No banco de validação, a Maister jul–out/2026 usa as
+  versões 26/27 do plano das seis fazendas com orçamento; desembolso planejado de R$ 177,96 por cabeça por mês.
+  Testes em `tests/test_previsto_financeiro.py`, `test_metryx_planejamento.py`, `test_filtros_do_financeiro.py` e
+  `test_rebanho_do_planejado.py`.
+
 **Rebanho do planejado por cabeça = o da versão do dinheiro (27/11/2026), feito:** na Maister, o desembolso planejado
 por cabeça por mês de 26/27 aparecia como R$ 79,04 e o realizado (R$ 157,08) passava da meta. O rebanho que divide o
 planejado vinha da versão das metas, escolhida à parte do orçamento, e de todas as fazendas: a "Agropecuária Maister
 LTDA" tem um plano "Global (24.06.26 teste)" de 36 mil cabeças, praticamente o grupo inteiro de novo, sem orçamento
 nenhum, e o divisor quase dobrava. Agora (pedido do usuário) o rebanho do planejado do Financeiro e do PDF vem da
 mesma versão que deu o dinheiro, em cada fazenda e safra, e só das fazendas com orçamento
-(`VERSOES_DO_REBANHO_PREVISTO`, `app/kpis/previsto_financeiro.py`). A previsão financeira do Metryx não é versão do
-plano: nela vale a versão do plano escolhida para a fazenda, só onde há previsão. Maister 26/27, planejamento: R$ 173,10
+(`VERSOES_DO_REBANHO_PREVISTO`, `app/kpis/previsto_financeiro.py`). Quando a versão do dinheiro não tem rebanho
+previsto, vale a versão do plano escolhida para a fazenda, só onde há dinheiro planejado (era o caso da previsão
+financeira, que saiu do planejado no mesmo dia). Maister 26/27, planejamento: R$ 173,10
 por cabeça por mês (custeio R$ 119,10); teste em `tests/test_rebanho_do_planejado.py`. Vale ver com a Maister se o
 plano "Global (teste)" deveria existir no Metryx: ele ainda entra nas metas de rebanho das outras páginas.
 
@@ -620,7 +640,8 @@ telas das fazendas Metryx não tinham meta nenhuma; agora a carga traz o planeja
 - **Falta:** conferir contra a tela de planejamento do Metryx o rebanho médio previsto. O plano consolidado da fazenda
   ADMINISTRATIVO (U6) soma com o das fazendas na visão GRUPO, como no BI; decidir se ela fica de fora.
 
-**Planejado do financeiro: previsão financeira ou planejamento (29/10/2026), feito:** pedido do usuário. O fluxo de
+**Planejado do financeiro: previsão financeira ou planejamento (29/10/2026), feito; a previsão saiu em 27/11/2026
+(acima):** pedido do usuário. O fluxo de
 caixa do plano (`previsao-fluxo-caixa-planejamento`) entra como um segundo orçamento, por versão, e as páginas
 Previsto × Realizado e Financeiro escolhem qual comparar com o realizado.
 - **Canônico** (migração 0018): `fato.orcamento_financeiro.tipo` = `previsao` (o DRE previsto: o `previsao-financeiro`

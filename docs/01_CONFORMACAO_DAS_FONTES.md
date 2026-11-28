@@ -138,7 +138,7 @@ UA na camada de KPI, sempre pela mesma regra: `COALESCE(qtd_ua_informada, peso_v
 | fazenda_id | a fazenda do arquivo | idfarmDestination (ou idFarmFiscal, decisão D2) |
 | chave idempotente | (versão do arquivo, linha) | (idFinancialEntrie, idPayment, parcel) |
 | DCM, CCM, CF/CV, classificação DRE | **não** carrega as colunas DESEMBOLSO/CUSTEIO/TIPO_CUSTEIO da planilha | **não** usa o `mapa` duplicado do SQL atual |
-| orçamento (grão centro × mês × versão) | `fDrePLANEJADO` **agregado** por competência | `previsao-financeiro` por date; `previsao-fluxo-caixa-planejamento` por plVersionCode |
+| orçamento (grão centro × mês × versão) | `fDrePLANEJADO` **agregado** por competência | `previsao-fluxo-caixa-planejamento` por plVersionCode (o `previsao-financeiro` não entra desde 27/11/2026) |
 
 ---
 
@@ -201,17 +201,21 @@ por `competencia`. A versão é obrigatória: na planilha é uma única versão 
 versão oficial é escolhida pelo consultor (decisão D7). Isso acaba com a soma de todas as versões que existe hoje.
 Entram todas as versões (04/11/2026), e as telas escolhem: numa fazenda e safra vale a escolhida ou, sem escolha, a
 mais recente (`app.versoes_do_planejado`). O número da versão só é único dentro da
-fazenda (cada fazenda tem a sua versão 1), então o código canônico é fazenda + número. O `previsao-financeiro` não tem
-versão e entra numa versão própria; o rebanho médio previsto sai da evolução do rebanho
+fazenda (cada fazenda tem a sua versão 1), então o código canônico é fazenda + número. O `previsao-financeiro` (a
+previsão de contas a pagar e a receber) não é planejado e não entra (27/11/2026); o rebanho médio previsto sai da
+evolução do rebanho
 (`estoque-medio-mensal-planejamento`), regras em `app/etl/adapters/metryx/planejamento.py`.
 
 O mês das metas do Metryx sai do `month` e da safra (a safra vai de julho a junho), e não do `date`, que escreve o
 mês 6 com o ano do início da safra (defeito P19, relatório de validação §22).
 
-O orçamento tem um **tipo** (29/10/2026): `previsao` (o DRE previsto: `previsao-financeiro` do Metryx e a aba de DRE
-planejado da planilha) ou `planejamento` (o `previsao-fluxo-caixa-planejamento` do Metryx, com todas as versões). As
-páginas Previsto × Realizado e Financeiro escolhem o tipo e a versão (`app/kpis/previsto_financeiro.py`); numa fazenda
-e safra entra uma versão só, a mais recente (`dim.versao_plano.ordem`) se a tela não escolher outra.
+O orçamento tem um **tipo** (29/10/2026), e desde 27/11/2026 só existe o `planejamento`: o
+`previsao-fluxo-caixa-planejamento` do Metryx, com todas as versões, e a aba de DRE planejado da planilha (pedido do
+usuário: "planejamento é planejamento e vem dos endpoints"). O `previsao` (o `previsao-financeiro` do Metryx, a
+previsão de contas a pagar e a receber) saiu do orçamento na migração 0032, e o DRE planejado da planilha, que tinha
+esse rótulo, passou a `planejamento` (os valores não mudam). As páginas Previsto × Realizado e Financeiro escolhem a
+versão (`app/kpis/previsto_financeiro.py`); numa fazenda e safra entra uma versão só, a mais recente
+(`dim.versao_plano.ordem`) se a tela não escolher outra.
 
 ### 5.4 Consumo, transferência e desmame
 

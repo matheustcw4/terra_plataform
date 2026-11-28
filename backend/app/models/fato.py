@@ -132,7 +132,7 @@ class OrcamentoFinanceiro(ColunasTecnicas, Base):
     id: Mapped[UUID] = mapped_column(**UUID_PK)
     fazenda_id: Mapped[UUID] = mapped_column(ForeignKey("core.fazenda.id"))
     versao_plano_id: Mapped[UUID] = mapped_column(ForeignKey("dim.versao_plano.id"))
-    tipo: Mapped[str] = mapped_column(Text, server_default=text("'previsao'"))   # previsao | planejamento
+    tipo: Mapped[str] = mapped_column(Text, server_default=text("'planejamento'"))   # só o planejamento entra (0032)
     plano_contas_map_id: Mapped[UUID] = mapped_column(ForeignKey("dim.plano_contas_map.id"))  # conta (de-para)
     natureza: Mapped[str] = mapped_column(CHAR(1))
     competencia: Mapped[date]

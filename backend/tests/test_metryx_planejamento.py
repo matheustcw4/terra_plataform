@@ -150,15 +150,14 @@ def test_rebanho_medio_previsto_pela_evolucao_e_categoria_negativa_conta_zero():
 
 # --- DRE previsto ----------------------------------------------------------------------------------------------------
 
-def test_dre_previsto_natureza_pelo_sinal_numa_versao_propria():
+def test_a_previsao_financeira_nao_entra_no_planejado():
+    """A previsão de contas a pagar e a receber (`previsao-financeiro`) não é planejado (pedido do usuário, 27/11/2026):
+    o planejado do financeiro é só o fluxo de caixa do plano."""
     previsao = [previsao_financeira("2025-07-01", -1500, "Débito"),
-                previsao_financeira("2025-08-01", 3000, "Crédito", centro="Rebanho\u200b", subcentro="Venda"),
-                previsao_financeira("2025-09-01", 0, "Débito")]
+                previsao_financeira("2025-08-01", 3000, "Crédito", centro="Rebanho\u200b", subcentro="Venda")]
     lote = lote_do_plano(previsao_financeiro=previsao)
-    orcado = [(o.competencia, o.conta.centro, o.natureza, o.valor, o.versao_plano) for o in lote.orcamentos]
-    assert orcado == [(date(2025, 7, 1), "Pastagens", "D", 1500, "previsao-financeiro"),
-                      (date(2025, 8, 1), "Rebanho", "C", 3000, "previsao-financeiro")]
-    assert [versao.codigo for versao in lote.versoes] == ["previsao-financeiro"]
+    assert lote.orcamentos == []
+    assert lote.versoes == []
 
 
 # --- partições e carga -----------------------------------------------------------------------------------------------
@@ -172,7 +171,7 @@ def test_particoes_do_planejado_so_dos_endpoints_que_vieram():
     for particao in lote.particoes:
         if particao.cenario == "planejado" and particao.fazenda == FAZENDA_EXTERNA:
             do_plano.add((particao.entidade, particao.tipos))
-    assert do_plano == {("mov_animal", ("NASCIMENTO",)), ("rebanho_medio", None), ("orcamento", ("previsao",))}
+    assert do_plano == {("mov_animal", ("NASCIMENTO",)), ("rebanho_medio", None)}
     assert all(p.versao_plano is None for p in lote.particoes)    # vale para todas as versões da fazenda
 
 
@@ -201,20 +200,20 @@ def test_carga_do_planejado_com_versao_nova_e_versao_apagada(engine_etl, engine_
     r = carregar(engine_etl, payloads_metryx(**plano_metryx()))
     assert r.unidades[0].status.startswith("carregada"), r.unidades[0].erro
     assert previsto(engine_super) == {"nascimentos": 100, "versoes": [f"{FAZENDA_EXTERNA}|v1"], "rebanho": 110,
-                                      "orcado": 1500}
+                                      "orcado": None}       # a previsão financeira do payload não entra
     plano = plano_metryx()
     plano["nascimento_plano"].append(item_do_plano("7/25", 11, 90, versao=2))
     plano["rebanho_plano"] += [item_do_plano(None, 11, 200, versao=2, type="Entrada", originMovement="Saldo Inicial"),
                                item_do_plano("7/25", 11, 10, versao=2, type="Entrada", originMovement="nascimento")]
     carregar(engine_etl, payloads_metryx(**plano))
     assert previsto(engine_super) == {"nascimentos": 190, "versoes": [f"{FAZENDA_EXTERNA}|v1", f"{FAZENDA_EXTERNA}|v2"],
-                                      "rebanho": 320, "orcado": 1500}
+                                      "rebanho": 320, "orcado": None}
     so_a_versao_2 = plano_metryx()
     so_a_versao_2["nascimento_plano"] = [item_do_plano("7/25", 11, 90, versao=2)]
     so_a_versao_2["rebanho_plano"] = plano["rebanho_plano"][2:]
     carregar(engine_etl, payloads_metryx(**so_a_versao_2))
     assert previsto(engine_super) == {"nascimentos": 90, "versoes": [f"{FAZENDA_EXTERNA}|v2"], "rebanho": 210,
-                                      "orcado": 1500}
+                                      "orcado": None}
 
 
 # --- o mês das metas ------------------------------------------------------------------------------------------------
@@ -263,7 +262,7 @@ def test_evolucao_com_o_desmame_de_junho_depois_dos_nascimentos():
 
 def test_fluxo_de_caixa_entra_com_todas_as_versoes():
     """O orçamento do planejamento entra de todas as versões (a tela escolhe qual comparar), com a natureza do `type`
-    e no centro de custo quando o subcentro é o genérico; a previsão financeira continua como orçamento à parte."""
+    e no centro de custo quando o subcentro é o genérico; a previsão financeira não entra."""
     fluxo = [fluxo_de_caixa("2025-07-01", 1000, "Débito", versao=1),
              fluxo_de_caixa("2025-07-01", 1200, "Débito", versao=3),
              fluxo_de_caixa("2025-07-01", 5000, "Crédito", versao=3, centro="Rebanho", subcentro="Venda de Rebanho")]
@@ -277,12 +276,12 @@ def test_fluxo_de_caixa_entra_com_todas_as_versoes():
     assert do_planejamento == {("v1", "D", "Pastagens", None, Decimal(1000)),
                                ("v3", "D", "Pastagens", None, Decimal(1200)),
                                ("v3", "C", "Rebanho", "Venda de Rebanho", Decimal(5000))}
-    assert [orcamento.valor for orcamento in lote.orcamentos if orcamento.tipo == "previsao"] == [Decimal(1500)]
+    assert {orcamento.tipo for orcamento in lote.orcamentos} == {"planejamento"}
     versoes = {versao.codigo: (versao.oficial, versao.ordem) for versao in lote.versoes}
     # a versão 1 é a das metas de animais (a mais recente delas); a 3 só tem orçamento
     assert versoes[f"{FAZENDA_EXTERNA}|v1"] == (True, 1) and versoes[f"{FAZENDA_EXTERNA}|v3"] == (False, 3)
     tipos = {particao.tipos for particao in lote.particoes if particao.entidade == "orcamento"}
-    assert tipos == {("previsao",), ("planejamento",)}
+    assert tipos == {("planejamento",)}
 
 
 def test_despesa_do_fluxo_de_caixa_com_valor_negativo_continua_debito():

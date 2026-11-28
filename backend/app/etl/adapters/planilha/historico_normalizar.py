@@ -422,7 +422,8 @@ class MontagemHistorico:
         self._dre("planejado", "meta_dre", self.limite["orcamento"], orcado)
         for (conta, natureza, mes), valor in orcado.items():
             self.lote.orcamentos.append(OrcamentoFinanceiro(
-                fazenda=self.fazenda, versao_plano=VERSAO_PLANILHA, conta=conta, natureza=natureza, competencia=mes,
+                fazenda=self.fazenda, versao_plano=VERSAO_PLANILHA, tipo="planejamento", conta=conta,
+                natureza=natureza, competencia=mes,
                 valor=valor, origem_linha=f"meta_dre!{conta.centro}:{mes}"))
 
     def _dre(self, cenario: str, nome: str, limite: date, orcado: dict) -> None:

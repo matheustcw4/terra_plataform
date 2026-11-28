@@ -1,14 +1,16 @@
 """Qual orçamento entra como planejado do financeiro nas páginas Previsto × Realizado e Financeiro (pedido do usuário,
-29/10/2026): a tela escolhe o tipo do orçamento e, quando ele tem mais de uma versão, a versão.
+29/10/2026): o planejamento, na versão escolhida na tela.
 
 Regras:
-- tipos: 'previsao' (previsão financeira, o DRE previsto) e 'planejamento' (o orçamento do plano, por versão). A tela
-  só oferece os tipos que têm orçamento nas fazendas escolhidas. Sem pedido (ou pedido de um tipo que elas não têm),
-  vale o primeiro da lista que existir: a previsão financeira, que é o que o BI compara;
+- tipo: só 'planejamento' (o fluxo de caixa do plano do Metryx e o DRE planejado da planilha, por versão). A previsão
+  financeira do Metryx (contas a pagar e a receber) não é planejado e não entra nunca (pedido do usuário, 27/11/2026:
+  "planejamento é planejamento e vem dos endpoints"); até lá, era um segundo tipo, o padrão. O pedido de outro tipo
+  (um link antigo com `previsto=previsao`) dá o planejamento. A lista `tipos` continua na resposta, para o caso de um
+  tipo novo, e a tela só mostra o seletor quando há mais de um;
 - versão: sem escolha, em cada fazenda e safra (jul a jun) entra só a mais recente (maior ordem), para não somar
   versões do mesmo plano (o BI soma todas). As versões marcadas na tela para a fazenda (as mesmas das metas de
   animais, que vêm no recorte: versao_do_plano.py) entram todas, somadas; a fazenda marcada "nenhum planejamento" fica
-  sem orçamento, dos dois tipos;
+  sem orçamento;
 - a lista de versões é a mesma das outras páginas e do MENU: todas as fazendas do filtro, com as versões do plano
   nos meses (das metas e do orçamento do planejamento), por fazenda (versao_do_plano.py).
 """
@@ -23,8 +25,8 @@ from app.kpis.filtros_do_financeiro import DO_PLANEJADO
 from app.kpis.versao_do_plano import rotulo_da_versao, versoes_por_fazenda
 from app.schemas.api import EscolhaDoPrevisto, TipoDoPrevisto
 
-# na ordem da escolha padrão
-TIPOS = {"previsao": "Previsão financeira", "planejamento": "Planejamento (fluxo de caixa)"}
+# na ordem da escolha padrão; só o planejamento é planejado (pedido do usuário, 27/11/2026)
+TIPOS = {"planejamento": "Planejamento"}
 
 # Entra no lugar da view do orçamento: as linhas do tipo escolhido, nas versões que valem em cada fazenda e safra (as
 # marcadas na tela, que somam; na fazenda sem escolha, a de maior ordem; na "sem planejamento", nenhuma), pela função
@@ -43,8 +45,8 @@ ORCAMENTO_ESCOLHIDO = f"""(
 # dinheiro, em cada fazenda e safra (pedido do usuário, 27/11/2026). Antes era a versão das metas, escolhida à parte, e
 # a fazenda sem orçamento também entrava: na Maister, o plano "Global (24.06.26 teste)" de uma fazenda sem orçamento
 # quase dobrava o divisor, e o desembolso planejado de 26/27 caía de R$ 173,10 para R$ 79,04 por cabeça por mês.
-# Quando a versão do dinheiro não tem rebanho (a previsão financeira do Metryx, que não é uma versão do plano), vale a
-# versão do plano escolhida para a fazenda, só nas fazendas e safras que têm o dinheiro previsto.
+# Quando a versão do dinheiro não tem rebanho previsto (o fluxo de caixa de uma versão sem a evolução do rebanho), vale
+# a versão do plano escolhida para a fazenda, só nas fazendas e safras que têm o dinheiro previsto.
 VERSOES_DO_REBANHO_PREVISTO = """
     WITH orcamento AS (
         SELECT * FROM app.versoes_do_orcamento(CAST(:fazendas AS uuid[]), CAST(:tipo_do_previsto AS text),

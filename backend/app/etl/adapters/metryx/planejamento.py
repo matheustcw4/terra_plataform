@@ -20,10 +20,11 @@ Regras (27/10/2026):
   do Metryx divide o desembolso e o custeio previstos por cabeça (U6, safra 26/27 até outubro: Σ dos saldos do fim
   do mês = 31.958 cab e R$ 197,01 por cabeça por mês; a média entre o começo e o fim do mês dava R$ 204,49; conferido
   em 10/11/2026). Categoria negativa no mês conta zero (ver `rebanho_medio`). O BI não tem rebanho médio previsto;
-- DRE previsto: o `previsao-financeiro` não tem versão e entra numa versão própria; a natureza sai do sinal do valor
-  (crédito positivo, débito negativo), e a soma fica igual à do BI (fMetasDre). É o orçamento de tipo 'previsao';
+- o `previsao-financeiro` (a previsão de contas a pagar e a receber) NÃO é planejado e não entra (pedido do usuário,
+  27/11/2026: "planejamento é planejamento e vem dos endpoints"). Ele continua sendo baixado só para a classificação
+  dos centros de custo (classificacao.py);
 - orçamento do planejamento (29/10/2026): o `previsao-fluxo-caixa-planejamento` entra como orçamento de tipo
-  'planejamento', com TODAS as versões (a tela escolhe o tipo e a versão que compara com o realizado; padrão: a mais
+  'planejamento', com TODAS as versões (a tela escolhe a versão que compara com o realizado; padrão: a mais
   recente de cada fazenda e safra). A natureza vem só do `type`, e o valor entra sem sinal: parte das despesas vem
   negativa e é débito do mesmo jeito (corrigido em 10/11/2026, ver `fluxo_de_caixa`). Quase todo item vem com o
   subcentro genérico "Subcentro de Custo" (só o código muda): ele não é conta, e o item fica no centro de custo.
@@ -54,7 +55,6 @@ from app.etl.canonical import (
 if TYPE_CHECKING:
     from app.etl.adapters.metryx.normalizar import MontagemMetryx
 
-VERSAO_DO_FINANCEIRO = "previsao-financeiro"
 ENDPOINTS_COM_VERSAO = ("compra_plano", "venda_plano", "nascimento_plano", "morte_plano", "desmame_plano",
                         "rebanho_plano")
 ENDPOINT_DO_FLUXO = "fluxo_caixa_plano"
@@ -221,7 +221,6 @@ class MontagemDoPlano:
         self.nome_da_versao: dict[tuple[str, int], str | None] = {}    # (fazenda, versão) -> plVersionName
         self.versoes_usadas: set[tuple[str, int]] = set()             # nas metas de animais
         self.versoes_do_fluxo: set[tuple[str, int]] = set()           # no orçamento do planejamento
-        self.usou_o_financeiro = False
 
     def categoria(self, id_categoria: Any) -> ChaveCategoria:
         return ChaveCategoria(fonte_mapa="metryx_plano", escopo="cliente", escopo_id=self.metryx.cliente,
@@ -287,9 +286,6 @@ class MontagemDoPlano:
             codigo = codigo_da_versao(fazenda, numero)
             self.lote.versoes.append(RefVersaoPlano(cliente=self.metryx.cliente, codigo=codigo, nome=nome,
                                                     oficial=(fazenda, numero) in escolhidas, ordem=numero))
-        if self.usou_o_financeiro:
-            self.lote.versoes.append(RefVersaoPlano(cliente=self.metryx.cliente, codigo=VERSAO_DO_FINANCEIRO,
-                                                    nome="Previsão financeira do Metryx (sem versão)", oficial=True))
 
     # -- categorias --
 
@@ -436,33 +432,6 @@ class MontagemDoPlano:
             evolucao.somar_movimento(mes, categoria, -abs(qtd))
         else:
             evolucao.somar_movimento(mes, categoria, abs(qtd))
-
-    # -- DRE previsto --
-
-    def orcamento(self) -> None:
-        """A natureza sai do sinal do valor previsto (o débito vem negativo), como o BI soma (fMetasDre)."""
-        for numero, item in enumerate(self.dados.get("previsao_financeiro", [])):
-            ref = f"previsao_financeiro:{numero}"
-            fazenda = self.metryx.fazenda_pelo_id(item)
-            mes = para_data(item.get("date"))
-            valor = para_decimal(item.get("valorPrevisto"))
-            if fazenda is None or mes is None or valor is None:
-                self.metryx.rejeitar("orcamento", item, ref, "REQUIRED_MISSING",
-                                     "sem fazenda do cliente, data ou valor previsto", fazenda)
-                continue
-            if valor == 0:
-                continue
-            natureza = "C"
-            if valor < 0:
-                natureza = "D"
-            conta = ContaOrigem(centro=limpar_nome(item.get("costCenter")) or "(vazio)",
-                                subcentro=limpar_nome(item.get("subCenter")) or None)
-            extra = {campo: item.get(campo) for campo in ("type", "className", "activity")}
-            self.lote.orcamentos.append(OrcamentoFinanceiro(
-                fazenda=fazenda, versao_plano=VERSAO_DO_FINANCEIRO, tipo="previsao", conta=conta, natureza=natureza,
-                competencia=mes.replace(day=1), valor=abs(valor), atividade=atividade_do_item(item, "activity"),
-                classificacao=classificacao_do_item(item), origem_linha=ref, extra=extra))
-            self.usou_o_financeiro = True
 
     # -- orçamento do planejamento (fluxo de caixa) --
 
